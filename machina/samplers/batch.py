@@ -1,0 +1,51 @@
+import numpy as np
+import torch
+from torch.autograd import Variable
+from .base import BaseSampler
+
+
+class BatchSampler(BaseSampler):
+    def __init__(self, env):
+        BaseSampler.__init__(self, env)
+
+    def one_path(self, pol, prepro=None):
+        if prepro is None:
+            prepro = lambda x: x
+        obs = []
+        acs = []
+        rews = []
+        a_is = []
+        e_is = []
+        o = self.env.reset()
+        d = False
+        path_length = 0
+        while not d:
+            o = prepro(o)
+            ac_real, ac, a_i = pol(Variable(torch.from_numpy(o).float()))
+            next_o, r, d, e_i = self.env.step(ac_real)
+            obs.append(o)
+            rews.append(r)
+            acs.append(ac.data.cpu().numpy())
+            a_i = dict([(key, a_i[key].data.cpu().numpy()) for key in a_i.keys()])
+            a_is.append(a_i)
+            e_is.append(e_i)
+            path_length += 1
+            if d:
+                break
+            o = next_o
+        return path_length, dict(
+            obs=np.array(obs, dtype='float32'),
+            acs=np.array(acs, dtype='float32'),
+            rews=np.array(rews, dtype='float32'),
+            a_is=dict([(key, np.array([a_i[key] for a_i in a_is], dtype='float32')) for key in a_is[0].keys()]),
+            e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
+        )
+
+    def sample(self, pol, max_samples, prepro=None):
+        n_samples = 0
+        paths = []
+        while max_samples > n_samples:
+            l, path = self.one_path(pol, prepro)
+            n_samples += l
+            paths.append(path)
+        return paths
