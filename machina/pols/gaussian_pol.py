@@ -12,10 +12,13 @@ class GaussianPol(BasePol):
 
     def forward(self, obs):
         mean, log_std = self.net(obs)
-        ac = mean + Variable(torch.randn(self.ac_space.shape)) * torch.exp(log_std)
+        log_std = log_std.expand_as(mean)
+        ac = mean + Variable(torch.randn(mean.size())) * torch.exp(log_std)
         ac_real = ac.data.cpu().numpy()
+        lb, ub = self.ac_space.low, self.ac_space.high
         if self.normalize_ac:
-            lb, ub = self.ac_space.low, self.ac_space.high
             ac_real = lb + (ac_real + 1.) * 0.5 * (ub - lb)
+            ac_real = np.clip(ac_real, lb, ub)
+        else:
             ac_real = np.clip(ac_real, lb, ub)
         return ac_real, ac, dict(mean=mean, log_std=log_std)

@@ -21,12 +21,12 @@ class BatchSampler(BaseSampler):
         path_length = 0
         while not d:
             o = prepro(o)
-            ac_real, ac, a_i = pol(Variable(torch.from_numpy(o).float()))
-            next_o, r, d, e_i = self.env.step(ac_real)
+            ac_real, ac, a_i = pol(Variable(torch.from_numpy(o).float().unsqueeze(0)))
+            next_o, r, d, e_i = self.env.step(ac_real[0])
             obs.append(o)
             rews.append(r)
-            acs.append(ac.data.cpu().numpy())
-            a_i = dict([(key, a_i[key].data.cpu().numpy()) for key in a_i.keys()])
+            acs.append(ac.data.cpu().numpy()[0])
+            a_i = dict([(key, a_i[key].data.cpu().numpy()[0]) for key in a_i.keys()])
             a_is.append(a_i)
             e_is.append(e_i)
             path_length += 1
@@ -41,11 +41,13 @@ class BatchSampler(BaseSampler):
             e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
         )
 
-    def sample(self, pol, max_samples, prepro=None):
+    def sample(self, pol, max_samples, max_episodes, prepro=None):
         n_samples = 0
+        n_episodes = 0
         paths = []
-        while max_samples > n_samples:
+        while max_samples > n_samples and max_episodes > n_episodes:
             l, path = self.one_path(pol, prepro)
             n_samples += l
+            n_episodes += 1
             paths.append(path)
         return paths
