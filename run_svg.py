@@ -113,7 +113,7 @@ while args.max_episodes > total_epi:
             logger.record_tabular_misc_stat(key, value)
     logger.record_tabular('PolLogStd', pol_net.log_std_param.data.cpu().numpy()[0])
     logger.record_tabular_misc_stat('Reward', [np.sum(path['rews']) for path in paths])
-    logger.record_tabular('EpisodePerIter', on_data.num_epi)
+    logger.record_tabular('EpisodePerIter', len(paths))
     logger.record_tabular('TotalEpisode', total_epi)
     logger.record_tabular('StepPerIter', step)
     logger.record_tabular('TotalStep', total_step)
@@ -131,7 +131,6 @@ while args.max_episodes > total_epi:
     torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_last.pkl'))
-    del on_data
 
 
 
