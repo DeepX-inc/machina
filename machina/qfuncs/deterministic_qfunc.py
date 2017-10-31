@@ -7,5 +7,5 @@ class DeterministicQfunc(BaseQfunc):
         self.net = net
 
     def forward(self, obs, acs):
-        return self.net(obs, acs)
+        return self.net(obs, acs).view(-1)
 
