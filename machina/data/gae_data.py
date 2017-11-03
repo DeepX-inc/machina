@@ -30,7 +30,8 @@ class GAEData(BaseData):
                 for new_key in new_keys:
                     self.data_map[new_key] = np.concatenate([path[key][new_key] for path in self.paths], axis=0)
         if centerize:
-            self.data_map['advs'] = (self.data_map['advs'] - np.mean(self.data_map['advs'])) / (np.std(self.data_map['advs']) + 1e-6)
+            if 'advs' in self.data_map.keys():
+                self.data_map['advs'] = (self.data_map['advs'] - np.mean(self.data_map['advs'])) / (np.std(self.data_map['advs']) + 1e-6)
 
     def preprocess(self, vf, gamma, lam, centerize=True):
         all_path_vs = [vf(Variable(torch.from_numpy(path['obs']).float(), volatile=True)).data.cpu().numpy() for path in self.paths]
