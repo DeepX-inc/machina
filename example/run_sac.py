@@ -36,6 +36,7 @@ parser.add_argument('--max_data_size', type=int, default=1000000)
 parser.add_argument('--min_data_size', type=int, default=10000)
 parser.add_argument('--max_samples_per_iter', type=int, default=2000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=10000)
+parser.add_argument('--update_per_step', type=int, default=1)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--sampling', type=int, default=10)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
@@ -106,7 +107,7 @@ while args.max_episodes > total_epi:
         off_data,
         pol, qf, vf,
         optim_pol,optim_qf, optim_vf,
-        step, args.batch_size,
+        step * args.update_per_step, args.batch_size,
         args.gamma, args.sampling,
     )
 
