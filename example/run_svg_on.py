@@ -48,6 +48,9 @@ parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
 
+if not os.path.exists(args.log):
+    os.mkdir(args.log)
+
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
 pprint(vars(args))
@@ -82,7 +85,6 @@ optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 total_epi = 0
 total_step = 0
 max_rew = -1e6
-off_data = ReplayData(args.max_data_size, ob_space.shape[0], ac_space.shape[0])
 while args.max_episodes > total_epi:
     if args.use_prepro:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
@@ -93,11 +95,8 @@ while args.max_episodes > total_epi:
     step = sum([len(path['rews']) for path in paths])
     total_step += step
 
+    off_data = ReplayData(max_data_size=step+1, ob_dim=ob_space.shape[0], ac_dim=ac_space.shape[0])
     off_data.add_paths(paths)
-
-    if off_data.size <= args.min_data_size:
-        continue
-
 
     result_dict = svg.train(
         off_data,
@@ -131,6 +130,7 @@ while args.max_episodes > total_epi:
     torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_last.pkl'))
+
 
 
 

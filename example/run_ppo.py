@@ -49,6 +49,9 @@ parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
 
+if not os.path.exists(args.log):
+    os.mkdir(args.log)
+
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
 pprint(vars(args))

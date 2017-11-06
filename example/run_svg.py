@@ -13,15 +13,14 @@ import pybullet_envs
 
 import machina as mc
 from machina.pols import GaussianPol
-from machina.algos import sac
+from machina.algos import svg
 from machina.prepro import BasePrePro
-from machina.vfuncs import DeterministicVfunc
 from machina.qfuncs import DeterministicQfunc
 from machina.envs import GymEnv
-from machina.data import ReplayData
+from machina.data import ReplayData, GAEData
 from machina.samplers import BatchSampler
 from machina.misc import logger
-from net import PolNet, QNet, VNet
+from net import PolNet, QNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -40,12 +39,17 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--sampling', type=int, default=10)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=3e-4)
-parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
 
-parser.add_argument('--ent_alpha', type=float, default=1)
+parser.add_argument('--batch_type', type=str, choices=['large', 'small'], default='large')
+
+parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
+parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
+
+if not os.path.exists(args.log):
+    os.mkdir(args.log)
 
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
@@ -72,18 +76,16 @@ pol_net = PolNet(ob_space, ac_space)
 pol = GaussianPol(ob_space, ac_space, pol_net)
 qf_net = QNet(ob_space, ac_space)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
-vf_net = VNet(ob_space)
-vf = DeterministicVfunc(ob_space, vf_net)
+targ_qf = copy.deepcopy(qf)
 prepro = BasePrePro(ob_space)
 sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
-optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 
 total_epi = 0
 total_step = 0
 max_rew = -1e6
-off_data = ReplayData(args.max_data_size, ob_space.shape[0], ac_space.shape[0], rew_scale=1/args.ent_alpha)
+off_data = ReplayData(args.max_data_size, ob_space.shape[0], ac_space.shape[0])
 while args.max_episodes > total_epi:
     if args.use_prepro:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
@@ -99,12 +101,12 @@ while args.max_episodes > total_epi:
     if off_data.size <= args.min_data_size:
         continue
 
-    result_dict = sac.train(
+
+    result_dict = svg.train(
         off_data,
-        pol, qf, vf,
-        optim_pol,optim_qf, optim_vf,
-        step, args.batch_size,
-        args.gamma, args.sampling,
+        pol, qf, targ_qf,
+        optim_pol,optim_qf, step, args.batch_size,
+        args.tau, args.gamma, args.lam, args.sampling,
     )
 
     for key, value in result_dict.items():
@@ -132,5 +134,8 @@ while args.max_episodes > total_epi:
     torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_last.pkl'))
+
+
+
 
 
