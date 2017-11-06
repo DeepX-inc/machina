@@ -4,10 +4,12 @@ from .base import BaseData
 
 class ReplayData(BaseData):
     def __init__(
-            self, max_data_size, ob_dim, ac_dim):
+            self, max_data_size, ob_dim, ac_dim, rew_scale=1):
+        self.max_data_size = max_data_size
         self.ob_dim = ob_dim
         self.ac_dim = ac_dim
-        self.max_data_size = max_data_size
+        self.rew_scale = rew_scale
+
         self.obs = np.zeros(
             (max_data_size, ob_dim),
         )
@@ -23,7 +25,7 @@ class ReplayData(BaseData):
     def add_sample(self, ob, ac, rew, terminal):
         self.obs[self.top] = ob
         self.acs[self.top] = ac
-        self.rews[self.top] = rew
+        self.rews[self.top] = rew * self.rew_scale
         self.terminals[self.top] = terminal
         self.top = (self.top + 1) % self.max_data_size
         if self.size >= self.max_data_size:

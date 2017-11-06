@@ -7,4 +7,4 @@ class DeterministicVfunc(BaseVfunc):
         self.net = net
 
     def forward(self, obs):
-        return self.net(obs)
+        return self.net(obs).view(-1)
