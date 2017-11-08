@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from torch.autograd import Variable
+from ..utils import Variable
 import scipy
 
 from .base import BaseData
