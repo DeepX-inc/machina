@@ -1,5 +1,6 @@
 import contextlib
 import torch.autograd as autograd
+from .misc import logger
 
 # default gpu_id is -1.
 # this means using cpu
@@ -17,6 +18,14 @@ def cpu_mode():
     gpu_id = -1
     yield
     gpu_id = _gpu_id
+
+@contextlib.contextmanager
+def measure(name):
+    import time
+    s = time.time()
+    yield
+    e = time.time()
+    logger.log("{}: {:.4f}sec".format(name, e-s))
 
 
 class Variable(autograd.Variable):
