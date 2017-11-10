@@ -1,6 +1,7 @@
+import copy
 import numpy as np
 import torch
-from torch.autograd import Variable
+from ..utils import Variable, cpu_mode
 from .base import BaseSampler
 
 
@@ -42,12 +43,15 @@ class BatchSampler(BaseSampler):
         )
 
     def sample(self, pol, max_samples, max_episodes, prepro=None):
+        sampling_pol = copy.deepcopy(pol)
+        sampling_pol = sampling_pol.cpu()
         n_samples = 0
         n_episodes = 0
         paths = []
-        while max_samples > n_samples and max_episodes > n_episodes:
-            l, path = self.one_path(pol, prepro)
-            n_samples += l
-            n_episodes += 1
-            paths.append(path)
+        with cpu_mode():
+            while max_samples > n_samples and max_episodes > n_episodes:
+                l, path = self.one_path(sampling_pol, prepro)
+                n_samples += l
+                n_episodes += 1
+                paths.append(path)
         return paths

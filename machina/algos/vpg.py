@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
+from ..utils import Variable
 from ..misc import logger
 
 def make_pol_loss(pol, batch):

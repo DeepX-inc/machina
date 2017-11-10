@@ -22,8 +22,8 @@ class BasePrePro(object):
 
     def prepro_with_update(self, ob):
         if self.normalize_ob:
-            ob = (ob - self.ob_rm) / (np.sqrt(self.ob_rv) + 1e-8)
             self.update_ob_rms(ob)
+            ob = (ob - self.ob_rm) / (np.sqrt(self.ob_rv) + 1e-8)
             ob = np.clip(ob, -5, 5)
         return ob
 
