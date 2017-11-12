@@ -68,5 +68,59 @@ class QNet(nn.Module):
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
 
+class PolNet_BN(nn.Module):
+    def __init__(self, ob_space, ac_space):
+        nn.Module.__init__(self)
+        self.fc1 = nn.Linear(ob_space.shape[0], 200)
+        self.fc1_bn=nn.BatchNorm1d(200)
+        self.fc2 = nn.Linear(200, 100)
+        self.fc2_bn=nn.BatchNorm1d(100)
+        self.mean_layer = nn.Linear(100, ac_space.shape[0])
+        #self.log_std_layer = nn.Linear(100, ac_space.shape[0])
+        self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
+
+        self.fc1.apply(weight_init)
+        self.fc2.apply(weight_init)
+        self.mean_layer.apply(mini_weight_init)
+        #self.log_std_layer.apply(mini_weight_init)
+
+    def forward(self, ob):
+        h = F.relu(self.fc1_bn(self.fc1(ob)))
+        h = F.relu(self.fc2_bn(self.fc2(h)))
+        mean = F.tanh(self.mean_layer(h))
+        #log_std = self.log_std_layer(h)
+        return mean, self.log_std_param
 
 
+class VNet_BN(nn.Module):
+    def __init__(self, ob_space):
+        nn.Module.__init__(self)
+        self.fc1 = nn.Linear(ob_space.shape[0], 200)
+        self.fc1_bn=nn.BatchNorm1d(200)
+        self.fc2 = nn.Linear(200, 100)
+        self.fc2_bn=nn.BatchNorm1d(100)
+        self.output_layer = nn.Linear(100, 1)
+        self.apply(weight_init)
+
+    def forward(self, ob):
+        h = F.relu(self.fc1_bn(self.fc1(ob)))
+        h = F.relu(self.fc2_bn(self.fc2(h)))
+        return self.output_layer(h)
+
+class QNet_BN(nn.Module):
+    def __init__(self, ob_space, ac_space):
+        nn.Module.__init__(self)
+        self.fc1 = nn.Linear(ob_space.shape[0], 300)
+        self.fc1_bn=nn.BatchNorm1d(300)
+        self.fc2 = nn.Linear(ac_space.shape[0] + 300, 400)
+        self.fc2_bn=nn.BatchNorm1d(400)
+        self.output_layer = nn.Linear(400, 1)
+        self.fc1.apply(weight_init)
+        self.fc2.apply(weight_init)
+        self.output_layer.apply(mini_weight_init)
+
+    def forward(self, ob, ac):
+        h = F.relu(self.fc1_bn(self.fc1(ob)))
+        h = torch.cat([h, ac], dim=1)
+        h = F.relu(self.fc2_bn(self.fc2(h)))
+        return self.output_layer(h)
