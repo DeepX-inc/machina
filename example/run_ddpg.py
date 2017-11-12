@@ -20,7 +20,7 @@ from machina.envs import GymEnv
 from machina.data import ReplayData, GAEData
 from machina.samplers import BatchSampler
 from machina.misc import logger
-from net import PolNet, QNet
+from net import PolNet, QNet,PolNet_BN, QNet_BN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -46,6 +46,7 @@ parser.add_argument('--batch_type', type=str, choices=['large', 'small'], defaul
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
+parser.add_argument('--batch_normalization', action='store_True') #store_Trueがあればdefaultいらないのでは？
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -71,11 +72,16 @@ env.env.seed(args.seed)
 
 ob_space = env.observation_space
 ac_space = env.action_space
-
-pol_net = PolNet(ob_space, ac_space)
+if args.batch_normalization:
+    pol_net = PolNet_BN(ob_space, ac_space)
+else:
+    pol_net = PolNet(ob_space, ac_space)
 pol = GaussianPol(ob_space, ac_space, pol_net)
 targ_pol=copy.deepcopy(pol)
-qf_net = QNet(ob_space, ac_space)
+if args.batch_normalization:
+    qf_net = QNet_BN(ob_space, ac_space)
+else:
+    qf_net = QNet(ob_space, ac_space)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf = copy.deepcopy(qf)
 prepro = BasePrePro(ob_space)
