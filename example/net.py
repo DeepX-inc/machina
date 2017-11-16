@@ -38,6 +38,24 @@ class PolNet(nn.Module):
         #log_std = self.log_std_layer(h)
         return mean, self.log_std_param
 
+class DeterministicPolNet(nn.Module):
+    def __init__(self, ob_space, ac_space):
+        nn.Module.__init__(self)
+        self.fc1 = nn.Linear(ob_space.shape[0], 200)
+        self.fc2 = nn.Linear(200, 100)
+        self.mean_layer = nn.Linear(100, ac_space.shape[0])
+
+        self.fc1.apply(weight_init)
+        self.fc2.apply(weight_init)
+        self.mean_layer.apply(mini_weight_init)
+
+    def forward(self, ob):
+        h = F.relu(self.fc1(ob))
+        h = F.relu(self.fc2(h))
+        mean = F.tanh(self.mean_layer(h))
+        return mean
+
+
 
 class VNet(nn.Module):
     def __init__(self, ob_space):
@@ -68,7 +86,7 @@ class QNet(nn.Module):
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
 
-class PolNet_BN(nn.Module):
+class PolNetBN(nn.Module):
     def __init__(self, ob_space, ac_space):
         nn.Module.__init__(self)
         self.fc1 = nn.Linear(ob_space.shape[0], 200)
@@ -91,8 +109,26 @@ class PolNet_BN(nn.Module):
         #log_std = self.log_std_layer(h)
         return mean, self.log_std_param
 
+class DeterministicPolNetBN(nn.Module):
+    def __init__(self, ob_space, ac_space):
+        nn.Module.__init__(self)
+        self.fc1 = nn.Linear(ob_space.shape[0], 200)
+        self.fc1_bn=nn.BatchNorm1d(200)
+        self.fc2 = nn.Linear(200, 100)
+        self.fc2_bn=nn.BatchNorm1d(100)
+        self.mean_layer = nn.Linear(100, ac_space.shape[0])
 
-class VNet_BN(nn.Module):
+        self.fc1.apply(weight_init)
+        self.fc2.apply(weight_init)
+        self.mean_layer.apply(mini_weight_init)
+
+    def forward(self, ob):
+        h = F.relu(self.fc1_bn(self.fc1(ob)))
+        h = F.relu(self.fc2_bn(self.fc2(h)))
+        mean = F.tanh(self.mean_layer(h))
+        return mean
+
+class VNetBN(nn.Module):
     def __init__(self, ob_space):
         nn.Module.__init__(self)
         self.fc1 = nn.Linear(ob_space.shape[0], 200)
@@ -107,7 +143,7 @@ class VNet_BN(nn.Module):
         h = F.relu(self.fc2_bn(self.fc2(h)))
         return self.output_layer(h)
 
-class QNet_BN(nn.Module):
+class QNetBN(nn.Module):
     def __init__(self, ob_space, ac_space):
         nn.Module.__init__(self)
         self.fc1 = nn.Linear(ob_space.shape[0], 300)
