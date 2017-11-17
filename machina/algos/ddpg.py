@@ -8,8 +8,8 @@ from ..misc import logger
 def make_pol_loss(pol, qf, batch):
     obs = Variable(torch.from_numpy(batch['obs']).float())
     q = 0
-    _, acs, _ = pol(obs)
-    q=qf(obs,acs)
+    _, _, mean = pol(obs)
+    q = qf(obs, mean)
     pol_loss = -torch.mean(q)
     return pol_loss
 
@@ -20,15 +20,15 @@ def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
     next_obs = Variable(torch.from_numpy(batch['next_obs']).float())
     terminals = Variable(torch.from_numpy(batch['terminals']).float())
     next_q = 0
-    _, next_acs, _ = targ_pol(next_obs)
-    next_q += targ_qf(next_obs, next_acs)
+    _, _, mean = targ_pol(next_obs)
+    next_q += targ_qf(next_obs, mean)
     targ = rews + gamma * next_q * (1 - terminals)
     targ = Variable(targ.data)
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
 
 
 def train(off_data,
-          pol, targ_pol, qf, targ_qf,
+        pol, targ_pol, qf, targ_qf,
         optim_pol, optim_qf,
         epoch, batch_size,# optimization hypers
         tau, gamma, lam # advantage estimation

@@ -12,7 +12,7 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import DeterministicPolPlusNoise
+from machina.pols import DeterministicOUNoisePol, OrnsteinUhlenbeckActionNoise
 from machina.algos import ddpg
 from machina.prepro import BasePrePro
 from machina.qfuncs import DeterministicQfunc
@@ -20,7 +20,7 @@ from machina.envs import GymEnv
 from machina.data import ReplayData, GAEData
 from machina.samplers import BatchSampler
 from machina.misc import logger
-from net import DeterministicPolNet, QNet,DeterministicPolNetBN, QNetBN
+from net import DeterministicPolNet, QNet, DeterministicPolNetBN, QNetBN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -36,7 +36,6 @@ parser.add_argument('--min_data_size', type=int, default=10000)
 parser.add_argument('--max_samples_per_iter', type=int, default=2000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--sampling', type=int, default=10)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
@@ -46,7 +45,7 @@ parser.add_argument('--batch_type', type=str, choices=['large', 'small'], defaul
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
-parser.add_argument('--batch_normalization', action='store_True')#store_Trueがあればdefaultいらないのでは？
+parser.add_argument('--batch_normalization', action='store_True', default=True)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -76,7 +75,8 @@ if args.batch_normalization:
     pol_net = DeterministicPolNetBN(ob_space, ac_space)
 else:
     pol_net = DeterministicPolNet(ob_space, ac_space)
-pol = DeterministicPolPlusNoise(ob_space, ac_space, pol_net)
+noise=OrnsteinUhlenbeckActionNoise()
+pol = DeterministicOUNoisePol(ob_space, ac_space, pol_net, noise)
 targ_pol=copy.deepcopy(pol)
 if args.batch_normalization:
     qf_net = QNetBN(ob_space, ac_space)
@@ -110,7 +110,7 @@ while args.max_episodes > total_epi:
         off_data,
         pol,targ_pol, qf, targ_qf,
         optim_pol,optim_qf, step, args.batch_size,
-        args.tau, args.gamma, args.lam, args.sampling,
+        args.tau, args.gamma, args.lam
     )
 
     for key, value in result_dict.items():
