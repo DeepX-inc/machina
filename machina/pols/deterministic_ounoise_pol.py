@@ -43,7 +43,7 @@ class DeterministicOUNoisePol(BasePol):
     def forward(self, obs):
         mean = self.net(obs)
         action_noise = self.noise()
-        ac = mean + action_noise
+        ac = mean + Variable(torch.from_numpy(action_noise))
         ac_real = ac.data.cpu().numpy()
         lb, ub = self.ac_space.low, self.ac_space.high
         if self.normalize_ac:
