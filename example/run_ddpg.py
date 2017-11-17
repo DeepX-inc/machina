@@ -75,9 +75,9 @@ if args.batch_normalization:
     pol_net = DeterministicPolNetBN(ob_space, ac_space)
 else:
     pol_net = DeterministicPolNet(ob_space, ac_space)
-noise=OrnsteinUhlenbeckActionNoise(mu=np.zeros(ac_space.shape[0]))
+noise = OrnsteinUhlenbeckActionNoise(mu = np.zeros(ac_space.shape[0]))
 pol = DeterministicOUNoisePol(ob_space, ac_space, pol_net, noise)
-targ_pol=copy.deepcopy(pol)
+targ_pol = copy.deepcopy(pol)
 if args.batch_normalization:
     qf_net = QNetBN(ob_space, ac_space)
 else:
