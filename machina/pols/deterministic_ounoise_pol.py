@@ -26,7 +26,7 @@ class OrnsteinUhlenbeckActionNoise(ActionNoise):
         if self.x0 is not None:
             self.x_prev = self.x0
         else:
-            self.x_prev = np.zeros_like(self.mu)
+            self.x_prev = np.zeros_like(self.mu, dtype = np.float32)
 
 
 class DeterministicOUNoisePol(BasePol):
@@ -43,8 +43,7 @@ class DeterministicOUNoisePol(BasePol):
     def forward(self, obs):
         mean = self.net(obs)
         action_noise = self.noise()
-        print('action noise shape size', action_noise.shape, action_noise.size)
-        ac = mean + Variable(action_noise)
+        ac = mean + action_noise
         ac_real = ac.data.cpu().numpy()
         lb, ub = self.ac_space.low, self.ac_space.high
         if self.normalize_ac:
