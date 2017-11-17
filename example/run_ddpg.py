@@ -85,7 +85,7 @@ else:
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf = copy.deepcopy(qf)
 prepro = BasePrePro(ob_space)
-sampler = BatchSampler(envs)
+sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 
