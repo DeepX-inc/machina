@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from ..misc import logger
 
+
 def make_pol_loss(pol, qf, batch):
     obs = Variable(torch.from_numpy(batch['obs']).float())
     q = 0
@@ -12,6 +13,7 @@ def make_pol_loss(pol, qf, batch):
     q = qf(obs, mean)
     pol_loss = -torch.mean(q)
     return pol_loss
+
 
 def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
     obs = Variable(torch.from_numpy(batch['obs']).float())
@@ -56,7 +58,5 @@ def train(off_data,
 
     logger.log("Optimization finished!")
 
-    return dict(PolLoss=pol_losses,
-        QfLoss=qf_losses,
-    )
+    return {'PolLoss': pol_losses, 'QfLoss': qf_losses}
 

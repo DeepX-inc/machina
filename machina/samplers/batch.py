@@ -9,7 +9,7 @@ class BatchSampler(BaseSampler):
     def __init__(self, env):
         BaseSampler.__init__(self, env)
 
-    def one_path(self, pol, noise, prepro=None):
+    def one_path(self, pol, prepro=None):
         if prepro is None:
             prepro = lambda x: x
         obs = []
@@ -18,7 +18,7 @@ class BatchSampler(BaseSampler):
         a_is = []
         e_is = []
         o = self.env.reset()
-        noise.reset()
+        pol.reset()
         d = False
         path_length = 0
         while not d:
@@ -51,7 +51,7 @@ class BatchSampler(BaseSampler):
         paths = []
         with cpu_mode():
             while max_samples > n_samples and max_episodes > n_episodes:
-                l, path = self.one_path(sampling_pol, prepro, noise)
+                l, path = self.one_path(sampling_pol, prepro)
                 n_samples += l
                 n_episodes += 1
                 paths.append(path)

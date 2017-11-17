@@ -45,7 +45,7 @@ parser.add_argument('--batch_type', type=str, choices=['large', 'small'], defaul
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
-parser.add_argument('--batch_normalization', action='store_True', default=True)
+parser.add_argument('--batch_normalization', action='store_True', default=False)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -75,7 +75,7 @@ if args.batch_normalization:
     pol_net = DeterministicPolNetBN(ob_space, ac_space)
 else:
     pol_net = DeterministicPolNet(ob_space, ac_space)
-noise=OrnsteinUhlenbeckActionNoise()
+noise=OrnsteinUhlenbeckActionNoise(mu=np.zeros(ac_space.shape[0]))
 pol = DeterministicOUNoisePol(ob_space, ac_space, pol_net, noise)
 targ_pol=copy.deepcopy(pol)
 if args.batch_normalization:
@@ -85,7 +85,7 @@ else:
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf = copy.deepcopy(qf)
 prepro = BasePrePro(ob_space)
-sampler = BatchSampler(env)
+sampler = BatchSampler(env, noise)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 
@@ -108,8 +108,8 @@ while args.max_episodes > total_epi:
 
     result_dict = ddpg.train(
         off_data,
-        pol,targ_pol, qf, targ_qf,
-        optim_pol,optim_qf, step, args.batch_size,
+        pol, targ_pol, qf, targ_qf,
+        optim_pol, optim_qf, step, args.batch_size,
         args.tau, args.gamma, args.lam
     )
 

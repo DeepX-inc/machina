@@ -9,3 +9,6 @@ class BasePol(nn.Module):
         self.ac_space = ac_space
         self.normalize_ac = normalize_ac
 
+    def reset(self):
+        pass
+
