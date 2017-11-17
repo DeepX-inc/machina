@@ -43,6 +43,7 @@ class DeterministicOUNoisePol(BasePol):
     def forward(self, obs):
         mean = self.net(obs)
         action_noise = self.noise()
+        print('action noise shape size', action_noise.shape, action_noise.size)
         ac = mean + Variable(action_noise)
         ac_real = ac.data.cpu().numpy()
         lb, ub = self.ac_space.low, self.ac_space.high
