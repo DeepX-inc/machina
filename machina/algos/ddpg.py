@@ -2,15 +2,15 @@
 
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
+from ..utils import Variable
 from ..misc import logger
 
 
 def make_pol_loss(pol, qf, batch):
     obs = Variable(torch.from_numpy(batch['obs']).float())
     q = 0
-    _, _, mean = pol(obs)
-    q = qf(obs, mean['mean'])
+    _, _, param = pol(obs)
+    q = qf(obs, param['mean'])
     pol_loss = -torch.mean(q)
     return pol_loss
 
@@ -22,8 +22,8 @@ def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
     next_obs = Variable(torch.from_numpy(batch['next_obs']).float())
     terminals = Variable(torch.from_numpy(batch['terminals']).float())
     next_q = 0
-    _, _, mean = targ_pol(next_obs)
-    next_q += targ_qf(next_obs, mean['mean'])
+    _, _, param = targ_pol(next_obs)
+    next_q += targ_qf(next_obs, param['mean'])
     targ = rews + gamma * next_q * (1 - terminals)
     targ = Variable(targ.data)
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)

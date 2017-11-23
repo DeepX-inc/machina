@@ -89,7 +89,7 @@ prepro = BasePrePro(ob_space)
 sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
-
+off_data = ReplayData(max_data_size=args.max_data_size + 1, ob_dim=ob_space.shape[0], ac_dim=ac_space.shape[0])
 
 total_epi = 0
 total_step = 0
@@ -104,7 +104,6 @@ while args.max_episodes > total_epi:
     step = sum([len(path['rews']) for path in paths])
     total_step += step
 
-    off_data = ReplayData(max_data_size=step+1, ob_dim=ob_space.shape[0], ac_dim=ac_space.shape[0])
     off_data.add_paths(paths)
 
     result_dict = ddpg.train(
