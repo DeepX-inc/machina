@@ -24,6 +24,7 @@ from net import DeterministicPolNet, QNet, DeterministicPolNetBN, QNetBN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
+parser.add_argument('--log_filename', type=str, default='progress')
 parser.add_argument('--env_name', type=str, default='LunarLanderContinuous-v2')
 parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
@@ -65,7 +66,7 @@ torch.manual_seed(args.seed)
 if args.roboschool:
     import roboschool
 
-logger.add_tabular_output(os.path.join(args.log, 'progress.csv'))
+logger.add_tabular_output(os.path.join(args.log, args.log_filename + '.csv'))
 
 env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
