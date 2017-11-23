@@ -119,7 +119,7 @@ while args.max_episodes > total_epi:
             logger.record_tabular(key, value)
         elif len(value) >= 1:
             logger.record_tabular_misc_stat(key, value)
-    logger.record_tabular('PolLogStd', pol_net.log_std_param.data.cpu().numpy()[0])
+
     logger.record_tabular_misc_stat('Reward', [np.sum(path['rews']) for path in paths])
     logger.record_tabular('EpisodePerIter', len(paths))
     logger.record_tabular('TotalEpisode', total_epi)
