@@ -12,7 +12,7 @@ class OrnsteinUhlenbeckActionNoise(ActionNoise):
     def __init__(self, mu, sigma=0.2, theta=.15, dt=1e-2, x0=None):
         self.theta = theta
         self.mu = mu
-        self.sigma = sigma
+        self.sigma = sigma * np.ones_like(self.mu)
         self.dt = dt
         self.x0 = x0
         self.reset()
@@ -29,13 +29,14 @@ class OrnsteinUhlenbeckActionNoise(ActionNoise):
             self.x_prev = np.zeros_like(self.mu, dtype = np.float32)
 
 
-class DeterministicOUNoisePol(BasePol):
-    def __init__(self, ob_space, ac_space, net, noise, normalize_ac=True):
+class DeterministicPol(BasePol):
+    def __init__(self, ob_space, ac_space, net, noise=None, apply_noise=False, normalize_ac=True):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
         self.net = net
         if gpu_id != -1:
             self.cuda(gpu_id)
         self.noise = noise
+        self.apply_noise = apply_noise
 
     def reset(self):
         self.noise.reset()
@@ -43,7 +44,12 @@ class DeterministicOUNoisePol(BasePol):
     def forward(self, obs):
         mean = self.net(obs)
         action_noise = self.noise()
-        ac = mean + Variable(torch.from_numpy(action_noise))
+        apply_noise = self.apply_noise
+        ac = mean
+        if action_noise is not None and apply_noise:
+            ac = ac + Variable(torch.from_numpy(action_noise)).float()
+        else:
+            pass
         ac_real = ac.data.cpu().numpy()
         lb, ub = self.ac_space.low, self.ac_space.high
         if self.normalize_ac:

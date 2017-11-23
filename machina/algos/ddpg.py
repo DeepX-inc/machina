@@ -10,7 +10,7 @@ def make_pol_loss(pol, qf, batch):
     obs = Variable(torch.from_numpy(batch['obs']).float())
     q = 0
     _, _, mean = pol(obs)
-    q = qf(obs, mean)
+    q = qf(obs, mean['mean'])
     pol_loss = -torch.mean(q)
     return pol_loss
 
@@ -23,7 +23,7 @@ def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
     terminals = Variable(torch.from_numpy(batch['terminals']).float())
     next_q = 0
     _, _, mean = targ_pol(next_obs)
-    next_q += targ_qf(next_obs, mean)
+    next_q += targ_qf(next_obs, mean['mean'])
     targ = rews + gamma * next_q * (1 - terminals)
     targ = Variable(targ.data)
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
@@ -50,7 +50,7 @@ def train(off_data,
         pol_loss.backward()
         optim_pol.step()
 
-        for q, targ_q, p, targ_p in zip(qf.parameters(), targ_qf.parameters(),pol.paramameters(),targ_pol.parameters()):
+        for q, targ_q, p, targ_p in zip(qf.parameters(), targ_qf.parameters(), pol.parameters(), targ_pol.parameters()):
             targ_p.data.copy_((1 - tau) * targ_p.data + tau * p.data)
             targ_q.data.copy_((1 - tau) * targ_q.data + tau * q.data)
         qf_losses.append(qf_bellman_loss.data.cpu().numpy())

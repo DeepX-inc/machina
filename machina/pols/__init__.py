@@ -1,2 +1,2 @@
 from .gaussian_pol import GaussianPol
-from .deterministic_ounoise_pol import OrnsteinUhlenbeckActionNoise, DeterministicOUNoisePol
+from .deterministic_ounoise_pol import OrnsteinUhlenbeckActionNoise, DeterministicPol

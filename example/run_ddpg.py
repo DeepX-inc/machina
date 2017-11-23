@@ -12,7 +12,7 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import DeterministicOUNoisePol, OrnsteinUhlenbeckActionNoise
+from machina.pols import DeterministicPol, OrnsteinUhlenbeckActionNoise
 from machina.algos import ddpg
 from machina.prepro import BasePrePro
 from machina.qfuncs import DeterministicQfunc
@@ -46,6 +46,7 @@ parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
 parser.add_argument('--batch_normalization', action='store_true', default=False)
+parser.add_argument('--apply_noise', action='store_true', default=False)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -76,7 +77,7 @@ if args.batch_normalization:
 else:
     pol_net = DeterministicPolNet(ob_space, ac_space)
 noise = OrnsteinUhlenbeckActionNoise(mu = np.zeros(ac_space.shape[0]))
-pol = DeterministicOUNoisePol(ob_space, ac_space, pol_net, noise)
+pol = DeterministicPol(ob_space, ac_space, pol_net, noise, args.apply_noise)
 targ_pol = copy.deepcopy(pol)
 if args.batch_normalization:
     qf_net = QNetBN(ob_space, ac_space)
@@ -138,9 +139,3 @@ while args.max_episodes > total_epi:
     torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_last.pkl'))
-
-
-
-
-
-
