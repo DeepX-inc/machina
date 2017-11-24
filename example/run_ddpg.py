@@ -41,7 +41,7 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
-parser.add_argument('--cuda')
+parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--batch_type', type=str, choices=['large', 'small'], default='large')
 
