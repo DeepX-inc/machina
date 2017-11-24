@@ -66,7 +66,7 @@ torch.manual_seed(args.seed)
 if args.roboschool:
     import roboschool
 
-logger.add_tabular_output(os.path.join(args.log, args.log_filename + '.csv'))
+logger.add_tabular_output(os.path.join(args.log, args.log_filename, '.csv'))
 
 env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
@@ -129,13 +129,13 @@ while args.max_episodes > total_epi:
 
     mean_rew = np.mean([np.sum(path['rews']) for path in paths])
     if mean_rew > max_rew:
-        torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
-        torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_max.pkl'))
-        torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_max.pkl'))
+        torch.save(pol.state_dict(), os.path.join(args.log, args.log_filename,'models', 'pol_max.pkl'))
+        torch.save(qf.state_dict(), os.path.join(args.log, args.log_filename,'models', 'qf_max.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(args.log, args.log_filename, 'models', 'optim_pol_max.pkl'))
+        torch.save(optim_qf.state_dict(), os.path.join(args.log, args.log_filename, 'models', 'optim_qf_max.pkl'))
         max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_last.pkl'))
-    torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
-    torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_last.pkl'))
+    torch.save(pol.state_dict(), os.path.join(args.log, args.log_filename, 'models', 'pol_last.pkl'))
+    torch.save(qf.state_dict(), os.path.join(args.log, args.log_filename, 'models', 'qf_last.pkl'))
+    torch.save(optim_pol.state_dict(), os.path.join(args.log, args.log_filename, 'models', 'optim_pol_last.pkl'))
+    torch.save(optim_qf.state_dict(), os.path.join(args.log, args.log_filename, 'models', 'optim_qf_last.pkl'))
