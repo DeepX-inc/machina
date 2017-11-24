@@ -24,7 +24,7 @@ from net import DeterministicPolNet, QNet, DeterministicPolNetBN, QNetBN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--log_filename', type=str, default='progress')
+parser.add_argument('--log_filename', type=str, default='')
 parser.add_argument('--env_name', type=str, default='LunarLanderContinuous-v2')
 parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
@@ -66,7 +66,7 @@ torch.manual_seed(args.seed)
 if args.roboschool:
     import roboschool
 
-logger.add_tabular_output(os.path.join(args.log, args.log_filename+'.csv'))
+logger.add_tabular_output(os.path.join(args.log, args.log_filename+'progress.csv'))
 
 env = GymEnv(args.env_name, log_dir=os.path.join(args.log, args.log_filename+'movie'), record_video=args.record)
 env.env.seed(args.seed)
@@ -130,12 +130,12 @@ while args.max_episodes > total_epi:
     mean_rew = np.mean([np.sum(path['rews']) for path in paths])
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(args.log, 'models', args.log_filename + 'pol_max.pkl'))
-        torch.save(qf.state_dict(), os.path.join(args.log, args.log_filename,'models', args.log_filename +  'qf_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, args.log_filename, 'models', args.log_filename +  'optim_pol_max.pkl'))
-        torch.save(optim_qf.state_dict(), os.path.join(args.log, args.log_filename, 'models', args.log_filename +  'optim_qf_max.pkl'))
+        torch.save(qf.state_dict(), os.path.join(args.log, 'models', args.log_filename +  'qf_max.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', args.log_filename +  'optim_pol_max.pkl'))
+        torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', args.log_filename +  'optim_qf_max.pkl'))
         max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(args.log, args.log_filename, 'models', args.log_filename +  'pol_last.pkl'))
-    torch.save(qf.state_dict(), os.path.join(args.log, args.log_filename, 'models', args.log_filename + 'qf_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(args.log, args.log_filename, 'models', args.log_filename +  'optim_pol_last.pkl'))
-    torch.save(optim_qf.state_dict(), os.path.join(args.log, args.log_filename, 'models', args.log_filename +  'optim_qf_last.pkl'))
+    torch.save(pol.state_dict(), os.path.join(args.log, 'models', args.log_filename +  'pol_last.pkl'))
+    torch.save(qf.state_dict(), os.path.join(args.log, 'models', args.log_filename + 'qf_last.pkl'))
+    torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', args.log_filename +  'optim_pol_last.pkl'))
+    torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', args.log_filename +  'optim_qf_last.pkl'))
