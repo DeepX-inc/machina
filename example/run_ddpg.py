@@ -20,6 +20,7 @@ from machina.envs import GymEnv
 from machina.data import ReplayData, GAEData
 from machina.samplers import BatchSampler
 from machina.misc import logger
+from machina.utils import set_gpu, measure
 from net import DeterministicPolNet, QNet, DeterministicPolNetBN, QNetBN
 
 parser = argparse.ArgumentParser()
@@ -40,6 +41,7 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
+parser.add_argument('--cuda')
 
 parser.add_argument('--batch_type', type=str, choices=['large', 'small'], default='large')
 
@@ -49,6 +51,9 @@ parser.add_argument('--lam', type=float, default=1)
 parser.add_argument('--batch_normalization', action='store_true', default=False)
 parser.add_argument('--apply_noise', action='store_true', default=False)
 args = parser.parse_args()
+
+args.cuda = args.cuda if torch.cuda.is_available() else -1
+set_gpu(args.cuda)
 
 if not os.path.exists(args.log):
     os.mkdir(args.log)
