@@ -7,8 +7,10 @@ def make_pol_loss(pol, qf, vf, batch, sampling):
     obs = Variable(torch.from_numpy(batch['obs']).float())
 
     pol_loss = 0
+    _, _, pd_params = pol(obs)
+    means, log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        _, acs, pd_params = pol(obs)
+        acs = means + Variable(torch.randn(means.size())) * torch.exp(log_stds)
         llh = pol.pd.llh(Variable(acs.data), pd_params['mean'], pd_params['log_std'])
         pol_loss += llh * Variable(llh.data - qf(obs, acs).data + vf(obs).data)
     pol_loss /= sampling
@@ -31,8 +33,10 @@ def make_vf_loss(pol, qf, vf, batch, sampling):
     obs = Variable(torch.from_numpy(batch['obs']).float())
 
     targ = 0
+    _, _, pd_params = pol(obs)
+    means, log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        _, acs, pd_params = pol(obs)
+        acs = means + Variable(torch.randn(means.size())) * torch.exp(log_stds)
         llh = pol.pd.llh(acs, pd_params['mean'], pd_params['log_std'])
         targ += qf(obs, acs) - llh
     targ /= sampling

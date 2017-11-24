@@ -3,12 +3,14 @@ import torch.nn as nn
 from ..utils import Variable
 from ..misc import logger
 
-def make_pol_loss(pol, qf, batch, sampling):
+def make_pol_loss(pol, qf, batch, sampling, kl_coeff=0):
     obs = Variable(torch.from_numpy(batch['obs']).float())
 
     q = 0
+    _, _, pd_params = pol(obs)
+    means, log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        _, acs, _ = pol(obs)
+        acs = means + Variable(torch.randn(means.size())) * torch.exp(log_stds)
         q += qf(obs, acs)
     q /= sampling
 
@@ -23,7 +25,7 @@ def make_pol_loss(pol, qf, batch, sampling):
     )
     mean_kl = torch.mean(kl)
 
-    return pol_loss + mean_kl
+    return pol_loss + mean_kl * kl_coeff
 
 def update_pol(pol, qf, optim_pol, batch, sampling):
     pol_loss = make_pol_loss(pol, qf, batch, sampling)
@@ -39,8 +41,10 @@ def make_bellman_loss(qf, targ_qf, pol, batch, gamma, sampling):
     next_obs = Variable(torch.from_numpy(batch['next_obs']).float())
     terminals = Variable(torch.from_numpy(batch['terminals']).float())
     expected_next_q = 0
+    _, _, pd_params = pol(next_obs)
+    next_means, next_log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        _, next_acs, _ = pol(next_obs)
+        next_acs = next_means + Variable(torch.randn(next_means.size())) * torch.exp(next_log_stds)
         expected_next_q += targ_qf(next_obs, next_acs)
     expected_next_q /= sampling
     targ = rews + gamma * expected_next_q * (1 - terminals)
@@ -58,7 +62,7 @@ def train(off_data,
         pol, qf, targ_qf,
         optim_pol, optim_qf,
         epoch, batch_size,# optimization hypers
-        tau, gamma, lam, # advantage estimation
+        tau, gamma, # advantage estimation
         sampling,
         ):
 
