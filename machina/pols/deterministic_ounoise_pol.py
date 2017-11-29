@@ -44,7 +44,7 @@ class DeterministicPol(BasePol):
     def forward(self, obs):
         mean = self.net(obs)
         action_noise = self.noise()
-        apply_noise = self.apply_noises
+        apply_noise = self.apply_noise
         ac = mean
         if action_noise is not None and apply_noise:
             ac = ac + Variable(torch.from_numpy(action_noise)).float() #noiseを追加したのでGPUにset
