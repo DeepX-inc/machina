@@ -111,7 +111,7 @@ while args.max_episodes > total_epi:
     total_step += step
 
     off_data.add_paths(paths)
-    with measure():
+    with measure('training_time'):
         result_dict = ddpg.train(
             off_data,
             pol, targ_pol, qf, targ_qf,
