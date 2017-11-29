@@ -34,7 +34,7 @@ class DeterministicPol(BasePol):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
         self.net = net
         if gpu_id != -1:
-            self.cuda(gpu_id)
+            self.cuda(gpu_id) #BasePolのネットワークのパラメータをGPUにset
         self.noise = noise
         self.apply_noise = apply_noise
 
@@ -44,10 +44,10 @@ class DeterministicPol(BasePol):
     def forward(self, obs):
         mean = self.net(obs)
         action_noise = self.noise()
-        apply_noise = self.apply_noise
+        apply_noise = self.apply_noises
         ac = mean
         if action_noise is not None and apply_noise:
-            ac = ac + Variable(torch.from_numpy(action_noise)).float()
+            ac = ac + Variable(torch.from_numpy(action_noise)).float() #noiseを追加したのでGPUにset
         else:
             pass
         ac_real = ac.data.cpu().numpy()

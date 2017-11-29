@@ -111,13 +111,13 @@ while args.max_episodes > total_epi:
     total_step += step
 
     off_data.add_paths(paths)
-
-    result_dict = ddpg.train(
-        off_data,
-        pol, targ_pol, qf, targ_qf,
-        optim_pol, optim_qf, step, args.batch_size,
-        args.tau, args.gamma, args.lam
-    )
+    with measure():
+        result_dict = ddpg.train(
+            off_data,
+            pol, targ_pol, qf, targ_qf,
+            optim_pol, optim_qf, step, args.batch_size,
+            args.tau, args.gamma, args.lam
+        )
 
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
