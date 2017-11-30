@@ -112,11 +112,11 @@ class PolNetBN(nn.Module):
 class DeterministicPolNetBN(nn.Module):
     def __init__(self, ob_space, ac_space):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], 200)
-        self.fc1_bn=nn.BatchNorm1d(200)
-        self.fc2 = nn.Linear(200, 100)
-        self.fc2_bn=nn.BatchNorm1d(100)
-        self.mean_layer = nn.Linear(100, ac_space.shape[0])
+        self.fc1 = nn.Linear(ob_space.shape[0], 2000)
+        self.fc1_bn=nn.BatchNorm1d(2000)
+        self.fc2 = nn.Linear(2000, 1000)
+        self.fc2_bn=nn.BatchNorm1d(1000)
+        self.mean_layer = nn.Linear(1000, ac_space.shape[0])
 
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
@@ -146,11 +146,11 @@ class VNetBN(nn.Module):
 class QNetBN(nn.Module):
     def __init__(self, ob_space, ac_space):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], 300)
-        self.fc1_bn=nn.BatchNorm1d(300)
-        self.fc2 = nn.Linear(ac_space.shape[0] + 300, 400)
-        self.fc2_bn=nn.BatchNorm1d(400)
-        self.output_layer = nn.Linear(400, 1)
+        self.fc1 = nn.Linear(ob_space.shape[0], 3000)
+        self.fc1_bn=nn.BatchNorm1d(3000)
+        self.fc2 = nn.Linear(ac_space.shape[0] + 3000, 4000)
+        self.fc2_bn=nn.BatchNorm1d(4000)
+        self.output_layer = nn.Linear(4000, 1)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(mini_weight_init)
