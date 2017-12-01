@@ -45,7 +45,6 @@ parser.add_argument('--batch_type', type=str, choices=['large', 'small'], defaul
 
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
-parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -106,7 +105,7 @@ while args.max_episodes > total_epi:
         off_data,
         pol, qf, targ_qf,
         optim_pol,optim_qf, step, args.batch_size,
-        args.tau, args.gamma, args.lam, args.sampling,
+        args.tau, args.gamma, args.sampling,
     )
 
     for key, value in result_dict.items():
