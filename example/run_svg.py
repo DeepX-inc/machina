@@ -91,10 +91,11 @@ total_step = 0
 max_rew = -1e6
 off_data = ReplayData(args.max_data_size, ob_space.shape[0], ac_space.shape[0])
 while args.max_episodes > total_epi:
-    if args.use_prepro:
-        paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
-    else:
-        paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+    with measure('sample'):
+        if args.use_prepro:
+            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+        else:
+            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
 
     total_epi += len(paths)
     step = sum([len(path['rews']) for path in paths])
@@ -105,13 +106,13 @@ while args.max_episodes > total_epi:
     if off_data.size <= args.min_data_size:
         continue
 
-
-    result_dict = svg.train(
-        off_data,
-        pol, qf, targ_qf,
-        optim_pol,optim_qf, step, args.batch_size,
-        args.tau, args.gamma, args.sampling,
-    )
+    with measure('train'):
+        result_dict = svg.train(
+            off_data,
+            pol, qf, targ_qf,
+            optim_pol,optim_qf, step, args.batch_size,
+            args.tau, args.gamma, args.sampling,
+        )
 
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
