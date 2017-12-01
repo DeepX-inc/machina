@@ -4,9 +4,9 @@ from ..utils import Variable
 from ..misc import logger
 
 def make_pol_loss(pol, batch):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    acs = Variable(torch.from_numpy(batch['acs']).float())
-    advs = Variable(torch.from_numpy(batch['advs']).float())
+    obs = Variable(batch['obs'])
+    acs = Variable(batch['acs'])
+    advs = Variable(batch['advs'])
     _, _, pd_params = pol(obs)
     llh = pol.pd.llh(acs, pd_params['mean'], pd_params['log_std'])
 
@@ -21,8 +21,8 @@ def update_pol(pol, optim_pol, batch):
     return pol_loss.data.cpu().numpy()
 
 def make_vf_loss(vf, batch):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    rets = Variable(torch.from_numpy(batch['rets']).float())
+    obs = Variable(batch['obs'])
+    rets = Variable(batch['rets'])
     vf_loss = 0.5 * torch.mean((vf(obs) - rets)**2)
     return vf_loss
 

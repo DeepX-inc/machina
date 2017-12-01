@@ -4,7 +4,7 @@ from ..utils import Variable
 from ..misc import logger
 
 def make_pol_loss(pol, qf, vf, batch, sampling):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
+    obs = Variable(batch['obs'])
 
     pol_loss = 0
     _, _, pd_params = pol(obs)
@@ -18,11 +18,11 @@ def make_pol_loss(pol, qf, vf, batch, sampling):
     return torch.mean(pol_loss)
 
 def make_qf_loss(qf, vf, batch, gamma):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    acs = Variable(torch.from_numpy(batch['acs']).float())
-    rews = Variable(torch.from_numpy(batch['rews']).float())
-    next_obs = Variable(torch.from_numpy(batch['next_obs']).float())
-    terminals = Variable(torch.from_numpy(batch['terminals']).float())
+    obs = Variable(batch['obs'])
+    acs = Variable(batch['acs'])
+    rews = Variable(batch['rews'])
+    next_obs = Variable(batch['next_obs'])
+    terminals = Variable(batch['terminals'])
 
     targ = rews + gamma * vf(next_obs) * (1 - terminals)
     targ = Variable(targ.data)
@@ -30,7 +30,7 @@ def make_qf_loss(qf, vf, batch, gamma):
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
 
 def make_vf_loss(pol, qf, vf, batch, sampling):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
+    obs = Variable(batch['obs'])
 
     targ = 0
     _, _, pd_params = pol(obs)

@@ -4,7 +4,7 @@ from ..utils import Variable
 from ..misc import logger
 
 def make_pol_loss(pol, qf, batch, sampling, kl_coeff=0):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
+    obs = Variable(batch['obs'])
 
     q = 0
     _, _, pd_params = pol(obs)
@@ -35,11 +35,11 @@ def update_pol(pol, qf, optim_pol, batch, sampling):
     return pol_loss.data.cpu().numpy()
 
 def make_bellman_loss(qf, targ_qf, pol, batch, gamma, sampling):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    acs = Variable(torch.from_numpy(batch['acs']).float())
-    rews = Variable(torch.from_numpy(batch['rews']).float())
-    next_obs = Variable(torch.from_numpy(batch['next_obs']).float())
-    terminals = Variable(torch.from_numpy(batch['terminals']).float())
+    obs = Variable(batch['obs'])
+    acs = Variable(batch['acs'])
+    rews = Variable(batch['rews'])
+    next_obs = Variable(batch['next_obs'])
+    terminals = Variable(batch['terminals'])
     expected_next_q = 0
     _, _, pd_params = pol(next_obs)
     next_means, next_log_stds = pd_params['mean'], pd_params['log_std']
@@ -53,9 +53,9 @@ def make_bellman_loss(qf, targ_qf, pol, batch, gamma, sampling):
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
 
 def make_mc_loss(qf, batch):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    acs = Variable(torch.from_numpy(batch['acs']).float())
-    rets = Variable(torch.from_numpy(batch['rets']).float())
+    obs = Variable(batch['obs'])
+    acs = Variable(batch['acs'])
+    rets = Variable(batch['rets'])
     return 0.5 * torch.mean((qf(obs, acs) - rets)**2)
 
 def train(off_data,

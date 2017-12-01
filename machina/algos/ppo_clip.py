@@ -4,13 +4,13 @@ from ..utils import Variable
 from ..misc import logger
 
 def make_pol_loss(pol, batch, clip_param):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    acs = Variable(torch.from_numpy(batch['acs']).float())
-    advs = Variable(torch.from_numpy(batch['advs']).float())
+    obs = Variable(batch['obs'])
+    acs = Variable(batch['acs'])
+    advs = Variable(batch['advs'])
     old_llh = Variable(pol.pd.llh(
-        torch.from_numpy(batch['acs']).float(),
-        torch.from_numpy(batch['mean']).float(),
-        torch.from_numpy(batch['log_std']).float()
+        batch['acs'],
+        batch['mean'],
+        batch['log_std']
     ))
     _, _, pd_params = pol(obs)
     new_llh = pol.pd.llh(acs, pd_params['mean'], pd_params['log_std'])
@@ -28,9 +28,9 @@ def update_pol(pol, optim_pol, batch, clip_param):
     return pol_loss.data.cpu().numpy()
 
 def make_vf_loss(vf, batch, clip_param):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    rets = Variable(torch.from_numpy(batch['rets']).float())
-    vs = Variable(torch.from_numpy(batch['vs']).float())
+    obs = Variable(batch['obs'])
+    rets = Variable(batch['rets'])
+    vs = Variable(batch['vs'])
 
     vfloss1 = (vf(obs) - rets)**2
     vpredclipped = vs + torch.clamp(vf(obs) - vs, -clip_param, clip_param)

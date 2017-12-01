@@ -1,6 +1,8 @@
 import numpy as np
+import torch
 
 from .base import BaseData
+from ..utils import np2torch, torch2torch
 
 class ReplayData(BaseData):
     def __init__(
@@ -10,21 +12,17 @@ class ReplayData(BaseData):
         self.ac_dim = ac_dim
         self.rew_scale = rew_scale
 
-        self.obs = np.zeros(
-            (max_data_size, ob_dim),
-        )
-        self.acs = np.zeros(
-            (max_data_size, ac_dim),
-        )
-        self.rews = np.zeros(max_data_size)
-        self.terminals = np.zeros(max_data_size, dtype='uint8')
+        self.obs = torch2torch(torch.zeros((max_data_size, ob_dim))).float()
+        self.acs = torch2torch(torch.zeros((max_data_size, ac_dim))).float()
+        self.rews = torch2torch(torch.zeros(max_data_size)).float()
+        self.terminals = torch2torch(torch.zeros(max_data_size)).float()
         self.bottom = 0
         self.top = 0
         self.size = 0
 
     def add_sample(self, ob, ac, rew, terminal):
-        self.obs[self.top] = ob
-        self.acs[self.top] = ac
+        self.obs[self.top] = np2torch(ob).float()
+        self.acs[self.top] = np2torch(ac).float()
         self.rews[self.top] = rew * self.rew_scale
         self.terminals[self.top] = terminal
         self.top = (self.top + 1) % self.max_data_size
@@ -46,8 +44,8 @@ class ReplayData(BaseData):
 
     def iterate_once(self, batch_size):
         assert self.size > batch_size
-        indices = np.zeros(batch_size, dtype='uint64')
-        transition_indices = np.zeros(batch_size, dtype='uint64')
+        indices = torch2torch(torch.zeros(batch_size)).long()
+        transition_indices = torch2torch(torch.zeros(batch_size)).long()
         count = 0
         while count < batch_size:
             index = np.random.randint(self.bottom, self.bottom + self.size) % self.max_data_size
