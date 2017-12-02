@@ -1,1 +1,1 @@
-from .deterministic_vfunc import DeterministicVfunc
+from machina.vfuncs.deterministic_vfunc import DeterministicVfunc

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from ..utils import Variable
-from ..misc import logger
+from machina.utils import Variable
+from machina.misc import logger
 
 def make_pol_loss(pol, batch, clip_param):
     obs = Variable(batch['obs'])

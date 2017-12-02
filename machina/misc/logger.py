@@ -1,8 +1,8 @@
 # This code is taken from rllab
 from enum import Enum
 
-from .tabulate import tabulate
-from .console import mkdir_p, colorize
+from machina.misc.tabulate import tabulate
+from machina.misc.console import mkdir_p, colorize
 from contextlib import contextmanager
 import numpy as np
 import os

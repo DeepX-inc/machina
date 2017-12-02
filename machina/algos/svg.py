@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from ..utils import Variable
-from ..misc import logger
+from machina.utils import Variable, torch2torch
+from machina.misc import logger
 
 def make_pol_loss(pol, qf, batch, sampling, kl_coeff=0):
     obs = Variable(batch['obs'])
@@ -10,7 +10,7 @@ def make_pol_loss(pol, qf, batch, sampling, kl_coeff=0):
     _, _, pd_params = pol(obs)
     means, log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        acs = means + Variable(torch.randn(means.size())) * torch.exp(log_stds)
+        acs = means + Variable(torch2torch(torch.randn(means.size()))) * torch.exp(log_stds)
         q += qf(obs, acs)
     q /= sampling
 
@@ -44,7 +44,7 @@ def make_bellman_loss(qf, targ_qf, pol, batch, gamma, sampling):
     _, _, pd_params = pol(next_obs)
     next_means, next_log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        next_acs = next_means + Variable(torch.randn(next_means.size())) * torch.exp(next_log_stds)
+        next_acs = next_means + Variable(torch2torch(torch.randn(next_means.size()))) * torch.exp(next_log_stds)
         expected_next_q += targ_qf(next_obs, next_acs)
     expected_next_q /= sampling
     targ = rews + gamma * expected_next_q * (1 - terminals)

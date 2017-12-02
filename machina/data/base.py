@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from torch.autograd import Variable
 import scipy
 
 def discount_cumsum(x, discount):

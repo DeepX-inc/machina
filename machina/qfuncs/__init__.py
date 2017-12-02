@@ -1,1 +1,3 @@
-from .deterministic_qfunc import DeterministicQfunc
+from machina.qfuncs.base import BaseQfunc
+from machina.qfuncs.deterministic_qfunc import DeterministicQfunc
+

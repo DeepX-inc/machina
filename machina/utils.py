@@ -3,28 +3,32 @@ import contextlib
 import torch
 import torch.autograd as autograd
 
-from .misc import logger
+from machina.misc import logger
 
 # default gpu_id is -1.
 # this means using cpu
-gpu_id = -1
+_GPU_ID = -1
 
 def set_gpu(device_id):
-    global gpu_id
-    gpu_id = device_id
+    global _GPU_ID
+    _GPU_ID = device_id
+
+
+def get_gpu():
+    return _GPU_ID
 
 
 @contextlib.contextmanager
 def cpu_mode():
     """
     contextmanager
-    set gpu_id to -1 while cpu_mode
+    set _GPU_ID to -1 while cpu_mode
     """
-    global gpu_id
-    _gpu_id = gpu_id
-    gpu_id = -1
+    global _GPU_ID
+    tmp = _GPU_ID
+    _GPU_ID = -1
     yield
-    gpu_id = _gpu_id
+    _GPU_ID = tmp
 
 
 @contextlib.contextmanager
@@ -40,8 +44,8 @@ def torch2torch(tensor):
     """
     torch tensor with wrapping cuda
     """
-    if gpu_id != -1:
-        return tensor.cuda(gpu_id)
+    if _GPU_ID != -1:
+        return tensor.cuda(_GPU_ID)
     else:
         return tensor
 
@@ -55,8 +59,6 @@ def np2torch(ndarray):
 
 class Variable(autograd.Variable):
     def __init__(self, data, *args, **kwargs):
-        if gpu_id != -1:
-            data = data.cuda(gpu_id)
+        data = torch2torch(data)
         super(Variable, self).__init__(data, *args, **kwargs)
-
 

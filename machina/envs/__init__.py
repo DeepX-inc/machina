@@ -1,1 +1,1 @@
-from .gym_env import GymEnv
+from machina.envs.gym_env import GymEnv

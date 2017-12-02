@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from .base import BasePd
+from machina.pds.base import BasePd
 
 class GaussianPd(BasePd):
     def __init__(self, ob_space, ac_space):

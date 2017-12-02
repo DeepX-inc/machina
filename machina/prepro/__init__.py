@@ -1,1 +1,1 @@
-from .base import BasePrePro
+from machina.prepro.base import BasePrePro

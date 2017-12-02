@@ -1,5 +1,5 @@
 import gym
-from ..misc import logger
+from machina.misc import logger
 
 class CappedCubicVideoSchedule(object):
     # Copied from gym, since this method is frequently moved around

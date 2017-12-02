@@ -2,8 +2,8 @@ import numpy as np
 import torch
 import scipy
 
-from .base import BaseData
-from ..utils import Variable, np2torch
+from machina.data.base import BaseData
+from machina.utils import Variable, np2torch
 
 def discount_cumsum(x, discount):
     # See https://docs.scipy.org/doc/scipy/reference/tutorial/signal.html#difference-equation-filtering

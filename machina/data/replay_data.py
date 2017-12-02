@@ -1,8 +1,8 @@
 import numpy as np
 import torch
 
-from .base import BaseData
-from ..utils import np2torch, torch2torch
+from machina.data.base import BaseData
+from machina.utils import np2torch, torch2torch
 
 class ReplayData(BaseData):
     def __init__(
