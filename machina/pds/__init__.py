@@ -1,2 +1,2 @@
-from .base import BasePd
-from .gaussian_pd import GaussianPd
+from machina.pds.base import BasePd
+from machina.pds.gaussian_pd import GaussianPd

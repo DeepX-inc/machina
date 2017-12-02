@@ -1,9 +1,9 @@
 import numpy as np
 import torch
-from ..utils import Variable
 import scipy
 
-from .base import BaseData
+from machina.data.base import BaseData
+from machina.utils import Variable, np2torch
 
 def discount_cumsum(x, discount):
     # See https://docs.scipy.org/doc/scipy/reference/tutorial/signal.html#difference-equation-filtering
@@ -24,16 +24,16 @@ class GAEData(BaseData):
         keys = self.paths[0].keys()
         for key in keys:
             if isinstance(self.paths[0][key], list) or isinstance(self.paths[0][key], np.ndarray):
-                self.data_map[key] = np.concatenate([path[key] for path in self.paths], axis=0)
+                self.data_map[key] = np2torch(np.concatenate([path[key] for path in self.paths], axis=0)).float()
             elif isinstance(self.paths[0][key], dict):
                 new_keys = self.paths[0][key].keys()
                 for new_key in new_keys:
-                    self.data_map[new_key] = np.concatenate([path[key][new_key] for path in self.paths], axis=0)
+                    self.data_map[new_key] = np2torch(np.concatenate([path[key][new_key] for path in self.paths], axis=0)).float()
         if centerize:
-            self.data_map['advs'] = (self.data_map['advs'] - np.mean(self.data_map['advs'])) / (np.std(self.data_map['advs']) + 1e-6)
+            self.data_map['advs'] = (self.data_map['advs'] - torch.mean(self.data_map['advs'])) / (torch.std(self.data_map['advs']) + 1e-6)
 
     def preprocess(self, vf, gamma, lam, centerize=True):
-        all_path_vs = [vf(Variable(torch.from_numpy(path['obs']).float(), volatile=True)).data.cpu().numpy() for path in self.paths]
+        all_path_vs = [vf(Variable(np2torch(path['obs']).float(), volatile=True)).data.cpu().numpy() for path in self.paths]
         for idx, path in enumerate(self.paths):
             path_vs = np.append(all_path_vs[idx], 0)
             rews = path['rews']
@@ -53,6 +53,7 @@ class GAEData(BaseData):
     def shuffle(self):
         perm = np.arange(self.n)
         np.random.shuffle(perm)
+        perm = np2torch(perm).long()
 
         for key in self.data_map:
             self.data_map[key] = self.data_map[key][perm]
