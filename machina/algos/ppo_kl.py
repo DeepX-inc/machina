@@ -1,20 +1,20 @@
 import torch
 import torch.nn as nn
-from ..utils import Variable
-from ..misc import logger
+from machina.utils import Variable
+from machina.misc import logger
 
 def make_pol_loss(pol, batch, kl_beta):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    acs = Variable(torch.from_numpy(batch['acs']).float())
-    advs = Variable(torch.from_numpy(batch['advs']).float())
+    obs = Variable(batch['obs'])
+    acs = Variable(batch['acs'])
+    advs = Variable(batch['advs'])
 
-    old_mean = Variable(torch.from_numpy(batch['mean']).float())
-    old_log_std = Variable(torch.from_numpy(batch['log_std']).float())
+    old_mean = Variable(batch['mean'])
+    old_log_std = Variable(batch['log_std'])
 
     old_llh = Variable(pol.pd.llh(
-        torch.from_numpy(batch['acs']).float(),
-        torch.from_numpy(batch['mean']).float(),
-        torch.from_numpy(batch['log_std']).float()
+        batch['acs'],
+        batch['mean'],
+        batch['log_std']
     ))
 
     _, _, pd_params = pol(obs)
@@ -38,8 +38,8 @@ def update_pol(pol, optim_pol, batch, kl_beta):
     return pol_loss.data.cpu().numpy()
 
 def make_vf_loss(vf, batch):
-    obs = Variable(torch.from_numpy(batch['obs']).float())
-    rets = Variable(torch.from_numpy(batch['rets']).float())
+    obs = Variable(batch['obs'])
+    rets = Variable(batch['rets'])
     vf_loss = 0.5 * torch.mean((vf(obs) - rets)**2)
     return vf_loss
 
@@ -68,11 +68,11 @@ def train(data, pol, vf,
         vf_losses.append(vf_loss)
 
     batch = next(data.full_batch())
-    _, _, pd_params = pol(Variable(torch.from_numpy(batch['obs']).float()))
+    _, _, pd_params = pol(Variable(batch['obs']))
     kl_mean = torch.mean(
         pol.pd.kl_pq(
-            torch.from_numpy(batch['mean']),
-            torch.from_numpy(batch['log_std']),
+            batch['mean'],
+            batch['log_std'],
             pd_params['mean'].data,
             pd_params['log_std'].data
         )

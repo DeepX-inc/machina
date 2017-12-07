@@ -1,2 +1,2 @@
-from .base import BaseSampler
-from .batch import BatchSampler
+from machina.samplers.base import BaseSampler
+from machina.samplers.batch import BatchSampler

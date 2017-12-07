@@ -1,8 +1,8 @@
 import copy
 import numpy as np
 import torch
-from ..utils import Variable, cpu_mode
-from .base import BaseSampler
+from machina.utils import Variable, cpu_mode
+from machina.samplers.base import BaseSampler
 
 
 class BatchSampler(BaseSampler):

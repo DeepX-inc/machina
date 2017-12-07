@@ -1,3 +1,3 @@
-from .base import BaseData
-from .gae_data import GAEData
-from .replay_data import ReplayData
+from machina.data.base import BaseData
+from machina.data.gae_data import GAEData
+from machina.data.replay_data import ReplayData
