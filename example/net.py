@@ -41,9 +41,9 @@ class PolNet(nn.Module):
 class DeterministicPolNet(nn.Module):
     def __init__(self, ob_space, ac_space):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], 400)
-        self.fc2 = nn.Linear(400, 300)
-        self.mean_layer = nn.Linear(300, ac_space.shape[0])
+        self.fc1 = nn.Linear(ob_space.shape[0], 32)
+        self.fc2 = nn.Linear(32, 32)
+        self.mean_layer = nn.Linear(32, ac_space.shape[0])
 
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
@@ -73,9 +73,9 @@ class VNet(nn.Module):
 class QNet(nn.Module):
     def __init__(self, ob_space, ac_space):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], 400)
-        self.fc2 = nn.Linear(ac_space.shape[0] + 400, 300)
-        self.output_layer = nn.Linear(300, 1)
+        self.fc1 = nn.Linear(ob_space.shape[0], 32)
+        self.fc2 = nn.Linear(ac_space.shape[0] + 32, 32)
+        self.output_layer = nn.Linear(32, 1)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(mini_weight_init)
