@@ -39,7 +39,7 @@ parser.add_argument('--max_samples_per_iter', type=int, default=2000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
-parser.add_argument('--qf_lr', type=float, default=3e-4)
+parser.add_argument('--qf_lr', type=float, default=1e-3)
 parser.add_argument('--use_prepro', action='store_true', default=False)
 parser.add_argument('--cuda', type=int, default=-1)
 
