@@ -38,12 +38,12 @@ class PolNet(nn.Module):
         #log_std = self.log_std_layer(h)
         return mean, self.log_std_param
 
-class DeterministicPolNet(nn.Module):
+class DeterministicPolNet(nn.Module, hidden_layer1, hidden_layer2):
     def __init__(self, ob_space, ac_space):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], 32)
-        self.fc2 = nn.Linear(32, 32)
-        self.mean_layer = nn.Linear(32, ac_space.shape[0])
+        self.fc1 = nn.Linear(ob_space.shape[0], hidden_layer1)
+        self.fc2 = nn.Linear(hidden_layer1,hidden_layer2)
+        self.mean_layer = nn.Linear(hidden_layer2, ac_space.shape[0])
 
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
@@ -71,11 +71,11 @@ class VNet(nn.Module):
         return self.output_layer(h)
 
 class QNet(nn.Module):
-    def __init__(self, ob_space, ac_space):
+    def __init__(self, ob_space, ac_space, hidden_layer1, hidden_layer2):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], 32)
-        self.fc2 = nn.Linear(ac_space.shape[0] + 32, 32)
-        self.output_layer = nn.Linear(32, 1)
+        self.fc1 = nn.Linear(ob_space.shape[0], hidden_layer1)
+        self.fc2 = nn.Linear(ac_space.shape[0] + hidden_layer1, hidden_layer2)
+        self.output_layer = nn.Linear(hidden_layer2, 1)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(mini_weight_init)
@@ -110,14 +110,14 @@ class PolNetBN(nn.Module):
         return mean, self.log_std_param
 
 class DeterministicPolNetBN(nn.Module):
-    def __init__(self, ob_space, ac_space):
+    def __init__(self, ob_space, ac_space, hidden_layer1, hidden_layer2):
         nn.Module.__init__(self)
         self.input = nn.BatchNorm1d(ob_space.shape[0])
-        self.fc1 = nn.Linear(ob_space.shape[0], 400)
-        self.fc1_bn=nn.BatchNorm1d(400)
-        self.fc2 = nn.Linear(400, 300)
-        self.fc2_bn=nn.BatchNorm1d(300)
-        self.mean_layer = nn.Linear(300, ac_space.shape[0])
+        self.fc1 = nn.Linear(ob_space.shape[0], hidden_layer1)
+        self.fc1_bn=nn.BatchNorm1d(hidden_layer1)
+        self.fc2 = nn.Linear(hidden_layer1, hidden_layer2)
+        self.fc2_bn=nn.BatchNorm1d(hidden_layer2)
+        self.mean_layer = nn.Linear(hidden_layer2, ac_space.shape[0])
 
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
@@ -146,13 +146,13 @@ class VNetBN(nn.Module):
         return self.output_layer(h)
 
 class QNetBN(nn.Module):
-    def __init__(self, ob_space, ac_space):
+    def __init__(self, ob_space, ac_space, hidden_layer1, hidden_layer2):
         nn.Module.__init__(self)
         self.input_bn = nn.BatchNorm1d(ob_space.shape[0])
-        self.fc1 = nn.Linear(ob_space.shape[0], 400)
-        self.fc1_bn=nn.BatchNorm1d(400)
-        self.fc2 = nn.Linear(ac_space.shape[0] + 400, 300)
-        self.output_layer = nn.Linear(300, 1)
+        self.fc1 = nn.Linear(ob_space.shape[0], hidden_layer1)
+        self.fc1_bn=nn.BatchNorm1d(hidden_layer1)
+        self.fc2 = nn.Linear(ac_space.shape[0] + hidden_layer1, hidden_layer2)
+        self.output_layer = nn.Linear(hidden_layer2, 1)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(mini_weight_init)

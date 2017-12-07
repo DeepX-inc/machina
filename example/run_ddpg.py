@@ -42,6 +42,8 @@ parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=1e-3)
 parser.add_argument('--use_prepro', action='store_true', default=False)
 parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--hidden_layer1', type=int, default=400)
+parser.add_argument('--hidden_layer2', type=int, default=300)
 
 parser.add_argument('--batch_type', type=str, choices=['large', 'small'], default='large')
 
@@ -79,16 +81,16 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 if args.batch_normalization:
-    pol_net = DeterministicPolNetBN(ob_space, ac_space)
+    pol_net = DeterministicPolNetBN(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
 else:
-    pol_net = DeterministicPolNet(ob_space, ac_space)
+    pol_net = DeterministicPolNet(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
 noise = OrnsteinUhlenbeckActionNoise(mu = np.zeros(ac_space.shape[0]))
 pol = DeterministicPol(ob_space, ac_space, pol_net, noise, args.apply_noise)
 targ_pol = copy.deepcopy(pol)
 if args.batch_normalization:
-    qf_net = QNetBN(ob_space, ac_space)
+    qf_net = QNetBN(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
 else:
-    qf_net = QNet(ob_space, ac_space)
+    qf_net = QNet(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf = copy.deepcopy(qf)
 prepro = BasePrePro(ob_space)
