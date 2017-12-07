@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from .base import BasePol
-from ..utils import Variable, gpu_id
+from ..utils import Variable, gpu_id, np2torch
 
 class ActionNoise(object):
     def reset(self):
@@ -47,7 +47,7 @@ class DeterministicPol(BasePol):
         apply_noise = self.apply_noise
         ac = mean
         if action_noise is not None and apply_noise:
-            ac = ac + Variable(torch.from_numpy(action_noise)).float() #noiseを追加したのでGPUにset
+            ac = ac + Variable(np2torch(action_noise)).float() #noiseを追加したのでGPUにset
         else:
             pass
         ac_real = ac.data.cpu().numpy()
