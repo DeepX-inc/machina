@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from .base import BasePol
-from ..utils import Variable, gpu_id, np2torch
+from ..utils import Variable, get_gpu, np2torch
 
 class ActionNoise(object):
     def reset(self):
@@ -33,6 +33,7 @@ class DeterministicPol(BasePol):
     def __init__(self, ob_space, ac_space, net, noise=None, apply_noise=False, normalize_ac=True):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
         self.net = net
+        gpu_id = get_gpu()
         if gpu_id != -1:
             self.cuda(gpu_id) #BasePolのネットワークのパラメータをGPUにset
         self.noise = noise
