@@ -123,7 +123,7 @@ def train(data, pol, vf,
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    for batch in data.full_batch(epoch):
+    for batch in data.full_batch(1):
         pol_loss = update_pol(pol, batch)
         pol_losses.append(pol_loss)
         #vf.set_mean(torch.mean(batch['rets'], 0, keepdim=True))
