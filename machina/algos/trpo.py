@@ -128,8 +128,9 @@ def train(data, pol, vf,
     for batch in data.full_batch(1):
         pol_loss = update_pol(pol, batch)
         pol_losses.append(pol_loss)
-        #vf.set_mean(torch.mean(batch['rets'], 0, keepdim=True))
-        #vf.set_std(torch.std(batch['rets'], 0, keepdim=True))
+        if 'Normalized' in vf.__class__.__name__:
+            vf.set_mean(torch.mean(batch['rets'], 0, keepdim=True))
+            vf.set_std(torch.std(batch['rets'], 0, keepdim=True))
 
     for batch in data.iterate(batch_size=64, epoch=5):
         vf_loss = update_vf(vf, optim_vf, batch)
