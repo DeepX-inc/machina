@@ -71,6 +71,7 @@ def make_kl(pol, batch):
 def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=0.01, damping=0.1):
     pol_loss = make_pol_loss(pol, batch)
     grads = torch.autograd.grad(pol_loss, pol.parameters(), create_graph=True)
+    grads = [g.contiguous() for g in grads]
     flat_pol_loss_grad = nn.utils.parameters_to_vector(grads).data
 
     def Fvp(v):
@@ -78,6 +79,7 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
         kl = torch.mean(kl)
 
         grads = torch.autograd.grad(kl, pol.parameters(), create_graph=True)
+        grads = [g.contiguous() for g in grads]
         flat_grad_kl = nn.utils.parameters_to_vector(grads)
         gvp = torch.sum(flat_grad_kl * Variable(v))
         grads = torch.autograd.grad(gvp, pol.parameters())
