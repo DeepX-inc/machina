@@ -97,7 +97,7 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
 
     neggdotstepdir = torch.sum(-flat_pol_loss_grad * stepdir, 0, keepdim=True)
 
-    prev_params = nn.utils.parameters_to_vector(pol.parameters()).data
+    prev_params = nn.utils.parameters_to_vector([p.contiguous() for p in pol.parameters()]).data
     success, new_params = linesearch(pol, batch, make_pol_loss, prev_params, fullstep,
                                      neggdotstepdir / lm[0])
     nn.utils.vector_to_parameters(Variable(new_params), pol.parameters())
