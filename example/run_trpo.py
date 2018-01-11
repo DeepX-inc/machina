@@ -14,7 +14,7 @@ import machina as mc
 from machina.pols import GaussianPol
 from machina.algos import trpo
 from machina.prepro import BasePrePro
-from machina.vfuncs import NormalizedDeterministicVfunc
+from machina.vfuncs import NormalizedDeterministicVfunc, DeterministicVfunc
 from machina.envs import GymEnv
 from machina.data import GAEData
 from machina.samplers import BatchSampler
@@ -36,6 +36,7 @@ parser.add_argument('--epoch_per_iter', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
+parser.add_argument('--normalize_v', action='store_true', default=False)
 parser.add_argument('--use_prepro', action='store_true', default=False)
 
 parser.add_argument('--gamma', type=float, default=0.995)
@@ -69,7 +70,10 @@ ac_space = env.action_space
 pol_net = PolNet(ob_space, ac_space)
 pol = GaussianPol(ob_space, ac_space, pol_net)
 vf_net = VNet(ob_space)
-vf = NormalizedDeterministicVfunc(ob_space, vf_net)
+if args.normalize_v:
+    vf = NormalizedDeterministicVfunc(ob_space, vf_net)
+else:
+    vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)
 sampler = BatchSampler(env)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
