@@ -11,7 +11,7 @@ with open('README.md', 'r') as f:
 
 setup_requires = []
 install_requires = [
-    'torch>=0.2.0',
+    'torch>=0.3.0',
     'joblib>=0.11',
     'gym>=0.9.2',
     'numpy>=1.13.3',
