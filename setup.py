@@ -9,7 +9,6 @@ from setuptools import setup
 with open('README.md', 'r') as f:
     readme = f.read()
 
-setup_requires = []
 install_requires = [
     'cached_property',
     'torch>=0.3.0',
@@ -25,14 +24,13 @@ setup(
     version='0.0.1',
     description='A PyTorch Library for Reinforcement Learning',
     long_description=readme,
-    author='rarilurelo',
-    author_email='rarilurelo@gamil.com',
+    author='Reiji Hatsugai',
+    author_email='reiji.hatsugai@deepx.co.jp',
     url='https://github.com/DeepX-inc/machina',
     license='MIT License',
     packages=['machina',
               ],
     zip_safe=False,
     install_requires=install_requires,
-    setup_requires=setup_requires,
 )
 
