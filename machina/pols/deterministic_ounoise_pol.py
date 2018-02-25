@@ -44,7 +44,10 @@ class DeterministicPol(BasePol):
 
     def forward(self, obs):
         mean = self.net(obs)
-        action_noise = self.noise()
+        if self.noise is not None:
+            action_noise = self.noise()
+        else:
+            action_noise = self.noise
         apply_noise = self.apply_noise
         ac = mean
         if action_noise is not None and apply_noise:
