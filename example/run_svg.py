@@ -68,7 +68,8 @@ torch.manual_seed(args.seed)
 if args.roboschool:
     import roboschool
 
-logger.add_tabular_output(os.path.join(args.log, 'progress.csv'))
+score_file = os.path.join(args.log, 'progress.csv')
+logger.add_tabular_output(score_file)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
@@ -114,18 +115,12 @@ while args.max_episodes > total_epi:
             args.tau, args.gamma, args.sampling,
         )
 
-    for key, value in result_dict.items():
-        if not hasattr(value, '__len__'):
-            logger.record_tabular(key, value)
-        elif len(value) >= 1:
-            logger.record_tabular_misc_stat(key, value)
-    logger.record_tabular('PolLogStd', pol_net.log_std_param.data.cpu().numpy()[0])
-    logger.record_tabular_misc_stat('Reward', [np.sum(path['rews']) for path in paths])
-    logger.record_tabular('EpisodePerIter', len(paths))
-    logger.record_tabular('TotalEpisode', total_epi)
-    logger.record_tabular('StepPerIter', step)
-    logger.record_tabular('TotalStep', total_step)
-    logger.dump_tabular()
+    rewards = [np.sum(path['rews']) for path in paths]
+    mean_rew = np.mean(rewards)
+    logger.record_results(args.log, result_dict, score_file,
+                          total_epi, step, total_step,
+                          rewards,
+                          plot_title=args.env_name)
 
     mean_rew = np.mean([np.sum(path['rews']) for path in paths])
     if mean_rew > max_rew:
