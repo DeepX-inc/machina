@@ -17,6 +17,7 @@ install_requires = [
     'gym>=0.9.2',
     'numpy>=1.13.3',
     'terminaltables',
+    'pandas',
 ]
 
 setup(
