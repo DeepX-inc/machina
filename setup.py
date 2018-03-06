@@ -11,10 +11,13 @@ with open('README.md', 'r') as f:
 
 setup_requires = []
 install_requires = [
+    'cached_property',
     'torch>=0.3.0',
     'joblib>=0.11',
     'gym>=0.9.2',
     'numpy>=1.13.3',
+    'terminaltables',
+    'pandas',
 ]
 
 setup(
