@@ -7,6 +7,7 @@ import pandas as pd
 try:
     import matplotlib  # NOQA
 
+    matplotlib.use('Agg')
     _available = True
 
 except (ImportError, TypeError):
