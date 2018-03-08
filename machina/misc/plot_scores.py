@@ -25,7 +25,7 @@ def _check_available():
 
 def plot_scores(filename, key, x_key, label=None, title=None,
                 color=None, result_directory=None,
-                plot_legend=True,
+                plot_legend=True, xlim=None, ylim=None,
                 y_label=None):
     if _check_available:
         import matplotlib.pyplot as plt
@@ -55,6 +55,10 @@ def plot_scores(filename, key, x_key, label=None, title=None,
         a.legend(loc='best')
     if title is not None:
         a.set_title(title)
+    if xlim is not None:
+        a.set_xlim(xlim)
+    if ylim is not None:
+        a.set_ylim(ylim)
 
     if result_directory is not None:
         fig_fname = os.path.join(result_directory,
