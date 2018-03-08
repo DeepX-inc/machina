@@ -68,7 +68,7 @@ def make_kl(pol, batch):
         pd_params['mean'], pd_params['log_std']
     )
 
-def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=0.01, damping=0.1):
+def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10):
     pol_loss = make_pol_loss(pol, batch)
     grads = torch.autograd.grad(pol_loss, pol.parameters(), create_graph=True)
     grads = [g.contiguous() for g in grads]
@@ -88,7 +88,7 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
 
         return fvp + v * damping
 
-    stepdir = conjugate_gradients(Fvp, -flat_pol_loss_grad, 10)
+    stepdir = conjugate_gradients(Fvp, -flat_pol_loss_grad, num_cg)
 
     shs = 0.5 * torch.sum(stepdir * Fvp(stepdir), 0, keepdim=True)
 
@@ -120,19 +120,20 @@ def update_vf(vf, optim_vf, batch):
 def train(data, pol, vf,
         optim_vf,
         epoch=5, batch_size=64,# optimization hypers
+        max_kl=0.01, num_cg=10, damping=0.1,
         ):
 
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
     for batch in data.full_batch(1):
-        pol_loss = update_pol(pol, batch)
+        pol_loss = update_pol(pol, batch, max_kl=max_kl, num_cg=num_cg, damping=damping)
         pol_losses.append(pol_loss)
         if 'Normalized' in vf.__class__.__name__:
             vf.set_mean(torch.mean(batch['rets'], 0, keepdim=True))
             vf.set_std(torch.std(batch['rets'], 0, keepdim=True))
 
-    for batch in data.iterate(batch_size=64, epoch=5):
+    for batch in data.iterate(batch_size=batch_size, epoch=epoch):
         vf_loss = update_vf(vf, optim_vf, batch)
         vf_losses.append(vf_loss)
 
