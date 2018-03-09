@@ -341,7 +341,7 @@ def record_results(log_dir, result_dict, score_file,
                    total_epi,
                    step, total_step,
                    rewards=None,
-                   plot_title=None):
+                   plot_title=None, **plot_kwargs):
     log("outdir {}".format(os.path.abspath(log_dir)))
 
     for key, value in result_dict.items():
@@ -366,5 +366,5 @@ def record_results(log_dir, result_dict, score_file,
             log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
     if rewards is not None:
         fig_fname = plot_scores(score_file, 'Reward', 'TotalStep',
-                                title=plot_title)
+                                title=plot_title, **plot_kwargs)
         log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
