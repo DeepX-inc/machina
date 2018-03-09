@@ -40,7 +40,10 @@ class DeterministicPol(BasePol):
         self.apply_noise = apply_noise
 
     def reset(self):
-        self.noise.reset()
+        if self.noise is not None:
+            self.noise.reset()
+        else:
+            pass
 
     def forward(self, obs):
         mean = self.net(obs)
