@@ -8,9 +8,8 @@ def make_pol_loss(pol, qf, batch, sampling, kl_coeff=0):
 
     q = 0
     _, _, pd_params = pol(obs)
-    means, log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        acs = means + Variable(torch2torch(torch.randn(means.size()))) * torch.exp(log_stds)
+        acs = pol.pd.sample(pd_params)
         q += qf(obs, acs)
     q /= sampling
 
@@ -18,10 +17,8 @@ def make_pol_loss(pol, qf, batch, sampling, kl_coeff=0):
 
     _, _, pd_params = pol(obs)
     kl = pol.pd.kl_pq(
-        Variable(pd_params['mean'].data),
-        Variable(pd_params['log_std'].data),
-        pd_params['mean'],
-        pd_params['log_std']
+        {k:Variable(d.data) for k, d in pd_params.items()},
+        pd_params
     )
     mean_kl = torch.mean(kl)
 

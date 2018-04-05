@@ -12,7 +12,7 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import GaussianPol
+from machina.pols import GaussianPol, MixtureGaussianPol
 from machina.algos import svg
 from machina.prepro import BasePrePro
 from machina.qfuncs import DeterministicQfunc
@@ -21,7 +21,7 @@ from machina.data import ReplayData, GAEData
 from machina.samplers import BatchSampler
 from machina.misc import logger
 from machina.utils import set_gpu, measure
-from net import PolNet, QNet
+from net import PolNet, QNet, MixturePolNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -33,6 +33,7 @@ parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--cuda', type=int, default=-1)
 
+parser.add_argument('--mixture', type=int, default=1)
 parser.add_argument('--max_data_size', type=int, default=1000000)
 parser.add_argument('--min_data_size', type=int, default=10000)
 parser.add_argument('--max_samples_per_iter', type=int, default=2000)
@@ -77,8 +78,12 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net)
+if args.mixture > 1:
+    pol_net = MixturePolNet(ob_space, ac_space, args.mixture)
+    pol = MixtureGaussianPol(ob_space, ac_space, pol_net)
+else:
+    pol_net = PolNet(ob_space, ac_space)
+    pol = GaussianPol(ob_space, ac_space, pol_net)
 qf_net = QNet(ob_space, ac_space)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf = copy.deepcopy(qf)

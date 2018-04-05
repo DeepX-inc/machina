@@ -13,17 +13,18 @@ def make_pol_loss(pol, batch, kl_beta):
 
     old_llh = Variable(pol.pd.llh(
         batch['acs'],
-        batch['mean'],
-        batch['log_std']
+        batch
     ))
 
     _, _, pd_params = pol(obs)
-    new_llh = pol.pd.llh(acs, pd_params['mean'], pd_params['log_std'])
+    new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
     pol_loss = ratio * advs
 
-    kl = pol.pd.kl_pq(p_mean=old_mean, p_log_std=old_log_std,
-            q_mean=pd_params['mean'], q_log_std=pd_params['log_std'])
+    kl = pol.pd.kl_pq(
+        {k:Variable(d) for k, d in batch.items()},
+        pd_params
+    )
 
     pol_loss -= kl_beta * kl
     pol_loss = - torch.mean(pol_loss)
@@ -71,10 +72,8 @@ def train(data, pol, vf,
     _, _, pd_params = pol(Variable(batch['obs']))
     kl_mean = torch.mean(
         pol.pd.kl_pq(
-            batch['mean'],
-            batch['log_std'],
-            pd_params['mean'].data,
-            pd_params['log_std'].data
+            batch,
+            {k:d.data for k, d in pd_params.items()}
         )
     )
     if kl_mean > 1.3 * kl_targ:

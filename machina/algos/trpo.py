@@ -55,7 +55,7 @@ def make_pol_loss(pol, batch, volatile=False):
     acs = Variable(batch['acs'], volatile=volatile)
     advs = Variable(batch['advs'], volatile=volatile)
     _, _, pd_params = pol(obs)
-    llh = pol.pd.llh(acs, pd_params['mean'], pd_params['log_std'])
+    llh = pol.pd.llh(acs, pd_params)
 
     pol_loss = - torch.mean(llh * advs)
     return pol_loss
@@ -64,8 +64,8 @@ def make_kl(pol, batch):
     obs = Variable(batch['obs'])
     _, _, pd_params = pol(obs)
     return pol.pd.kl_pq(
-        Variable(pd_params['mean'].data), Variable(pd_params['log_std'].data),
-        pd_params['mean'], pd_params['log_std']
+        {k:Variable(d.data) for k, d in pd_params.items()},
+        pd_params
     )
 
 def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10):
