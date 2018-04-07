@@ -38,6 +38,58 @@ class PolNet(nn.Module):
         #log_std = self.log_std_layer(h)
         return mean, self.log_std_param
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class DeterministicPolNet(nn.Module):
     def __init__(self, ob_space, ac_space, hidden_layer1, hidden_layer2):
         nn.Module.__init__(self)
