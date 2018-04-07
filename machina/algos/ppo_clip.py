@@ -9,11 +9,10 @@ def make_pol_loss(pol, batch, clip_param):
     advs = Variable(batch['advs'])
     old_llh = Variable(pol.pd.llh(
         batch['acs'],
-        batch['mean'],
-        batch['log_std']
+        batch,
     ))
     _, _, pd_params = pol(obs)
-    new_llh = pol.pd.llh(acs, pd_params['mean'], pd_params['log_std'])
+    new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
     pol_loss1 = ratio * advs
     pol_loss2 = torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advs

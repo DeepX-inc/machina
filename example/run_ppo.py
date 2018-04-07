@@ -11,7 +11,7 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import GaussianPol
+from machina.pols import GaussianPol, MixtureGaussianPol
 from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
@@ -19,7 +19,7 @@ from machina.envs import GymEnv
 from machina.data import GAEData
 from machina.samplers import BatchSampler
 from machina.misc import logger
-from net import PolNet, VNet
+from net import PolNet, VNet, MixturePolNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -30,6 +30,7 @@ parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 
+parser.add_argument('--mixture', type=int, default=1)
 parser.add_argument('--max_samples_per_iter', type=int, default=5000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=250)
 parser.add_argument('--epoch_per_iter', type=int, default=50)
@@ -74,8 +75,12 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net)
+if args.mixture > 1:
+    pol_net = MixturePolNet(ob_space, ac_space, args.mixture)
+    pol = MixtureGaussianPol(ob_space, ac_space, pol_net)
+else:
+    pol_net = PolNet(ob_space, ac_space)
+    pol = GaussianPol(ob_space, ac_space, pol_net)
 vf_net = VNet(ob_space)
 vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)
@@ -92,7 +97,6 @@ while args.max_episodes > total_epi:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
     else:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-    logger.record_tabular_misc_stat('Reward', [np.sum(path['rews']) for path in paths])
     data = GAEData(paths, shuffle=True)
     data.preprocess(vf, args.gamma, args.lam, centerize=True)
     if args.ppo_type == 'clip':
