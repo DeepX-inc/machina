@@ -10,7 +10,7 @@ class GaussianPd(BasePd):
 
     def sample(self, params):
         mean, log_std = params['mean'], params['log_std']
-        ac = mean + Variable(mean.new(*mean.shape).normal_()) * torch.exp(log_std)
+        ac = mean + Variable(mean.data.new(*mean.shape).normal_()) * torch.exp(log_std)
         return ac
 
     def llh(self, x, params):
