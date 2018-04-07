@@ -8,7 +8,7 @@ def make_pol_loss(pol, batch):
     acs = Variable(batch['acs'])
     advs = Variable(batch['advs'])
     _, _, pd_params = pol(obs)
-    llh = pol.pd.llh(acs, pd_params['mean'], pd_params['log_std'])
+    llh = pol.pd.llh(acs, pd_params)
 
     pol_loss = - torch.mean(llh * advs)
     return pol_loss

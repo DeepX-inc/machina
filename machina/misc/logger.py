@@ -3,6 +3,8 @@ from enum import Enum
 
 from machina.misc.tabulate import tabulate
 from machina.misc.console import mkdir_p, colorize
+from machina.misc import csv2table
+from machina.misc import plot_scores
 from contextlib import contextmanager
 import numpy as np
 import os
@@ -333,3 +335,36 @@ def record_tabular_misc_stat(key, values):
     record_tabular(key + "Median", np.median(values))
     record_tabular(key + "Min", np.amin(values))
     record_tabular(key + "Max", np.amax(values))
+
+
+def record_results(log_dir, result_dict, score_file,
+                   total_epi,
+                   step, total_step,
+                   rewards=None,
+                   plot_title=None, **plot_kwargs):
+    log("outdir {}".format(os.path.abspath(log_dir)))
+
+    for key, value in result_dict.items():
+        if not hasattr(value, '__len__'):
+            record_tabular(key, value)
+        elif len(value) >= 1:
+            record_tabular_misc_stat(key, value)
+    if rewards is not None:
+        record_tabular_misc_stat('Reward', rewards)
+        record_tabular('EpisodePerIter', len(rewards))
+    record_tabular('TotalEpisode', total_epi)
+    record_tabular('StepPerIter', step)
+    record_tabular('TotalStep', total_step)
+    dump_tabular()
+
+    csv2table(score_file)
+
+    for key, value in result_dict.items():
+        if hasattr(value, '__len__'):
+            fig_fname = plot_scores(score_file, key, 'TotalStep',
+                                    title=plot_title)
+            log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
+    if rewards is not None:
+        fig_fname = plot_scores(score_file, 'Reward', 'TotalStep',
+                                title=plot_title, **plot_kwargs)
+        log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
