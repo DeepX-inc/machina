@@ -91,6 +91,9 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
     stepdir = conjugate_gradients(Fvp, -flat_pol_loss_grad, num_cg)
 
     shs = 0.5 * torch.sum(stepdir * Fvp(stepdir), 0, keepdim=True)
+    if (shs < 0).any():
+        logger.log('invalid shs')
+        return pol_loss.data.cpu().numpy()
 
     lm = torch.sqrt(shs / max_kl)
     fullstep = stepdir / lm[0]
