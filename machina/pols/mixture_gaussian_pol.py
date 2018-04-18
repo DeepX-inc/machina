@@ -27,7 +27,7 @@ class MixtureGaussianPol(BasePol):
         """
         pi, mean, _ = self.net(obs)
         _, i = torch.max(pi, 1)
-        onehot = mean.new(*mean.shape).zero_()
+        onehot = mean.data.new(*mean.shape).zero_()
         onehot = onehot.scatter_(-1, i.unsqueeze(-1), 1)
         mean_real = self.convert_ac_for_real(torch.sum(mean * onehot.unsqueeze(-1), 1).data.cpu().numpy())
         return mean_real
