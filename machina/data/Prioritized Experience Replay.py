@@ -3,7 +3,6 @@ import torch
 
 from machina.data.base import BaseData
 from machina.utils import np2torch, torch2torch
-from scipy.stats import rankdata
 
 class PrioritizedReplayData(BaseData):
     def __init__(
@@ -12,6 +11,7 @@ class PrioritizedReplayData(BaseData):
         self.ob_dim = ob_dim
         self.ac_dim = ac_dim
         self.rew_scale = rew_scale
+
 
         self.obs = torch2torch(torch.zeros((max_data_size, ob_dim))).float()
         self.acs = torch2torch(torch.zeros((max_data_size, ac_dim))).float()
@@ -52,7 +52,20 @@ class PrioritizedReplayData(BaseData):
         indices = torch2torch(torch.zeros(batch_size)).long()
         transition_indices = torch2torch(torch.zeros(batch_size)).long()
         count = 0
-        rank = rankdata()
+        sum_delta = torch2torch(torch.sum(self.delta))
+        rand_list = np2torch(np.random.uniform(0, sum_delta))
+        rand_list = torch.sort(rand_list)
+
+        idx = 0
+        tmp_sum_delta = 0
+        for (i, randnum) in enumerate(rand_list):
+            while tmp_sum_delta < randnum:
+                tmp_sum_delta += self.delta[idx] + 0.0001
+                idx += 1
+
+            indices[count] = idx
+            transition_indices = (idx + 1) % self.max_data_size
+            count += 1
 
         while count < batch_size:
             index = np.random.randint(self.bottom, self.bottom + self.size) % self.max_data_size
