@@ -52,7 +52,8 @@ class PrioritizedReplayData(BaseData):
         indices = torch2torch(torch.zeros(batch_size)).long()
         transition_indices = torch2torch(torch.zeros(batch_size)).long()
         count = 0
-        rank = rankdata()
+        rank = rankdata(self.delta)
+
 
         while count < batch_size:
             index = np.random.randint(self.bottom, self.bottom + self.size) % self.max_data_size
