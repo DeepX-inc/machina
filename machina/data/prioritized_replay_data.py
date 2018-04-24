@@ -51,7 +51,6 @@ class PrioritizedReplayData(BaseData):
         assert self.size > batch_size
         indices = torch2torch(torch.zeros(batch_size)).long()
         transition_indices = torch2torch(torch.zeros(batch_size)).long()
-        count = 0
         sum_delta = torch2torch(torch.sum(self.delta))
         rand_list = np2torch(np.random.uniform(0, sum_delta, batch_size))
         rand_list = torch.sort(rand_list)
@@ -63,9 +62,8 @@ class PrioritizedReplayData(BaseData):
                 tmp_sum_delta += self.delta[idx] + 0.0001
                 idx += 1
 
-            indices[count] = idx
-            transition_indices = (idx + 1) % self.max_data_size
-            count += 1
+            indices[i] = idx
+            transition_indices[i] = (idx + 1) % self.max_data_size
 
 
         return dict(
