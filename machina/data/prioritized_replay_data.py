@@ -27,7 +27,7 @@ class PrioritizedReplayData(BaseData):
         self.obs[self.top] = np2torch(ob).float()
         self.acs[self.top] = np2torch(ac).float()
         self.rews[self.top] = rew * self.rew_scale
-        self.delta[self.top] = np2torch(torch.mean((ob-next_ob)**2))
+        self.delta[self.top] = torch.mean(torch2torch(((ob-next_ob)**2)))
         self.terminals[self.top] = terminal
         self.top = (self.top + 1) % self.max_data_size
         if self.size >= self.max_data_size:
