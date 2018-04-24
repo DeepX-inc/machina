@@ -53,13 +53,13 @@ class PrioritizedReplayData(BaseData):
         transition_indices = torch2torch(torch.zeros(batch_size)).long()
         count = 0
         sum_delta = torch2torch(torch.sum(self.delta))
-        rand_list = np2torch(np.random.uniform(0, sum_delta))
+        rand_list = np2torch(np.random.uniform(0, sum_delta, batch_size))
         rand_list = torch.sort(rand_list)
 
-        idx = 0
+        idx = -1
         tmp_sum_delta = 0
         for (i, randnum) in enumerate(rand_list):
-            while tmp_sum_delta < randnum:
+            while tmp_sum_delta <= randnum:
                 tmp_sum_delta += self.delta[idx] + 0.0001
                 idx += 1
 
@@ -67,18 +67,7 @@ class PrioritizedReplayData(BaseData):
             transition_indices = (idx + 1) % self.max_data_size
             count += 1
 
-        while count < batch_size:
-            index = np.random.randint(self.bottom, self.bottom + self.size) % self.max_data_size
-            # make sure that the transition is valid: if we are at the end of the data, we need to discard
-            # this sample
-            if index == self.size - 1 and self.size <= self.max_data_size:
-                continue
-            # if self._terminals[index]:
-            #     continue
-            transition_index = (index + 1) % self.max_data_size
-            indices[count] = index
-            transition_indices[count] = transition_index
-            count += 1
+
         return dict(
             obs=self.obs[indices],
             acs=self.acs[indices],
