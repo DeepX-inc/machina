@@ -122,8 +122,8 @@ while args.max_episodes > total_epi:
         )
 
     if (total_epi % 1) ==0:
-        obs_arr=np.asarray([path['obs'] for path in paths['obs']])
-        acs_arr=np.asarray([path['acs'] for path in paths['acs']])
+        obs_arr=np.asarray([path['obs'] for path in paths])
+        acs_arr=np.asarray([path['acs'] for path in paths])
         np.savez('paths_ddpg_stiffknee_{}episode.npz'.format(total_epi), acs=acs_arr, obs=obs_arr)
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
