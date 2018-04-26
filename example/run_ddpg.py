@@ -104,6 +104,7 @@ total_step = 0
 max_rew = -1e6
 obs_list = []
 acs_list = []
+count = 0
 while args.max_episodes > total_epi:
     if args.use_prepro:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
@@ -125,11 +126,10 @@ while args.max_episodes > total_epi:
     obs_list.append([path['obs'] for path in paths])
     acs_list.append([path['acs'] for path in paths])
     if (total_epi % 50) ==0:
-        print(np.asarray(obs_list).shape)
-        print(epi)
-        print(step)
-        obs_arr=np.asarray(obs_list).reshape((step,ob_space.shape[0]))
-        acs_arr=np.asarray(acs_list).reshape((step,ac_space.shape[0]))
+        count += 1
+        obs_arr=np.asarray(obs_list).reshape((int(total_step/count) , ob_space.shape[0]))
+        acs_arr=np.asarray(acs_list).reshape((int(total_step/count), ac_space.shape[0]))
+        print(obs_arr.shape)
         np.savez('paths_ddpg_stiffknee_{}episode.npz'.format(total_epi), acs=acs_arr, obs=obs_arr)
         obs_list = []
         acs_list = []
