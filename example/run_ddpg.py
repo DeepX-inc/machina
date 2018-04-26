@@ -121,6 +121,8 @@ while args.max_episodes > total_epi:
             args.tau, args.gamma, args.lam
         )
 
+    if (total_epi % 50) ==0:
+        np.savez('paths_ddpg_stiffknee_{}episode.npz'.format(total_epi), acs=path['acs'], obs=path['obs'], rews=path['rews'])
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
             logger.record_tabular(key, value)
