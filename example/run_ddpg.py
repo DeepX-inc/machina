@@ -102,13 +102,15 @@ off_data = ReplayData(max_data_size=args.max_data_size + 1, ob_dim=ob_space.shap
 total_epi = 0
 total_step = 0
 max_rew = -1e6
+obs_list = []
+acs_list = []
 while args.max_episodes > total_epi:
     if args.use_prepro:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
     else:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-
-    total_epi += len(paths)
+    epi = len(paths)
+    total_epi += epi
     step = sum([len(path['rews']) for path in paths])
     total_step += step
 
@@ -120,11 +122,17 @@ while args.max_episodes > total_epi:
             optim_pol, optim_qf, step, args.batch_size,
             args.tau, args.gamma, args.lam
         )
-
-    if (total_epi % 1) ==0:
-        obs_arr=np.asarray([path['obs'] for path in paths])
-        acs_arr=np.asarray([path['acs'] for path in paths])
+    obs_list.append([path['obs'] for path in paths])
+    acs_list.append([path['acs'] for path in paths])
+    if (total_epi % 50) ==0:
+        print(np.asarray(obs_list).shape)
+        print(epi)
+        print(step)
+        obs_arr=np.asarray(obs_list).reshape((step,ob_space.shape[0]))
+        acs_arr=np.asarray(acs_list).reshape((step,ac_space.shape[0]))
         np.savez('paths_ddpg_stiffknee_{}episode.npz'.format(total_epi), acs=acs_arr, obs=obs_arr)
+        obs_list = []
+        acs_list = []
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
             logger.record_tabular(key, value)
