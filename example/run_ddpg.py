@@ -129,8 +129,9 @@ while args.max_episodes > total_epi:
         count += 1
         obs_arr=np.asarray(obs_list).reshape((int(total_step/count) , ob_space.shape[0]))
         acs_arr=np.asarray(acs_list).reshape((int(total_step/count), ac_space.shape[0]))
-        print(obs_arr.shape)
-        np.savez('paths_ddpg_stiffknee_{}episode.npz'.format(total_epi), acs=acs_arr, obs=obs_arr)
+        if not os.path.exists(os.path.join(args.log, 'paths', 'ddpg_',args.env_name)):
+            os.mkdir(os.path.join(args.log, 'paths', 'ddpg_',args.env_name))
+        np.savez('{}episode.npz'.format(total_epi), acs=acs_arr, obs=obs_arr)
         obs_list = []
         acs_list = []
     for key, value in result_dict.items():
