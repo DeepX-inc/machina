@@ -125,7 +125,7 @@ while args.max_episodes > total_epi:
         )
     obs_list.append([path['obs'] for path in paths])
     acs_list.append([path['acs'] for path in paths])
-    if (total_epi % 50) ==0:
+    if (total_epi % 1) ==0:
         count += 1
         obs_arr=np.asarray(obs_list).reshape((int(total_step/count) , ob_space.shape[0]))
         acs_arr=np.asarray(acs_list).reshape((int(total_step/count), ac_space.shape[0]))
