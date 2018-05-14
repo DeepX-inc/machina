@@ -52,6 +52,9 @@ parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
 parser.add_argument('--batch_normalization', action='store_true', default=False)
 parser.add_argument('--apply_noise', action='store_true', default=False)
+
+parser.add_argument('--savepath_frequency', type=int, default=10)
+
 args = parser.parse_args()
 
 args.cuda = args.cuda if torch.cuda.is_available() else -1
@@ -104,7 +107,9 @@ total_step = 0
 max_rew = -1e6
 obs_list = []
 acs_list = []
+rews_list = []
 count = 0
+save_count = 0
 while args.max_episodes > total_epi:
     if args.use_prepro:
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
@@ -125,16 +130,20 @@ while args.max_episodes > total_epi:
         )
     obs_list.append([path['obs'] for path in paths])
     acs_list.append([path['acs'] for path in paths])
-    if (total_epi % 1) ==0:
+    rews_list.append([path['rews'] for path in paths])
+    if (save_count % args.savepath_frequency) ==0:
         count += 1
-        obs_arr=np.asarray(obs_list).reshape((int(total_step/count) , ob_space.shape[0]))
-        acs_arr=np.asarray(acs_list).reshape((int(total_step/count), ac_space.shape[0]))
+        obs_arr=np.asarray(obs_list).reshape((step , ob_space.shape[0]))
+        acs_arr=np.asarray(acs_list).reshape((step , ac_space.shape[0]))
+        rews_arr=np.asarray(rews_list).reshape((step, 1))
         if not os.path.exists(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name)):
             os.mkdir(os.path.join(args.log, 'paths'))
             os.mkdir(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name))
-        np.savez(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name, '{}episode.npz'.format(total_epi)), acs=acs_arr, obs=obs_arr)
+        np.savez(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name, '{}episode_{}steps.npz'.format(total_epi, step)), acs=acs_arr, obs=obs_arr, rews=rews_arr)
         obs_list = []
         acs_list = []
+        rews_list = []
+        save_count += 1
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
             logger.record_tabular(key, value)
