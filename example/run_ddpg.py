@@ -132,7 +132,6 @@ while args.max_episodes > total_epi:
     acs_list.append([path['acs'] for path in paths])
     rews_list.append([path['rews'] for path in paths])
     if (save_count % args.savepath_frequency) ==0:
-        count += 1
         obs_arr=np.asarray(obs_list).reshape((step , ob_space.shape[0]))
         acs_arr=np.asarray(acs_list).reshape((step , ac_space.shape[0]))
         rews_arr=np.asarray(rews_list).reshape((step, 1))
@@ -143,7 +142,8 @@ while args.max_episodes > total_epi:
         obs_list = []
         acs_list = []
         rews_list = []
-        save_count += 1
+        
+    save_count += 1
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
             logger.record_tabular(key, value)
