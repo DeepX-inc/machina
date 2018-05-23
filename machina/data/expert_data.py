@@ -9,6 +9,8 @@ class ExpertData(BaseData):
         self.expert_data = np.load(expert_path)
         self.obs = np2torch(self.expert_data['obs'])
         self.acs = np2torch(self.expert_data['acs'])
+        self.num_of_traj = self.expert_data['obs'].shape[0]
+        self.num_of_step = self.expert_data['obs'].shape[1]
 
     def iterate_once(self, batch_size):
         indices_traj = np2torch(np.random.choice(np.arange(self.obs.shape[0]), batch_size))
@@ -34,6 +36,18 @@ class ExpertData(BaseData):
                 nstep_obs=nstep_obs,
                 nstep_acs=nstep_acs
             )
+    def iterate_supervised(self, batch_size, num_of_step, epoch=3):
+        if num_of_step==1:
+            for _ in range(epoch):
+                full_indice = np.arange(self.num_of_traj * self.num_of_step) + 1
+                indices = np.array_split(full_indice, batch_size)
+                batch = self.iterate_once(batch_size)
+                yield batch
+        else:
+            for _ in range(epoch):
+                batch = self.iterate_nstep(batch_size, num_of_step)
+                yield batch
+
 
     def iterate(self, batch_size, num_of_step, epoch=1):
         if num_of_step==1:

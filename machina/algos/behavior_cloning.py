@@ -14,11 +14,9 @@ def make_pol_loss(pol, transition_model, batch):
 def train_only_pol(expert_data,
         pol, transition_model,
         optim_pol,
-        epoch_pol, batch_size, log, filename, sampler
+        epoch_pol, batch_size
         ):
-    count = 0
     pol_losses = []
-    min_pol_loss = 10000
     logger.log("Optimizing...")
     for batch in expert_data.iterate(batch_size, epoch_pol):
         pol_loss = make_pol_loss(pol, transition_model, batch)
