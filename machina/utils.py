@@ -61,4 +61,3 @@ class Variable(autograd.Variable):
     def __init__(self, data, *args, **kwargs):
         data = torch2torch(data)
         super(Variable, self).__init__(data, *args, **kwargs)
-

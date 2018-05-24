@@ -12,59 +12,28 @@ class ExpertData(BaseData):
         self.num_of_traj = self.expert_data['obs'].shape[0]
         self.num_of_step = self.expert_data['obs'].shape[1]
 
-    def iterate_once(self, batch_size):
-        indices_traj = np2torch(np.random.choice(np.arange(self.obs.shape[0]), batch_size))
-        indices_step = np2torch(np.random.choice(np.arange(self.obs.shape[1]-1)  , batch_size))
-        indices_next_step = indices_step + 1
-        return dict(
-            obs=self.obs[indices_traj, indices_step],
-            next_obs=self.obs[indices_traj, indices_next_step],
-            acs=self.acs[indices_traj, indices_step]
-        )
+    def iterate(self, batch_size, epoch=10):
+        full_indices = np.arange(self.num_of_traj * self.num_of_step, dtype=np.int) + 1
+        full_indices = full_indices[np.where(full_indices%self.num_of_step!=0)]
+        full_indices = full_indices -1
+        full_indices_shuffled = np.random.permutation(full_indices)
+        indices_minibatches = np.array_split(full_indices_shuffled, len(full_indices) // batch_size)
+        for iteration, indices_minibatch in enumerate(indices_minibatches):
+            indices_minibatch_traj = np2torch(indices_minibatch // self.num_of_step).long()
+            indices_minibatch_step = np2torch(indices_minibatch % self.num_of_step).long()
+            yield iteration,\
+                    dict(
+                        obs=self.obs[indices_minibatch_traj,indices_minibatch_step],
+                        next_obs=self.obs[indices_minibatch_traj, indices_minibatch_step + 1],
+                        acs=self.acs[indices_minibatch_traj, indices_minibatch_step]
+                )
 
-
-    def iterate_nstep(self, batch_size, num_of_step, epoch=1):
-        for i in range(num_of_step):
-            nstep_obs = torch2torch(torch.zeros((num_of_step, batch_size, self.obs.shape[2]))).float()
-            nstep_acs = torch2torch(torch.zeros((num_of_step, batch_size, self.acs.shape[2]))).float()
-            indices_traj = np2torch(np.random.choice(np.arange(self.obs.shape[0]), batch_size))
-            indices_step = np2torch(np.random.choice(np.arange(self.obs.shape[1] - 1), batch_size))
-            for i in range(num_of_step):
-                nstep_obs[i] = self.obs[indices_traj, indices_step + i]
-                nstep_acs[i] = self.acs[indices_traj, indices_step + i]
-            return dict(
-                nstep_obs=nstep_obs,
-                nstep_acs=nstep_acs
-            )
-    def iterate_supervised(self, batch_size, num_of_step, epoch=3):
-        if num_of_step==1:
-            for _ in range(epoch):
-                full_indice = np.arange(self.num_of_traj * self.num_of_step) + 1
-                indices = np.array_split(full_indice, batch_size)
-                batch = self.iterate_once(batch_size)
-                yield batch
-        else:
-            for _ in range(epoch):
-                batch = self.iterate_nstep(batch_size, num_of_step)
-                yield batch
-
-
-    def iterate(self, batch_size, num_of_step, epoch=1):
-        if num_of_step==1:
-            for _ in range(epoch):
-                batch = self.iterate_once(batch_size)
-                yield batch
-        else:
-            for _ in range(epoch):
-                batch = self.iterate_nstep(batch_size, num_of_step)
-                yield batch
 
 
 if __name__=='__main__':
     expertdata = ExpertData(os.path.join(os.getcwd(),'halfcheetah_rllab_3232_noBN_0202pol_max_HalfCheetah-v1_30trajs.npz'))
-#    for batch in expertdata.iterate(batch_size=3,epoch=2):
-#        print(batch['obs'])
-#    print(expertdata.obs)
-#    print(expertdata.obs.shape)
-    for batch in expertdata.iterate_nstep(batch_size=5, num_of_step=1):
-        print(batch['nstep_obs'])
+    for iteration, batch in expertdata.iterate(batch_size=100,epoch=2):
+#    for batch in expertdata.iterate(batch_size=3,num_of_step=1, epoch=2):
+        print('iteration={}, batchsize={}'.format(iteration, len(batch['obs'])))
+    print(expertdata.obs)
+    print(expertdata.obs.shape)
