@@ -123,7 +123,7 @@ max_rew = -1e6
 
 
 for current_epoch in range(args.epoch):
-    with measure('training_time'):
+    with measure('training_time_per_epoch'):
         result_dict = behavior_cloning.train(
             expert_data, pol, optim_pol,
             args.epoch, args.batch_size
