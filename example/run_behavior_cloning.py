@@ -46,6 +46,8 @@ parser.add_argument('--max_data_size', type=int, default=1000000)
 parser.add_argument('--min_data_size', type=int, default=10000)
 parser.add_argument('--max_samples_per_iter', type=int, default=10000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=10000)
+parser.add_argument('--performance_check_per_epoch', type=float, default=1e-1)
+
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--epoch', type=int, default=1000)
 parser.add_argument('--pol_lr', type=float, default=1e-3)
@@ -135,21 +137,15 @@ for current_epoch in range(args.epoch):
             logger.record_tabular(key, value)
         elif len(value) >= 1:
             logger.record_tabular_misc_stat(key, value)
-    logger.dump_tabular()
-    if current_epoch % 10==0:
+
+    if current_epoch % int(args.epoch*args.performance_check_per_epoch)==0:
         pol.eval()
         paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
         pol.train()
         total_epi += len(paths)
         step = sum([len(path['rews']) for path in paths])
         total_step += step
-        logger.record_tabular_misc_stat('Reward', [np.sum(path['rews']) for path in paths])
-        logger.record_tabular('EpisodePerIter', len(paths))
-        logger.record_tabular('TotalEpisode', total_epi)
-        logger.record_tabular('StepPerIter', step)
-        logger.record_tabular('TotalStep', total_step)
-        logger.dump_tabular()
-
+        current_reward = [np.sum(path['rews']) for path in paths]
         mean_rew = np.mean([np.sum(path['rews']) for path in paths])
         if mean_rew > max_rew:
             torch.save(pol.state_dict(), os.path.join(args.log, 'models', filename + 'pol_max.pkl'))
@@ -158,3 +154,11 @@ for current_epoch in range(args.epoch):
 
         torch.save(pol.state_dict(), os.path.join(args.log, 'models', filename + 'pol_last.pkl'))
         torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', filename + 'optim_pol_last.pkl'))
+
+    logger.record_tabular_misc_stat('Reward', current_reward)
+    logger.record_tabular('EpisodePerIter', len(paths))
+    logger.record_tabular('TotalEpisode', total_epi)
+    logger.record_tabular('StepPerIter', step)
+    logger.record_tabular('TotalStep', total_step)
+    logger.dump_tabular()
+
