@@ -30,8 +30,8 @@ parser.add_argument('--dir', type=str, default='/home/yoshida/research/movie/mod
 parser.add_argument('--file_name', type=str, default='halfcheetah_rllab_3232_noBN_0202pol_max.pkl')
 parser.add_argument('--hidden_layer1', type=int, default=32)
 parser.add_argument('--hidden_layer2', type=int, default=32)
-parser.add_argument('--expert_dir', type = str, default='machina/data/expert_data')
-parser.add_argument('--expert_path', type = str, default='halfcheetah_rllab_3232_noBN_0202pol_max_HalfCheetah-v1')
+parser.add_argument('--expert_dir', type = str, default='machina/data/expert_data_npz')
+parser.add_argument('--expert_path', type = str, default='halfcheetah_rllab_3232_noBN_0202pol_max_HalfCheetah-v1_30trajs.npz')
 
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--log_filename', type=str, default='')
@@ -114,7 +114,7 @@ if args.reuse:
 
 
 sampler = BatchSampler(env)
-expert_data = ExpertData(os.path.join(os.getcwd(),args.expert_dir, args.expert_path + '_{}trajs.npz'.format(args.num_of_traj)))
+expert_data = ExpertData(os.path.join(os.getcwd(),args.expert_dir, args.expert_path))
 
 
 total_epi = 0
@@ -129,31 +129,32 @@ for current_epoch in range(args.epoch):
             args.epoch, args.batch_size
         )
 
-    pol.eval()
-    paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-    pol.train()
-
-    total_epi += len(paths)
-    step = sum([len(path['rews']) for path in paths])
-    total_step += step
     logger.record_tabular('Epoch', current_epoch)
     for key, value in result_dict.items():
         if not hasattr(value, '__len__'):
             logger.record_tabular(key, value)
         elif len(value) >= 1:
             logger.record_tabular_misc_stat(key, value)
-    logger.record_tabular_misc_stat('Reward', [np.sum(path['rews']) for path in paths])
-    logger.record_tabular('EpisodePerIter', len(paths))
-    logger.record_tabular('TotalEpisode', total_epi)
-    logger.record_tabular('StepPerIter', step)
-    logger.record_tabular('TotalStep', total_step)
     logger.dump_tabular()
+    if current_epoch % 10==0:
+        pol.eval()
+        paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+        pol.train()
+        total_epi += len(paths)
+        step = sum([len(path['rews']) for path in paths])
+        total_step += step
+        logger.record_tabular_misc_stat('Reward', [np.sum(path['rews']) for path in paths])
+        logger.record_tabular('EpisodePerIter', len(paths))
+        logger.record_tabular('TotalEpisode', total_epi)
+        logger.record_tabular('StepPerIter', step)
+        logger.record_tabular('TotalStep', total_step)
+        logger.dump_tabular()
 
-    mean_rew = np.mean([np.sum(path['rews']) for path in paths])
-    if mean_rew > max_rew:
-        torch.save(pol.state_dict(), os.path.join(args.log, 'models', filename + 'pol_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', filename + 'optim_pol_max.pkl'))
-        max_rew = mean_rew
+        mean_rew = np.mean([np.sum(path['rews']) for path in paths])
+        if mean_rew > max_rew:
+            torch.save(pol.state_dict(), os.path.join(args.log, 'models', filename + 'pol_max.pkl'))
+            torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', filename + 'optim_pol_max.pkl'))
+            max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(args.log, 'models', filename + 'pol_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', filename + 'optim_pol_last.pkl'))
+        torch.save(pol.state_dict(), os.path.join(args.log, 'models', filename + 'pol_last.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', filename + 'optim_pol_last.pkl'))

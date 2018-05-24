@@ -4,6 +4,9 @@ from suggest_method.expert_data.base import BaseData
 from machina.utils import np2torch, torch2torch
 import os
 
+
+
+
 class ExpertData(BaseData):
     def __init__(self, expert_path):
         self.expert_data = np.load(expert_path)
@@ -31,7 +34,12 @@ class ExpertData(BaseData):
 
 
 if __name__=='__main__':
-    expertdata = ExpertData(os.path.join(os.getcwd(),'halfcheetah_rllab_3232_noBN_0202pol_max_HalfCheetah-v1_30trajs.npz'))
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir', type=str, default='expert_data_npz')
+    parser.add_argument('--file_name', type=str, default='halfcheetah_rllab_3232_noBN_0202pol_max_HalfCheetah-v1_30trajs.npz')
+    args = parser.parse_args()
+    expertdata = ExpertData(os.path.join(os.getcwd(),args.dir, args.file_name))
     for iteration, batch in expertdata.iterate(batch_size=100,epoch=2):
 #    for batch in expertdata.iterate(batch_size=3,num_of_step=1, epoch=2):
         print('iteration={}, batchsize={}'.format(iteration, len(batch['obs'])))
