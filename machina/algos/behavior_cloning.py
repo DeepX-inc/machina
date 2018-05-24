@@ -15,10 +15,12 @@ def train(expert_data,pol,optim_pol,
         epoch_pol, batch_size
         ):
     pol_losses = []
-    for iteration, batch in expert_data.iterate(batch_size, epoch_pol):
+    for iteration, batch in expert_data.iterate(batch_size):
         pol_loss = make_pol_loss(pol, batch)
         optim_pol.zero_grad()
         pol_loss.backward()
         optim_pol.step()
         pol_losses.append(pol_loss.data.cpu().numpy())
-    return {'PolLoss': pol_losses}
+    validation_loss = make_pol_loss(pol, expert_data.test_data).data.cpu().numpy()
+
+    return {'PolLoss': pol_losses, 'ValidationPolLoss' : [validation_loss]}

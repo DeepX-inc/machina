@@ -116,7 +116,7 @@ if args.reuse:
 
 
 sampler = BatchSampler(env)
-expert_data = ExpertData(os.path.join(os.getcwd(),args.expert_dir, args.expert_path))
+expert_data = ExpertData(os.path.join(os.getcwd(),args.expert_dir, args.expert_path), 0.1)
 
 
 total_epi = 0
@@ -137,6 +137,8 @@ for current_epoch in range(args.epoch):
             logger.record_tabular(key, value)
         elif len(value) >= 1:
             logger.record_tabular_misc_stat(key, value)
+    
+    
 
     if current_epoch % int(args.epoch*args.performance_check_per_epoch)==0:
         pol.eval()
