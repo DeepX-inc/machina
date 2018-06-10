@@ -135,8 +135,9 @@ while args.max_episodes > total_epi:
         obs_arr=np.asarray(obs_list).reshape((step , ob_space.shape[0]))
         acs_arr=np.asarray(acs_list).reshape((step , ac_space.shape[0]))
         rews_arr=np.asarray(rews_list).reshape((step, 1))
-        if not os.path.exists(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name)):
+        if not os.path.exists(os.path.join(args.log, 'paths')):
             os.mkdir(os.path.join(args.log, 'paths'))
+        if not os.path.exists(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name)):
             os.mkdir(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name))
         np.savez(os.path.join(args.log, 'paths', 'ddpg_'+args.env_name, '{}episode_{}steps.npz'.format(total_epi, step)), acs=acs_arr, obs=obs_arr, rews=rews_arr)
         obs_list = []
