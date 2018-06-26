@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+#
+# This is an implementation of Stochastic Value Gradient.
+# See https://arxiv.org/abs/1510.09142
+#
 
 import torch
 import torch.nn as nn
