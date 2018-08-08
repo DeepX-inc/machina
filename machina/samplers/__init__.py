@@ -15,3 +15,4 @@
 
 from machina.samplers.base import BaseSampler
 from machina.samplers.batch import BatchSampler
+from machina.samplers.parallel import ParallelSampler
