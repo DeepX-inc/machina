@@ -18,7 +18,7 @@ import torch
 import scipy
 
 from machina.data.base import BaseData
-from machina.utils import Variable, np2torch
+from machina.utils import get_device
 
 def discount_cumsum(x, discount):
     # See https://docs.scipy.org/doc/scipy/reference/tutorial/signal.html#difference-equation-filtering
@@ -39,16 +39,17 @@ class GAEData(BaseData):
         keys = self.paths[0].keys()
         for key in keys:
             if isinstance(self.paths[0][key], list) or isinstance(self.paths[0][key], np.ndarray):
-                self.data_map[key] = np2torch(np.concatenate([path[key] for path in self.paths], axis=0)).float()
+                self.data_map[key] = torch.tensor(np.concatenate([path[key] for path in self.paths], axis=0), dtype=torch.float, device=get_device())
             elif isinstance(self.paths[0][key], dict):
                 new_keys = self.paths[0][key].keys()
                 for new_key in new_keys:
-                    self.data_map[new_key] = np2torch(np.concatenate([path[key][new_key] for path in self.paths], axis=0)).float()
+                    self.data_map[new_key] = torch.tensor(np.concatenate([path[key][new_key] for path in self.paths], axis=0), dtype=torch.float, device=get_device())
         if centerize:
             self.data_map['advs'] = (self.data_map['advs'] - torch.mean(self.data_map['advs'])) / (torch.std(self.data_map['advs']) + 1e-6)
 
     def preprocess(self, vf, gamma, lam, centerize=True):
-        all_path_vs = [vf(Variable(np2torch(path['obs']).float(), volatile=True)).data.cpu().numpy() for path in self.paths]
+        with torch.no_grad():
+            all_path_vs = [vf(torch.tensor(path['obs'], dtype=torch.float, device=get_device())).numpy() for path in self.paths]
         for idx, path in enumerate(self.paths):
             path_vs = np.append(all_path_vs[idx], 0)
             rews = path['rews']
@@ -68,7 +69,7 @@ class GAEData(BaseData):
     def shuffle(self):
         perm = np.arange(self.n)
         np.random.shuffle(perm)
-        perm = np2torch(perm).long()
+        perm = torch.tensor(perm, dtype=torch.long, device=get_device())
 
         for key in self.data_map:
             self.data_map[key] = self.data_map[key][perm]
@@ -89,7 +90,8 @@ class GAEData(BaseData):
         return data_map
 
     def iterate_once(self, batch_size):
-        if self.enable_shuffle: self.shuffle()
+        if self.enable_shuffle:
+            self.shuffle()
 
         while self._next_id <= self.n - batch_size:
             yield self.next_batch(batch_size)

@@ -15,21 +15,20 @@
 
 import torch
 import torch.nn as nn
-from machina.utils import Variable
 from machina.misc import logger
 
 def make_pol_loss(pol, batch, kl_beta):
-    obs = Variable(batch['obs'])
-    acs = Variable(batch['acs'])
-    advs = Variable(batch['advs'])
+    obs = batch['obs']
+    acs = batch['acs']
+    advs = batch['advs']
 
-    old_mean = Variable(batch['mean'])
-    old_log_std = Variable(batch['log_std'])
+    old_mean = batch['mean']
+    old_log_std = batch['log_std']
 
-    old_llh = Variable(pol.pd.llh(
+    old_llh = pol.pd.llh(
         batch['acs'],
         batch
-    ))
+    )
 
     _, _, pd_params = pol(obs)
     new_llh = pol.pd.llh(acs, pd_params)
@@ -37,7 +36,7 @@ def make_pol_loss(pol, batch, kl_beta):
     pol_loss = ratio * advs
 
     kl = pol.pd.kl_pq(
-        {k:Variable(d) for k, d in batch.items()},
+        batch,
         pd_params
     )
 
@@ -51,11 +50,11 @@ def update_pol(pol, optim_pol, batch, kl_beta):
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
-    return pol_loss.data.cpu().numpy()
+    return pol_loss.detach().numpy()
 
 def make_vf_loss(vf, batch):
-    obs = Variable(batch['obs'])
-    rets = Variable(batch['rets'])
+    obs = batch['obs']
+    rets = batch['rets']
     vf_loss = 0.5 * torch.mean((vf(obs) - rets)**2)
     return vf_loss
 
@@ -64,13 +63,12 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()
-    return vf_loss.data.cpu().numpy()
+    return vf_loss.detach().numpy()
 
 def train(data, pol, vf,
         kl_beta, kl_targ,
         optim_pol, optim_vf,
         epoch, batch_size,# optimization hypers
-        gamma, lam, # advantage estimation
         ):
 
     pol_losses = []
@@ -84,13 +82,14 @@ def train(data, pol, vf,
         vf_losses.append(vf_loss)
 
     batch = next(data.full_batch())
-    _, _, pd_params = pol(Variable(batch['obs']))
-    kl_mean = torch.mean(
-        pol.pd.kl_pq(
-            batch,
-            {k:d.data for k, d in pd_params.items()}
-        )
-    )
+    with torch.no_grad():
+        _, _, pd_params = pol(batch['obs'])
+        kl_mean = torch.mean(
+            pol.pd.kl_pq(
+                batch,
+                pd_params
+            )
+        ).item()
     if kl_mean > 1.3 * kl_targ:
         new_kl_beta = 1.5 * kl_beta
     elif kl_mean < 0.7 * kl_targ:

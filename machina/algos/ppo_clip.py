@@ -15,23 +15,22 @@
 
 import torch
 import torch.nn as nn
-from machina.utils import Variable
 from machina.misc import logger
 
 def make_pol_loss(pol, batch, clip_param):
-    obs = Variable(batch['obs'])
-    acs = Variable(batch['acs'])
-    advs = Variable(batch['advs'])
-    old_llh = Variable(pol.pd.llh(
+    obs = batch['obs']
+    acs = batch['acs']
+    advs = batch['advs']
+    old_llh = pol.pd.llh(
         batch['acs'],
         batch,
-    ))
+    )
     _, _, pd_params = pol(obs)
     new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
     pol_loss1 = ratio * advs
     pol_loss2 = torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advs
-    pol_loss =  -torch.mean(torch.min(pol_loss1, pol_loss2))
+    pol_loss =  - torch.mean(torch.min(pol_loss1, pol_loss2))
     return pol_loss
 
 def update_pol(pol, optim_pol, batch, clip_param):
@@ -39,12 +38,12 @@ def update_pol(pol, optim_pol, batch, clip_param):
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
-    return pol_loss.data.cpu().numpy()
+    return pol_loss.detach().numpy()
 
 def make_vf_loss(vf, batch, clip_param):
-    obs = Variable(batch['obs'])
-    rets = Variable(batch['rets'])
-    vs = Variable(batch['vs'])
+    obs = batch['obs']
+    rets = batch['rets']
+    vs = batch['vs']
 
     vfloss1 = (vf(obs) - rets)**2
     vpredclipped = vs + torch.clamp(vf(obs) - vs, -clip_param, clip_param)
@@ -57,13 +56,12 @@ def update_vf(vf, optim_vf, batch, clip_param):
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()
-    return vf_loss.data.cpu().numpy()
+    return vf_loss.detach().numpy()
 
 def train(data, pol, vf,
         clip_param,
         optim_pol, optim_vf,
         epoch, batch_size,# optimization hypers
-        gamma, lam, # advantage estimation
         ):
 
     pol_losses = []

@@ -34,7 +34,7 @@ from machina.envs import GymEnv
 from machina.data import GAEData
 from machina.samplers import BatchSampler
 from machina.misc import logger
-from net import PolNet, VNet, MixturePolNet
+from machina.nets import PolNet, VNet, MixturePolNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')

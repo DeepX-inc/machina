@@ -15,7 +15,6 @@
 
 import numpy as np
 import torch
-from torch.autograd import Variable
 
 from machina.pds.base import BasePd
 
@@ -25,7 +24,7 @@ class GaussianPd(BasePd):
 
     def sample(self, params):
         mean, log_std = params['mean'], params['log_std']
-        ac = mean + Variable(mean.data.new(*mean.shape).normal_()) * torch.exp(log_std)
+        ac = mean + torch.randn_like(mean) * torch.exp(log_std)
         return ac
 
     def llh(self, x, params):

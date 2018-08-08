@@ -15,24 +15,24 @@
 
 import torch
 import torch.nn as nn
-from machina.utils import Variable, torch2torch
 from machina.misc import logger
 
 def make_pol_loss(pol, qf, batch, sampling, kl_coeff=0):
-    obs = Variable(batch['obs'])
+    obs = batch['obs']
 
     q = 0
     _, _, pd_params = pol(obs)
+    # TODO: fast sampling
     for _ in range(sampling):
         acs = pol.pd.sample(pd_params)
         q += qf(obs, acs)
     q /= sampling
 
-    pol_loss = -torch.mean(q)
+    pol_loss = - torch.mean(q)
 
     _, _, pd_params = pol(obs)
     kl = pol.pd.kl_pq(
-        {k:Variable(d.data) for k, d in pd_params.items()},
+        {k:d.detach() for k, d in pd_params.items()},
         pd_params
     )
     mean_kl = torch.mean(kl)
@@ -44,30 +44,30 @@ def update_pol(pol, qf, optim_pol, batch, sampling):
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
-    return pol_loss.data.cpu().numpy()
+    return pol_loss.detach().numpy()
 
 def make_bellman_loss(qf, targ_qf, pol, batch, gamma, sampling):
-    obs = Variable(batch['obs'])
-    acs = Variable(batch['acs'])
-    rews = Variable(batch['rews'])
-    next_obs = Variable(batch['next_obs'])
-    terminals = Variable(batch['terminals'])
+    obs = batch['obs']
+    acs = batch['acs']
+    rews = batch['rews']
+    next_obs = batch['next_obs']
+    terminals = batch['terminals']
     expected_next_q = 0
     _, _, pd_params = pol(next_obs)
     next_means, next_log_stds = pd_params['mean'], pd_params['log_std']
     for _ in range(sampling):
-        next_acs = next_means + Variable(torch2torch(torch.randn(next_means.size()))) * torch.exp(next_log_stds)
+        next_acs = next_means + torch.randn_like(next_means) * torch.exp(next_log_stds)
         expected_next_q += targ_qf(next_obs, next_acs)
     expected_next_q /= sampling
     targ = rews + gamma * expected_next_q * (1 - terminals)
-    targ = Variable(targ.data)
+    targ = targ.detach()
 
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
 
 def make_mc_loss(qf, batch):
-    obs = Variable(batch['obs'])
-    acs = Variable(batch['acs'])
-    rets = Variable(batch['rets'])
+    obs = batch['obs']
+    acs = batch['acs']
+    rets = batch['rets']
     return 0.5 * torch.mean((qf(obs, acs) - rets)**2)
 
 def train(off_data,
@@ -93,9 +93,9 @@ def train(off_data,
         optim_pol.step()
 
         for p, targ_p in zip(qf.parameters(), targ_qf.parameters()):
-            targ_p.data.copy_((1 - tau) * targ_p.data + tau * p.data)
-        qf_losses.append(qf_bellman_loss.data.cpu().numpy())
-        pol_losses.append(pol_loss.data.cpu().numpy())
+            targ_p.copy_((1 - tau) * targ_p + tau * p)
+        qf_losses.append(qf_bellman_loss.detach().jnumpy())
+        pol_losses.append(pol_loss.detach().numpy())
 
     logger.log("Optimization finished!")
 
