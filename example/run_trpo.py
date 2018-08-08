@@ -32,8 +32,9 @@ from machina.prepro import BasePrePro
 from machina.vfuncs import NormalizedDeterministicVfunc, DeterministicVfunc
 from machina.envs import GymEnv
 from machina.data import GAEData
-from machina.samplers import BatchSampler
+from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
+from machina.utils import measure
 from machina.nets import PolNet, VNet, MixturePolNet
 
 parser = argparse.ArgumentParser()
@@ -44,6 +45,7 @@ parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
+parser.add_argument('--use_parallel_sampler', action='store_true', default=False)
 
 parser.add_argument('--mixture', type=int, default=1)
 parser.add_argument('--max_samples_per_iter', type=int, default=5000)
@@ -95,20 +97,25 @@ if args.normalize_v:
 else:
     vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)
-sampler = BatchSampler(env)
+if args.use_parallel_sampler:
+    sampler = ParallelSampler(env)
+else:
+    sampler = BatchSampler(env)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 
 total_epi = 0
 total_step = 0
 max_rew = -1e6
 while args.max_episodes > total_epi:
-    if args.use_prepro:
-        paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
-    else:
-        paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-    data = GAEData(paths, shuffle=True)
-    data.preprocess(vf, args.gamma, args.lam, centerize=True)
-    result_dict = trpo.train(data, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
+    with measure('sample'):
+        if args.use_prepro:
+            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+        else:
+            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+    with measure('train'):
+        data = GAEData(paths, shuffle=True)
+        data.preprocess(vf, args.gamma, args.lam, centerize=True)
+        result_dict = trpo.train(data, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
 
     total_epi += data.num_epi
     step = sum([len(path['rews']) for path in paths])
