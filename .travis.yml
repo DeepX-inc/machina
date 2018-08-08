@@ -4,7 +4,7 @@ python:
   - "3.5"
 
 install:
-  - pip install -e .
+  - pip install --default-timeout=1000 -q -e .
 
 script:
   - nosetests -x tests --with-coverage --cover-package machina

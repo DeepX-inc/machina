@@ -14,17 +14,16 @@
 # ==============================================================================
 
 from machina.qfuncs.base import BaseQfunc
-from machina.utils import get_gpu
+from machina.utils import get_device
 
 
 class DeterministicQfunc(BaseQfunc):
     def __init__(self, ob_space, ac_space, net):
         BaseQfunc.__init__(self, ob_space, ac_space)
         self.net = net
-        gpu_id = get_gpu()
-        if gpu_id != -1:
-            self.cuda(gpu_id)
+
+        self.to(get_device())
 
     def forward(self, obs, acs):
-        return self.net(obs, acs).view(-1)
+        return self.net(obs, acs).reshape(-1)
 

@@ -13,4 +13,5 @@
 # limitations under the License.
 # ==============================================================================
 
+from machina.nets.simple_net import PolNet, QNet, VNet, MixturePolNet
 
