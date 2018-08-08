@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+#
+# This is an implementation of Trust Region Policy Optimization.
+# See https://arxiv.org/abs/1502.05477
+#
+
 
 import torch
 import torch.nn as nn

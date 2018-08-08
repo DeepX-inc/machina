@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+#
+# This is an implementation of Soft Actor Critic.
+# See https://arxiv.org/abs/1801.01290
+#
 
 import torch
 import torch.nn as nn

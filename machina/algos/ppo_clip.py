@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+#
+# This is an implementation of Proximal Policy Optimization
+# in which gradient is clipped by the size especially.
+# See https://arxiv.org/abs/1707.06347
+# 
 
 import torch
 import torch.nn as nn
