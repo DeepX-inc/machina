@@ -1,6 +1,20 @@
+# Copyright 2018 DeepX Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
 import torch
-from torch.autograd import Variable
-from torch.distributions import Categorical
+from torch.distributions import OneHotCategorical
 import numpy as np
 
 from machina.pds.base import BasePd
@@ -13,12 +27,8 @@ class MixtureGaussianPd(BasePd):
 
     def sample(self, params):
         pi, mean, log_std = params['pi'], params['mean'], params['log_std']
-        pi_sampled = Categorical(pi).sample()
-        pi_onehot = Variable(pi.data.new(mean.shape[:-1]).zero_())
-        if pi_sampled.dim() < pi_onehot.dim():
-            pi_sampled = pi_sampled.unsqueeze(-1)
-        pi_onehot = pi_onehot.scatter_(-1, pi_sampled, 1)
-        ac = torch.sum((mean + Variable(mean.data.new(*mean.shape).normal_()) * torch.exp(log_std)) * pi_onehot.unsqueeze(-1), 1)
+        pi_onehot = OneHotCategorical(pi).sample()
+        ac = torch.sum((mean + torch.randn_like(mean) * torch.exp(log_std)) * pi_onehot.unsqueeze(-1), 1)
         return ac
 
     def llh(self, x, params):

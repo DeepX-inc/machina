@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 import torch
-from machina.utils import Variable, cpu_mode, np2torch
+from machina.utils import cpu_mode
 from machina.samplers.base import BaseSampler
 
 
@@ -23,12 +23,12 @@ class BatchSampler(BaseSampler):
         path_length = 0
         while not d:
             o = prepro(o)
-            ac_real, ac, a_i = pol(Variable(torch.from_numpy(o).float().unsqueeze(0)))
+            ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
             next_o, r, d, e_i = self.env.step(ac_real[0])
             obs.append(o)
             rews.append(r)
-            acs.append(ac.data.cpu().numpy()[0])
-            a_i = dict([(key, a_i[key].data.cpu().numpy()[0]) for key in a_i.keys()])
+            acs.append(ac.detach().numpy()[0])
+            a_i = dict([(key, a_i[key].detach().numpy()[0]) for key in a_i.keys()])
             a_is.append(a_i)
             e_is.append(e_i)
             path_length += 1

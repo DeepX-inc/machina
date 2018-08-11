@@ -1,3 +1,18 @@
+# Copyright 2018 DeepX Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
 import argparse
 import json
 import os
@@ -17,18 +32,20 @@ from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
 from machina.envs import GymEnv
 from machina.data import GAEData
-from machina.samplers import BatchSampler
+from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
-from net import PolNet, VNet, MixturePolNet
+from machina.utils import measure
+from machina.nets.simple_net import PolNet, VNet, MixturePolNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='LunarLanderContinuous-v2')
+parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
+parser.add_argument('--use_parallel_sampler', action='store_true', default=False)
 
 parser.add_argument('--mixture', type=int, default=1)
 parser.add_argument('--max_samples_per_iter', type=int, default=5000)
@@ -84,7 +101,10 @@ else:
 vf_net = VNet(ob_space)
 vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)
-sampler = BatchSampler(env)
+if args.use_parallel_sampler:
+    sampler = ParallelSampler(env)
+else:
+    sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 
@@ -93,17 +113,19 @@ total_step = 0
 max_rew = -1e6
 kl_beta = args.init_kl_beta
 while args.max_episodes > total_epi:
-    if args.use_prepro:
-        paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
-    else:
-        paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-    data = GAEData(paths, shuffle=True)
-    data.preprocess(vf, args.gamma, args.lam, centerize=True)
-    if args.ppo_type == 'clip':
-        result_dict = ppo_clip.train(data, pol, vf, args.clip_param, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size, args.gamma, args.lam)
-    else:
-        result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size, args.gamma, args.lam)
-        kl_beta = result_dict['new_kl_beta']
+    with measure('sample'):
+        if args.use_prepro:
+            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+        else:
+            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+    with measure('train'):
+        data = GAEData(paths, shuffle=True)
+        data.preprocess(vf, args.gamma, args.lam, centerize=True)
+        if args.ppo_type == 'clip':
+            result_dict = ppo_clip.train(data, pol, vf, args.clip_param, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
+        else:
+            result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
+            kl_beta = result_dict['new_kl_beta']
     total_epi += data.num_epi
     step = sum([len(path['rews']) for path in paths])
     total_step += step

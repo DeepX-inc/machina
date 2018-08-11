@@ -1,12 +1,31 @@
+# Copyright 2018 DeepX Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+#
+# This is an implementation of Trust Region Policy Optimization.
+# See https://arxiv.org/abs/1502.05477
+#
+
+
 import torch
 import torch.nn as nn
 import numpy as np
 
-from machina.utils import Variable
 from machina.misc import logger
 
 def conjugate_gradients(Avp, b, nsteps, residual_tol=1e-10):
-    x = torch.zeros(b.size())
+    x = torch.zeros_like(b)
     r = b.clone()
     p = b.clone()
     rdotr = torch.dot(r, r)
@@ -34,27 +53,27 @@ def linesearch(
         max_backtracks=10,
         accept_ratio=.1
     ):
-    fval = f(pol, batch, True).data
-    print("loss before", fval[0])
+    fval = f(pol, batch, True).detach()
+    print("loss before", fval.item())
     for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):
         xnew = x + stepfrac * fullstep
-        nn.utils.vector_to_parameters(Variable(xnew), pol.parameters())
-        newfval = f(pol, batch, True).data
+        nn.utils.vector_to_parameters(xnew, pol.parameters())
+        newfval = f(pol, batch, True).detach()
         actual_improve = fval - newfval
         expected_improve = expected_improve_rate * stepfrac
         ratio = actual_improve / expected_improve
-        print("a/e/r", actual_improve[0], expected_improve[0], ratio[0])
+        print("a/e/r", actual_improve.item(), expected_improve.item(), ratio.item())
 
-        if ratio[0] > accept_ratio and actual_improve[0] > 0:
+        if ratio.item() > accept_ratio and actual_improve.item() > 0:
         #if actual_improve[0] > 0:
-            print("loss after", newfval[0])
+            print("loss after", newfval.item())
             return True, xnew
     return False, x
 
 def make_pol_loss(pol, batch, volatile=False):
-    obs = Variable(batch['obs'], volatile=volatile)
-    acs = Variable(batch['acs'], volatile=volatile)
-    advs = Variable(batch['advs'], volatile=volatile)
+    obs = batch['obs']
+    acs = batch['acs']
+    advs = batch['advs']
     _, _, pd_params = pol(obs)
     llh = pol.pd.llh(acs, pd_params)
 
@@ -62,10 +81,10 @@ def make_pol_loss(pol, batch, volatile=False):
     return pol_loss
 
 def make_kl(pol, batch):
-    obs = Variable(batch['obs'])
+    obs = batch['obs']
     _, _, pd_params = pol(obs)
     return pol.pd.kl_pq(
-        {k:Variable(d.data) for k, d in pd_params.items()},
+        {k:d.detach() for k, d in pd_params.items()},
         pd_params
     )
 
@@ -73,7 +92,7 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
     pol_loss = make_pol_loss(pol, batch)
     grads = torch.autograd.grad(pol_loss, pol.parameters(), create_graph=True)
     grads = [g.contiguous() for g in grads]
-    flat_pol_loss_grad = nn.utils.parameters_to_vector(grads).data
+    flat_pol_loss_grad = nn.utils.parameters_to_vector(grads).detach()
 
     def Fvp(v):
         kl = make_kl(pol, batch)
@@ -82,10 +101,10 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
         grads = torch.autograd.grad(kl, pol.parameters(), create_graph=True)
         grads = [g.contiguous() for g in grads]
         flat_grad_kl = nn.utils.parameters_to_vector(grads)
-        gvp = torch.sum(flat_grad_kl * Variable(v))
+        gvp = torch.sum(flat_grad_kl * v)
         grads = torch.autograd.grad(gvp, pol.parameters())
         grads = [g.contiguous() for g in grads]
-        fvp = nn.utils.parameters_to_vector(grads).data
+        fvp = nn.utils.parameters_to_vector(grads).detach()
 
         return fvp + v * damping
 
@@ -101,16 +120,16 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
 
     neggdotstepdir = torch.sum(-flat_pol_loss_grad * stepdir, 0, keepdim=True)
 
-    prev_params = nn.utils.parameters_to_vector([p.contiguous() for p in pol.parameters()]).data
+    prev_params = nn.utils.parameters_to_vector([p.contiguous() for p in pol.parameters()]).detach()
     success, new_params = linesearch(pol, batch, make_pol_loss, prev_params, fullstep,
                                      neggdotstepdir / lm[0])
-    nn.utils.vector_to_parameters(Variable(new_params), pol.parameters())
+    nn.utils.vector_to_parameters(new_params, pol.parameters())
 
-    return pol_loss.data.cpu().numpy()
+    return pol_loss.detach().numpy()
 
 def make_vf_loss(vf, batch):
-    obs = Variable(batch['obs'])
-    rets = Variable(batch['rets'])
+    obs = batch['obs']
+    rets = batch['rets']
     vf_loss = 0.5 * torch.mean((vf(obs) - rets)**2)
     return vf_loss
 
@@ -119,7 +138,7 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()
-    return vf_loss.data.cpu().numpy()
+    return vf_loss.detach().numpy()
 
 def train(data, pol, vf,
         optim_vf,
