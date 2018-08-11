@@ -68,56 +68,6 @@ class MixturePolNet(nn.Module):
         return pi, mean, self.log_std_param
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class DeterministicPolNet(nn.Module):
     def __init__(self, ob_space, ac_space, hidden_layer1, hidden_layer2):
         nn.Module.__init__(self)

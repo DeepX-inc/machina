@@ -53,7 +53,6 @@ parser.add_argument('--lam', type=float, default=1)
 parser.add_argument('--batch_normalization', action='store_true', default=False)
 parser.add_argument('--apply_noise', action='store_true', default=False)
 
-parser.add_argument('--savepath_frequency', type=int, default=10)
 
 args = parser.parse_args()
 
