@@ -7,7 +7,7 @@ from machina.misc import logger
 
 
 def make_pol_loss(pol, qf, batch):
-    obs = Variable(batch['obs'].float())
+    obs = batch['obs']
     q = 0
     _, _, param = pol(obs)
     q = qf(obs, param['mean'])
@@ -16,16 +16,16 @@ def make_pol_loss(pol, qf, batch):
 
 
 def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
-    obs = Variable(batch['obs'].float())
-    acs = Variable(batch['acs'].float())
-    rews = Variable(batch['rews'].float())
-    next_obs = Variable(batch['next_obs'].float())
-    terminals = Variable(batch['terminals'].float())
+    obs = batch['obs']
+    acs = batch['acs']
+    rews = batch['rews']
+    next_obs = batch['next_obs']
+    terminals = batch['terminals']
     next_q = 0
     _, _, param = targ_pol(next_obs)
     next_q += targ_qf(next_obs, param['mean'])
     targ = rews + gamma * next_q * (1 - terminals)
-    targ = Variable(targ.data)
+    targ = targ.detach()
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
 
 
@@ -51,11 +51,10 @@ def train(off_data,
         optim_pol.step()
 
         for q, targ_q, p, targ_p in zip(qf.parameters(), targ_qf.parameters(), pol.parameters(), targ_pol.parameters()):
-            targ_p.data.copy_((1 - tau) * targ_p.data + tau * p.data)
-            targ_q.data.copy_((1 - tau) * targ_q.data + tau * q.data)
-        qf_losses.append(qf_bellman_loss.data.cpu().numpy())
-        pol_losses.append(pol_loss.data.cpu().numpy())
-
+            targ_p.detach().copy_((1 - tau) * targ_p.detach() + tau * p.detach())
+            targ_q.detach().copy_((1 - tau) * targ_q.detach() + tau * q.detach())
+        qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
+        pol_losses.append(pol_loss.detach().cpu().numpy())
     logger.log("Optimization finished!")
 
     return {'PolLoss': pol_losses, 'QfLoss': qf_losses}
