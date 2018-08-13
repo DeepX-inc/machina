@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 from machina.data.base import BaseData
-from machina.utils import np2torch, torch2torch
+from machina.utils import set_device
 
 class PrioritizedReplayData(BaseData):
     def __init__(

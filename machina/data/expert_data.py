@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from suggest_method.expert_data.base import BaseData
-from machina.utils import np2torch, torch2torch
+from machina.data import BaseData
+#from machina.utils import np2torch, torch2torch
 import os
 
 
