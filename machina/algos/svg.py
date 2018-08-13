@@ -98,8 +98,8 @@ def train(off_data,
 
         for p, targ_p in zip(qf.parameters(), targ_qf.parameters()):
             targ_p.copy_((1 - tau) * targ_p + tau * p)
-        qf_losses.append(qf_bellman_loss.detach().jnumpy())
-        pol_losses.append(pol_loss.detach().numpy())
+        qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
+        pol_losses.append(pol_loss.detach().cpu().numpy())
 
     logger.log("Optimization finished!")
 

@@ -124,7 +124,7 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
                                      neggdotstepdir / lm[0])
     nn.utils.vector_to_parameters(new_params, pol.parameters())
 
-    return pol_loss.detach().numpy()
+    return pol_loss.detach().cpu().numpy()
 
 def make_vf_loss(vf, batch):
     obs = batch['obs']
@@ -137,7 +137,7 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()
-    return vf_loss.detach().numpy()
+    return vf_loss.detach().cpu().numpy()
 
 def train(data, pol, vf,
         optim_vf,

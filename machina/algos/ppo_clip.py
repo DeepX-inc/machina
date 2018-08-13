@@ -43,7 +43,7 @@ def update_pol(pol, optim_pol, batch, clip_param):
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
-    return pol_loss.detach().numpy()
+    return pol_loss.detach().cpu().numpy()
 
 def make_vf_loss(vf, batch, clip_param):
     obs = batch['obs']
@@ -61,7 +61,7 @@ def update_vf(vf, optim_vf, batch, clip_param):
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()
-    return vf_loss.detach().numpy()
+    return vf_loss.detach().cpu().numpy()
 
 def train(data, pol, vf,
         clip_param,

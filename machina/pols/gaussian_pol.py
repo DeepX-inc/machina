@@ -30,7 +30,7 @@ class GaussianPol(BasePol):
         mean, log_std = self.net(obs)
         log_std = log_std.expand_as(mean)
         ac = self.pd.sample(dict(mean=mean, log_std=log_std))
-        ac_real = self.convert_ac_for_real(ac.detach().numpy())
+        ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(mean=mean, log_std=log_std)
 
     def deterministic_ac_real(self, obs):
@@ -38,7 +38,7 @@ class GaussianPol(BasePol):
         action for deployment
         """
         mean, _ = self.net(obs)
-        mean_real = self.convert_ac_for_real(mean.detach().numpy())
+        mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
         return mean_real
 
 
