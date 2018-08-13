@@ -125,6 +125,11 @@ while args.max_episodes > total_epi:
             paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
     off_data.add_paths(paths)
 
+    epi = len(paths)
+    total_epi += epi
+    step = sum([len(path['rews']) for path in paths])
+    total_step += step
+
     with measure('train'):
         result_dict = ddpg.train(
             off_data,
@@ -132,11 +137,6 @@ while args.max_episodes > total_epi:
             optim_pol, optim_qf, step, args.batch_size,
             args.tau, args.gamma, args.lam
         )
-
-    epi = len(paths)
-    total_epi += epi
-    step = sum([len(path['rews']) for path in paths])
-    total_step += step
 
     rewards = [np.sum(path['rews']) for path in paths]
     logger.record_results(args.log, result_dict, score_file,
