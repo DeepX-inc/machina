@@ -1,7 +1,22 @@
+# Copyright 2018 DeepX Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
 import numpy as np
 import torch
-from .base import BasePol
-from ..utils import Variable, get_gpu, np2torch
+from machina.pols import BasePol
+from machina.utils import get_device
 
 class ActionNoise(object):
     def reset(self):
@@ -20,7 +35,7 @@ class OrnsteinUhlenbeckActionNoise(ActionNoise):
     def __call__(self):
         x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
         self.x_prev = x
-        return x
+        return torch.tensor(x, detype=torch.float32, device=get_device())
 
     def reset(self):
         if self.x0 is not None:
@@ -33,9 +48,7 @@ class DeterministicPol(BasePol):
     def __init__(self, ob_space, ac_space, net, noise=None, apply_noise=False, normalize_ac=True):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
         self.net = net
-        gpu_id = get_gpu()
-        if gpu_id != -1:
-            self.cuda(gpu_id) #BasePolのネットワークのパラメータをGPUにset
+        self.to(get_device())
         self.noise = noise
         self.apply_noise = apply_noise
 
@@ -47,22 +60,12 @@ class DeterministicPol(BasePol):
 
     def forward(self, obs):
         mean = self.net(obs)
-        if self.noise is not None:
-            action_noise = self.noise()
-        else:
-            action_noise = self.noise
-        apply_noise = self.apply_noise
         ac = mean
-        if action_noise is not None and apply_noise:
-            ac = ac + Variable(np2torch(action_noise)).float() #noiseを追加したのでGPUにset
+        apply_noise = self.apply_noise
+        if self.noise is not None and apply_noise:
+            action_noise = self.noise()
+            ac = ac + action_noise
         else:
             pass
-        ac_real = ac.data.cpu().numpy()
-        lb, ub = self.ac_space.low, self.ac_space.high
-        if self.normalize_ac:
-            ac_real = lb + (ac_real + 1.) * 0.5 * (ub - lb)
-            ac_real = np.clip(ac_real, lb, ub)
-        else:
-            ac_real = np.clip(ac_real, lb, ub)
+        ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(mean=mean)
-
