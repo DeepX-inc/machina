@@ -59,11 +59,11 @@ class MixturePolNet(nn.Module):
 
 
 class DeterministicPolNet(nn.Module):
-    def __init__(self, ob_space, ac_space, hidden_layer1, hidden_layer2):
+    def __init__(self, ob_space, ac_space, h1=200, h2=100):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], hidden_layer1)
-        self.fc2 = nn.Linear(hidden_layer1,hidden_layer2)
-        self.mean_layer = nn.Linear(hidden_layer2, ac_space.shape[0])
+        self.fc1 = nn.Linear(ob_space.shape[0], h1)
+        self.fc2 = nn.Linear(h1,h2)
+        self.mean_layer = nn.Linear(h2, ac_space.shape[0])
 
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
@@ -105,14 +105,3 @@ class QNet(nn.Module):
         h = torch.cat([h, ac], dim=1)
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
-
-class PolNetBN(nn.Module):
-    def __init__(self, ob_space, ac_space):
-        nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], 400)
-        self.fc1_bn=nn.BatchNorm1d(400)
-        self.fc2 = nn.Linear(400, 300)
-        self.fc2_bn=nn.BatchNorm1d(300)
-        self.mean_layer = nn.Linear(300, ac_space.shape[0])
-        #self.log_std_layer = nn.Linear(100, ac_space.shape[0])
-        self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
