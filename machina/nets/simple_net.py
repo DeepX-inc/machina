@@ -72,7 +72,7 @@ class DeterministicPolNet(nn.Module):
     def forward(self, ob):
         h = F.relu(self.fc1(ob))
         h = F.relu(self.fc2(h))
-        mean = F.tanh(self.mean_layer(h))
+        mean = torch.tanh(self.mean_layer(h))
         return mean
 
 
