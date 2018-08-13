@@ -33,4 +33,5 @@ class BasePol(nn.Module):
             x = np.clip(x, lb, ub)
         return x
 
-
+    def reset(self):
+        pass
