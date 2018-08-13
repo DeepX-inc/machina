@@ -48,6 +48,8 @@ parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--use_parallel_sampler', action='store_true', default=False)
 
+parser.add_argument('--max_data_size', type=int, default=1000000)
+parser.add_argument('--min_data_size', type=int, default=10000)
 parser.add_argument('--max_samples_per_iter', type=int, default=2000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=10000)
 parser.add_argument('--epoch_per_iter', type=int, default=5)
