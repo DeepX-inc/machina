@@ -57,7 +57,7 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=1e-3)
 parser.add_argument('--use_prepro', action='store_true', default=False)
-parser.add_argument('--cuda', type=str, default='cpu')
+parser.add_argument('--cuda', type=str, default=-1)
 parser.add_argument('--hidden_layer1', type=int, default=32)
 parser.add_argument('--hidden_layer2', type=int, default=32)
 
