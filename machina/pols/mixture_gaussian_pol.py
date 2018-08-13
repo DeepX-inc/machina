@@ -31,7 +31,7 @@ class MixtureGaussianPol(BasePol):
         pi, mean, log_std = self.net(obs)
         log_std = log_std.expand_as(mean)
         ac = self.pd.sample(dict(pi=pi, mean=mean, log_std=log_std))
-        ac_real = self.convert_ac_for_real(ac.detach().numpy())
+        ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(pi=pi, mean=mean, log_std=log_std)
 
     def deterministic_ac_real(self, obs):
@@ -42,6 +42,6 @@ class MixtureGaussianPol(BasePol):
         _, i = torch.max(pi, 1)
         onehot = torch.zeros_like(mean)
         onehot = onehot.scatter_(-1, i.unsqueeze(-1), 1)
-        mean_real = self.convert_ac_for_real(torch.sum(mean * onehot.unsqueeze(-1), 1).detach().numpy())
+        mean_real = self.convert_ac_for_real(torch.sum(mean * onehot.unsqueeze(-1), 1).detach().cpu().numpy())
         return mean_real
 

@@ -24,8 +24,8 @@ def one_path(env, pol, prepro=None):
         next_o, r, d, e_i = env.step(ac_real[0])
         obs.append(o)
         rews.append(r)
-        acs.append(ac.detach().numpy()[0])
-        a_i = dict([(key, a_i[key].detach().numpy()[0]) for key in a_i.keys()])
+        acs.append(ac.detach().cpu().numpy()[0])
+        a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys()])
         a_is.append(a_i)
         e_is.append(e_i)
         path_length += 1
@@ -55,13 +55,14 @@ class ParallelSampler(BaseSampler):
     def sample(self, pol, max_samples, max_episodes, prepro=None):
         sampling_pol = copy.deepcopy(pol)
         sampling_pol = sampling_pol.cpu()
+        sampling_pol.share_memory()
         n_samples_global = torch.tensor(0, dtype=torch.long).share_memory_()
         n_episodes_global = torch.tensor(0, dtype=torch.long).share_memory_()
         paths = mp.Manager().list()
         with cpu_mode():
             processes = []
             for _ in range(self.num_parallel):
-                p = mp.Process(target=many_paths, args=(self.env, pol, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, prepro))
+                p = mp.Process(target=many_paths, args=(self.env, sampling_pol, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, prepro))
                 p.start()
                 processes.append(p)
             for p in processes:

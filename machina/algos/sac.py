@@ -89,9 +89,9 @@ def train(off_data,
         pol_loss.backward()
         optim_pol.step()
 
-        vf_losses.append(vf_loss.detach().numpy())
-        qf_losses.append(qf_loss.detach().numpy())
-        pol_losses.append(pol_loss.detach().numpy())
+        vf_losses.append(vf_loss.detach().cpu().numpy())
+        qf_losses.append(qf_loss.detach().cpu().numpy())
+        pol_losses.append(pol_loss.detach().cpu().numpy())
 
     logger.log("Optimization finished!")
 
