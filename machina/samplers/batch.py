@@ -26,8 +26,8 @@ class BatchSampler(BaseSampler):
             next_o, r, d, e_i = self.env.step(ac_real[0])
             obs.append(o)
             rews.append(r)
-            acs.append(ac.detach().numpy()[0])
-            a_i = dict([(key, a_i[key].detach().numpy()[0]) for key in a_i.keys()])
+            acs.append(ac.detach().cpu().numpy()[0])
+            a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys()])
             a_is.append(a_i)
             e_is.append(e_i)
             path_length += 1
