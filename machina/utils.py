@@ -47,29 +47,3 @@ def measure(name):
     yield
     e = time.time()
     logger.log("{}: {:.4f}sec".format(name, e-s))
-
-<<<<<<< HEAD
-
-def torch2torch(tensor):
-    """
-    torch tensor with wrapping cuda
-    """
-    if _GPU_ID != -1:
-        return tensor.cuda(_GPU_ID)
-    else:
-        return tensor
-
-
-def np2torch(ndarray):
-    """
-    transform ndarray to torch tensor with cuda
-    """
-    return torch2torch(torch.from_numpy(ndarray))
-
-
-class Variable(autograd.Variable):
-    def __init__(self, data, *args, **kwargs):
-        data = torch2torch(data)
-        super(Variable, self).__init__(data, *args, **kwargs)
-=======
->>>>>>> b773ba33725bec9495abbb52a3b3fa2af045081b
