@@ -49,7 +49,7 @@ class GAEData(BaseData):
 
     def preprocess(self, vf, gamma, lam, centerize=True):
         with torch.no_grad():
-            all_path_vs = [vf(torch.tensor(path['obs'], dtype=torch.float, device=get_device())).numpy() for path in self.paths]
+            all_path_vs = [vf(torch.tensor(path['obs'], dtype=torch.float, device=get_device())).cpu().numpy() for path in self.paths]
         for idx, path in enumerate(self.paths):
             path_vs = np.append(all_path_vs[idx], 0)
             rews = path['rews']
