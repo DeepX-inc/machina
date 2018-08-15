@@ -53,7 +53,7 @@ def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_epis
 class ParallelSampler(BaseSampler):
     def __init__(self, env, pol, max_samples, max_episodes, num_parallel=8, prepro=None):
         BaseSampler.__init__(self, env)
-        self.pol = copy.deepcopy(pol)
+        self.pol = copy.deepcopy(pol.cpu())
         self.pol.share_memory()
         self.max_samples = max_samples
         self.max_episodes = max_episodes
