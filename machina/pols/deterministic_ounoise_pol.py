@@ -35,7 +35,7 @@ class OrnsteinUhlenbeckActionNoise(ActionNoise):
     def __call__(self):
         x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
         self.x_prev = x
-        return torch.tensor(x, detype=torch.float32, device=get_device())
+        return torch.tensor(x, dtype=torch.float, device=get_device())
 
     def reset(self):
         if self.x0 is not None:
