@@ -40,32 +40,50 @@ def one_path(env, pol, prepro=None):
         e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
     )
 
-def many_paths(env, pol, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, prepro=None):
-    while max_samples > n_samples_global and max_episodes > n_episodes_global:
-        l, path = one_path(env, pol, prepro)
-        n_samples_global += l
-        n_episodes_global += 1
-        paths.append(path)
+def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, exec_flags, process_id, prepro=None):
+    while True:
+        if exec_flags[process_id] > 0:
+            while max_samples > n_samples_global and max_episodes > n_episodes_global:
+                l, path = one_path(env, pol, prepro)
+                n_samples_global += l
+                n_episodes_global += 1
+                paths.append(path)
+            exec_flags[process_id].zero_()
 
 class ParallelSampler(BaseSampler):
-    def __init__(self, env, num_parallel=8):
+    def __init__(self, env, pol, max_samples, max_episodes, num_parallel=8, prepro=None):
         BaseSampler.__init__(self, env)
+        self.pol = copy.deepcopy(pol)
+        self.pol.share_memory()
+        self.max_samples = max_samples
+        self.max_episodes = max_episodes
         self.num_parallel = num_parallel
 
-    def sample(self, pol, max_samples, max_episodes, prepro=None):
-        sampling_pol = copy.deepcopy(pol)
-        sampling_pol = sampling_pol.cpu()
-        sampling_pol.share_memory()
-        n_samples_global = torch.tensor(0, dtype=torch.long).share_memory_()
-        n_episodes_global = torch.tensor(0, dtype=torch.long).share_memory_()
-        paths = mp.Manager().list()
-        with cpu_mode():
-            processes = []
-            for _ in range(self.num_parallel):
-                p = mp.Process(target=many_paths, args=(self.env, sampling_pol, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, prepro))
-                p.start()
-                processes.append(p)
-            for p in processes:
-                p.join()
-        return list(paths)
+        self.n_samples_global = torch.tensor(0, dtype=torch.long).share_memory_()
+        self.n_episodes_global = torch.tensor(0, dtype=torch.long).share_memory_()
+        self.exec_flags = [torch.tensor(0, dtype=torch.long).share_memory_() for _ in range(self.num_parallel)]
+
+        self.paths = mp.Manager().list()
+        self.processes = []
+        for ind in range(self.num_parallel):
+            p = mp.Process(target=sample_process, args=(pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, ind, prepro))
+            p.start()
+            self.processes.append(p)
+
+    def __del__(self):
+        for p in self.processes:
+            p.join()
+
+    def sample(self, pol, *args):
+        self.pol.load_state_dict(pol.cpu().state_dict())
+        self.n_samples_global.zero_()
+        self.n_episodes_global.zero_()
+        del self.paths[:]
+
+        for exec_flag in self.exec_flags:
+            exec_flag += 1
+
+        while True:
+            if all([exec_flag == 0 for exec_flag in self.exec_flags]):
+                return list(self.paths)
 
