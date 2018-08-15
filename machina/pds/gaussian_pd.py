@@ -41,3 +41,7 @@ class GaussianPd(BasePd):
         q_std = torch.exp(q_log_std)
         return torch.sum(((p_mean - q_mean)**2 + p_std**2 - q_std**2) / (2 * q_std**2 + 1e-8) + q_log_std - p_log_std, dim=-1)
 
+    def ent(self, params):
+        log_std = params['log_std']
+        return torch.sum(log_std + 0.5 * torch.tensor(np.log(2.0 * np.pi * np.e), dtype=torch.float, device=log_std.device), dim=-1)
+
