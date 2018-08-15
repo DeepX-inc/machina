@@ -53,7 +53,8 @@ def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_epis
 class ParallelSampler(BaseSampler):
     def __init__(self, env, pol, max_samples, max_episodes, num_parallel=8, prepro=None):
         BaseSampler.__init__(self, env)
-        self.pol = copy.deepcopy(pol.cpu())
+        self.pol = copy.deepcopy(pol)
+        self.pol.to('cpu')
         self.pol.share_memory()
         self.max_samples = max_samples
         self.max_episodes = max_episodes
@@ -66,7 +67,7 @@ class ParallelSampler(BaseSampler):
         self.paths = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
-            p = mp.Process(target=sample_process, args=(pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, ind, prepro))
+            p = mp.Process(target=sample_process, args=(self.pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, ind, prepro))
             p.start()
             self.processes.append(p)
 
@@ -75,7 +76,8 @@ class ParallelSampler(BaseSampler):
             p.join()
 
     def sample(self, pol, *args):
-        self.pol.load_state_dict(pol.cpu().state_dict())
+        for sp, p in zip(self.pol.parameters(), pol.parameters()):
+            sp.data.copy_(p.data.to('cpu'))
         self.n_samples_global.zero_()
         self.n_episodes_global.zero_()
         del self.paths[:]
