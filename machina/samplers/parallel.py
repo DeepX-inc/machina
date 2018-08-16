@@ -56,6 +56,7 @@ class ParallelSampler(BaseSampler):
         self.pol = copy.deepcopy(pol)
         self.pol.to('cpu')
         self.pol.share_memory()
+        self.pol.eval()
         self.max_samples = max_samples
         self.max_episodes = max_episodes
         self.num_parallel = num_parallel
