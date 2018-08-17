@@ -14,17 +14,19 @@ from machina.utils import measure, set_device
 from machina.envs import GymEnv
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--from_dir', type=str, default='expert_traj/policy_model_file')
 parser.add_argument('--file_name', type=str, default='pol_max.pkl')
+parser.add_argument('--to_dir', type=str, default='expert_traj/expert_traj_file')
 parser.add_argument('--h1', type=int, default=32)
 parser.add_argument('--h2', type=int, default=32)
 parser.add_argument('--num_of_traj', type=int, default=100)
 parser.add_argument('--env_name', type=str, default='HalfCheetah-v1')
 parser.add_argument('--seed', type=int, default='256')
 parser.add_argument('--cuda', type=int, default='-1')
-parser.add_argument('--stochastic', action='store_true', default=False)
+parser.add_argument('--gaussian_pol', action='store_true', default=False)
 args = parser.parse_args()
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env = GymEnv(args.env_name, record_video=False)
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
@@ -34,58 +36,45 @@ set_device(args.cuda)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-if args.stochastic:
-    pol_net = DeterministicPolNet(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
-    pol = DeterministicPol(ob_space, ac_space, pol_net, None, None)
+if args.gaussian_pol:
+    pol_net = PolNet(ob_space, ac_space, args.h1, args.h2)
+    pol = GaussianPol(ob_space, ac_space, pol_net)
 else:
-    pol_net = DeterministicPolNet(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
-    pol = DeterministicPol(ob_space, ac_space, pol_net, None, None)
+    pol_net = DeterministicPolNet(ob_space, ac_space, args.h1, args.h2)
+    pol = DeterministicPol(ob_space, ac_space, pol_net)
 
-with open(os.getcwd()+ '/' + args.dir + args.file_name, 'rb') as f:
+with open(os.path.join(args.from_dir,args.file_name), 'rb') as f:
     pol.load_state_dict(torch.load(f, map_location=lambda storage, location: storage))
 
-obs_list = []
-acs_list = []
-len_list = []
-ret_list = []
-num_of_traj = args.num_of_traj
-num_of_timestep = 1000
-for i in range(num_of_traj):
- #   np.random.seed(i)
- #   torch.manual_seed(i)
+obs = []
+acs = []
+rews = []
+dones = []
+rets = []
+lens = []
+for i in range(args.num_of_traj):
     obs = []
     acs = []
     rews = []
-    env.seed(i+1)
+    dones = []
     ob = env.reset()
-#    print(ob[-3:])
     done = False
     reward = 0
-    t = 0
 
     cur_ep_ret = 0
     cur_ep_len = 0
-    while True:
-        action_real, _, _ = pol((torch.from_numpy(ob).float().unsqueeze(0)))
+    while not done:
         obs.append(ob)
+        dones.append(int(done))
+        action_real, _, _ = pol.deterministic_ac_real(torch.tensor(ob, dtype=torch.float).unsqueeze(0))
         acs.append(action_real[0])
         ob, reward, done, info = env.step(action_real[0])
-        t += 1
         rews.append(reward)
         cur_ep_ret += reward
         cur_ep_len += 1
-        if done:
-            print('current_ep_len:{}'.format(cur_ep_len))
-            break
-#        env.render()
-#    print(t)
-    obs_list.append(np.array(obs))
-    acs_list.append(np.array(acs))
-    ret_list.append(cur_ep_ret)
-    len_list.append(cur_ep_len)
+    rets.append(cur_ep_ret)
+    lens.append(cur_ep_len)
 
-
-filename = args.file_name.split('.')[0] + '_' + env.spec.id + '_{}trajs'.format(num_of_traj)
-
-np.savez(os.path.join(os.getcwd(),'suggest_method', 'expert_data', filename), obs=np.array(obs_list), acs=np.array(acs_list),
-         lens=np.array(len_list), rets=np.array(ret_list))
+filename = env.spec.id + '_{}trajs'.format(args.num_of_traj)
+np.savez(os.path.join(args.to_dir, filename), obs=obs, acs=acs, dones=dones,
+         lens=lens, rets=rets)

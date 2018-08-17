@@ -4,3 +4,4 @@ garbage
 *.swp
 
 *.npz
+*.pkl
