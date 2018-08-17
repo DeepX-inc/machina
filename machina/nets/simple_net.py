@@ -105,3 +105,4 @@ class QNet(nn.Module):
         h = torch.cat([h, ac], dim=1)
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
+
