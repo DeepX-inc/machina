@@ -46,6 +46,7 @@ class BatchSampler(BaseSampler):
     def sample(self, pol, max_samples, max_episodes, prepro=None):
         sampling_pol = copy.deepcopy(pol)
         sampling_pol = sampling_pol.cpu()
+        sampling_pol.eval()
         n_samples = 0
         n_episodes = 0
         paths = []
