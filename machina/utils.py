@@ -50,3 +50,4 @@ def measure(name):
     yield
     e = time.time()
     logger.log("{}: {:.4f}sec".format(name, e-s))
+
