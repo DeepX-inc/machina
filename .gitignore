@@ -2,6 +2,3 @@ __pycache__
 *.egg-info
 garbage
 *.swp
-
-*.npz
-*.pkl
