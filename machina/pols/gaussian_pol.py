@@ -40,3 +40,5 @@ class GaussianPol(BasePol):
         mean, _ = self.net(obs)
         mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
         return mean_real
+    
+    
