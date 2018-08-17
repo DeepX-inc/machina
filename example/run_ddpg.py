@@ -58,13 +58,12 @@ parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=1e-3)
 parser.add_argument('--use_prepro', action='store_true', default=False)
 parser.add_argument('--cuda', type=int, default=-1)
-parser.add_argument('--hidden_layer1', type=int, default=32)
-parser.add_argument('--hidden_layer2', type=int, default=32)
+parser.add_argument('--h1', type=int, default=32)
+parser.add_argument('--h2', type=int, default=32)
 
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
-parser.add_argument('--apply_noise', action='store_true', default=False)
 args = parser.parse_args()
 
 args.cuda = args.cuda if torch.cuda.is_available() else -1
@@ -95,11 +94,11 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = DeterministicPolNet(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
+pol_net = DeterministicPolNet(ob_space, ac_space, args.h1, args.h2)
 noise = OrnsteinUhlenbeckActionNoise(mu = np.zeros(ac_space.shape[0]))
-pol = DeterministicPol(ob_space, ac_space, pol_net, noise, args.apply_noise)
+pol = DeterministicPol(ob_space, ac_space, pol_net, noise)
 targ_pol = copy.deepcopy(pol)
-qf_net = QNet(ob_space, ac_space, args.hidden_layer1, args.hidden_layer2)
+qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf = copy.deepcopy(qf)
 prepro = BasePrePro(ob_space)

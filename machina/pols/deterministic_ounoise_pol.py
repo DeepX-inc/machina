@@ -45,12 +45,11 @@ class OrnsteinUhlenbeckActionNoise(ActionNoise):
 
 
 class DeterministicPol(BasePol):
-    def __init__(self, ob_space, ac_space, net, noise=None, apply_noise=False, normalize_ac=True):
+    def __init__(self, ob_space, ac_space, net, noise=None, normalize_ac=True):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
         self.net = net
         self.to(get_device())
         self.noise = noise
-        self.apply_noise = apply_noise
 
     def reset(self):
         if self.noise is not None:
@@ -61,11 +60,18 @@ class DeterministicPol(BasePol):
     def forward(self, obs):
         mean = self.net(obs)
         ac = mean
-        apply_noise = self.apply_noise
-        if self.noise is not None and apply_noise:
+        if self.noise is not None:
             action_noise = self.noise()
             ac = ac + action_noise
         else:
             pass
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(mean=mean)
+
+    def deterministic_ac_real(self, obs):
+        """
+        action for deployment
+        """
+        mean = self.net(obs)
+        mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
+        return mean_real
