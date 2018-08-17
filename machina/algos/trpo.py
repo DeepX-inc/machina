@@ -42,7 +42,6 @@ def conjugate_gradients(Avp, b, nsteps, residual_tol=1e-10):
             break
     return x
 
-
 def linesearch(
         pol,
         batch,
