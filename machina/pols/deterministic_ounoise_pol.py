@@ -48,8 +48,8 @@ class DeterministicPol(BasePol):
     def __init__(self, ob_space, ac_space, net, noise=None, normalize_ac=True):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
         self.net = net
-        self.to(get_device())
         self.noise = noise
+        self.to(get_device())
 
     def reset(self):
         if self.noise is not None:
