@@ -45,10 +45,11 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
 
     return pol_loss
 
-def update_pol(pol, optim_pol, batch, clip_param, ent_beta):
+def update_pol(pol, optim_pol, batch, clip_param, ent_beta, max_grad_norm):
     pol_loss = make_pol_loss(pol, batch, clip_param, ent_beta)
     optim_pol.zero_grad()
     pol_loss.backward()
+    torch.nn.utils.clip_grad_norm_(pol.parameters(), max_grad_norm)
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
@@ -68,10 +69,11 @@ def make_vf_loss(vf, batch, clip_param, clip=False):
         vf_loss = 0.5 * torch.mean(vfloss1)
     return vf_loss
 
-def update_vf(vf, optim_vf, batch, clip_param, clip):
+def update_vf(vf, optim_vf, batch, clip_param, clip, max_grad_norm):
     vf_loss = make_vf_loss(vf, batch, clip_param, clip)
     optim_vf.zero_grad()
     vf_loss.backward()
+    torch.nn.utils.clip_grad_norm_(vf.parameters(), max_grad_norm)
     optim_vf.step()
     return vf_loss.detach().cpu().numpy()
 
@@ -79,6 +81,7 @@ def train(data, pol, vf,
         optim_pol, optim_vf,
         epoch, batch_size,# optimization hypers
         clip_param=0.2, ent_beta=1e-3,
+        max_grad_norm=0.5,
         clip_vfunc=False
         ):
 
@@ -86,8 +89,8 @@ def train(data, pol, vf,
     vf_losses = []
     logger.log("Optimizing...")
     for batch in data.iterate(batch_size, epoch):
-        pol_loss = update_pol(pol, optim_pol, batch, clip_param, ent_beta)
-        vf_loss = update_vf(vf, optim_vf, batch, clip_param, clip_vfunc)
+        pol_loss = update_pol(pol, optim_pol, batch, clip_param, ent_beta, max_grad_norm)
+        vf_loss = update_vf(vf, optim_vf, batch, clip_param, clip_vfunc, max_grad_norm)
 
         pol_losses.append(pol_loss)
         vf_losses.append(vf_loss)
