@@ -102,14 +102,8 @@ class PolNetLSTM(nn.Module):
         new_hs = (next(self.parameters()).new(batch_size, self.h).zero_(), next(self.parameters()).new(batch_size, self.h).zero_())
         return new_hs
 
-    def forward(self, xs, hs=None, masks=None):
+    def forward(self, xs, hs, masks):
         time_seq, batch_size, *_ = xs.shape
-
-        if hs is None:
-            hs = self.init_hs(batch_size)
-        if masks is None:
-            masks = torch.zeros(time_seq, batch_size, 1)
-        masks = masks.reshape(time_seq, batch_size, 1)
 
         means = []
         for x, mask in zip(xs, masks):
@@ -136,14 +130,8 @@ class VNetLSTM(nn.Module):
         new_hs = (next(self.parameters()).new(batch_size, self.h).zero_(), next(self.parameters()).new(batch_size, self.h).zero_())
         return new_hs
 
-    def forward(self, xs, hs=None, masks=None):
+    def forward(self, xs, hs, masks):
         time_seq, batch_size, *_ = xs.shape
-
-        if hs is None:
-            hs = self.init_hs(batch_size)
-        if masks is None:
-            masks = torch.zeros(time_seq, batch_size, 1)
-        masks = masks.reshape(time_seq, batch_size, 1)
 
         outs = []
         for x, mask in zip(xs, masks):

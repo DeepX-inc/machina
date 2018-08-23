@@ -31,9 +31,17 @@ class GaussianPol(BasePol):
         self.pd = GaussianPd(ob_space, ac_space)
         self.to(get_device())
 
-    def forward(self, obs, hs=None, mask=None):
+    def forward(self, obs, hs=None, masks=None):
         if self.rnn:
-            mean, log_std, hs = self.net(obs, hs, mask)
+            time_seq, batch_size, *_ = obs.shape
+
+            if hs is None:
+                hs = self.init_hs(batch_size)
+            if masks is None:
+                masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            masks = masks.reshape(time_seq, batch_size, 1)
+
+            mean, log_std, hs = self.net(obs, hs, masks)
         else:
             mean, log_std = self.net(obs)
         log_std = log_std.expand_as(mean)

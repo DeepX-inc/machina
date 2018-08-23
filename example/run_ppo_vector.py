@@ -33,7 +33,7 @@ from machina.envs import GymEnv
 from machina.data import GAEVectorData
 from machina.samplers import ParallelVectorSampler
 from machina.misc import logger
-from machina.utils import measure
+from machina.utils import measure, set_device
 from machina.nets.simple_net import PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
@@ -44,10 +44,11 @@ parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--max_samples_per_iter', type=int, default=2048)
 parser.add_argument('--epoch_per_iter', type=int, default=4)
-parser.add_argument('--batch_size', type=int, default=2)
+parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 
@@ -76,6 +77,10 @@ np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
 torch.set_num_threads(1)
+
+device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
+device = torch.device(device_name)
+set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
@@ -120,7 +125,7 @@ while args.max_episodes > total_epi:
         inds = np.arange(len(mask))
         inds = inds[mask == 1]
         num_epi = len(inds) - 1
-        rewards.append(path['rews'][inds[0]:inds[-1]] / num_epi)
+        rewards.append(sum(path['rews'][inds[0]:inds[-1]]) / num_epi)
     mean_rew = np.mean(rewards)
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_step,
