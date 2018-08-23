@@ -15,7 +15,7 @@ def weight_init(m):
 
 class PolNet(nn.Module):
     def __init__(self, ob_space, ac_space, h1=200, h2=100):
-        nn.Module.__init__(self)
+        super(PolNet, self).__init__()
         self.fc1 = nn.Linear(ob_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.mean_layer = nn.Linear(h2, ac_space.shape[0])
@@ -28,12 +28,12 @@ class PolNet(nn.Module):
     def forward(self, ob):
         h = F.relu(self.fc1(ob))
         h = F.relu(self.fc2(h))
-        mean = F.tanh(self.mean_layer(h))
+        mean = torch.tanh(self.mean_layer(h))
         return mean, self.log_std_param
 
 class MixturePolNet(nn.Module):
     def __init__(self, ob_space, ac_space, mixture, h1=200, h2=100):
-        nn.Module.__init__(self)
+        super(MixturePolNet, self).__init__()
         self.fc1 = nn.Linear(ob_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.mean_layer = nn.Linear(h2, ac_space.shape[0]*mixture + mixture)
@@ -59,7 +59,7 @@ class MixturePolNet(nn.Module):
 
 class VNet(nn.Module):
     def __init__(self, ob_space, h1=200, h2=100):
-        nn.Module.__init__(self)
+        super(Vnet, self).__init__()
         self.fc1 = nn.Linear(ob_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, 1)
@@ -72,7 +72,7 @@ class VNet(nn.Module):
 
 class QNet(nn.Module):
     def __init__(self, ob_space, ac_space, h1=300, h2=400):
-        nn.Module.__init__(self)
+        super(QNet, self).__init__()
         self.fc1 = nn.Linear(ob_space.shape[0], h1)
         self.fc2 = nn.Linear(ac_space.shape[0] + h1, h2)
         self.output_layer = nn.Linear(h2, 1)
@@ -85,4 +85,72 @@ class QNet(nn.Module):
         h = torch.cat([h, ac], dim=1)
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
+
+class PolNetLSTM(nn.Module):
+    def __init__(self, ob_space, ac_space, h=1024):
+        super(PolNetLSTM, self).__init__()
+        self.h = h
+        self.rnn = True
+
+        self.cell = nn.LSTMCell(ob_space.shape[0], hidden_size=h)
+        self.mean_layer = nn.Linear(h, ac_space.shape[0])
+        self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
+
+        self.mean_layer.apply(mini_weight_init)
+
+    def init_hs(self, batch_size=1):
+        new_hs = (next(self.parameters()).new(batch_size, self.h).zero_(), next(self.parameters()).new(batch_size, self.h).zero_())
+        return new_hs
+
+    def forward(self, xs, hs=None, masks=None):
+        time_seq, batch_size, *_ = xs.shape
+
+        if hs is None:
+            hs = self.init_hs(batch_size)
+        if masks is None:
+            masks = torch.zeros(time_seq, batch_size, 1)
+        masks = masks.reshape(time_seq, batch_size, 1)
+
+        means = []
+        for x, mask in zip(xs, masks):
+            hs = (hs[0] * (1 - mask), hs[1] * (1 - mask))
+            hs = self.cell(x, hs)
+            means.append(torch.tanh(self.mean_layer(hs[0])))
+        means = torch.cat([m.unsqueeze(0) for m in means], dim=0)
+        log_std = self.log_std_param.expand_as(means)
+
+        return means, log_std, hs
+
+class VNetLSTM(nn.Module):
+    def __init__(self, ob_space, h=1024):
+        super(VNetLSTM, self).__init__()
+        self.h = h
+        self.rnn = True
+
+        self.cell = nn.LSTMCell(ob_space.shape[0], hidden_size=h)
+        self.output_layer = nn.Linear(h, 1)
+
+        self.output_layer.apply(mini_weight_init)
+
+    def init_hs(self, batch_size=1):
+        new_hs = (next(self.parameters()).new(batch_size, self.h).zero_(), next(self.parameters()).new(batch_size, self.h).zero_())
+        return new_hs
+
+    def forward(self, xs, hs=None, masks=None):
+        time_seq, batch_size, *_ = xs.shape
+
+        if hs is None:
+            hs = self.init_hs(batch_size)
+        if masks is None:
+            masks = torch.zeros(time_seq, batch_size, 1)
+        masks = masks.reshape(time_seq, batch_size, 1)
+
+        outs = []
+        for x, mask in zip(xs, masks):
+            hs = (hs[0] * (1 - mask), hs[1] * (1 - mask))
+            hs = self.cell(x, hs)
+            outs.append(self.output_layer(hs[0]))
+        outs = torch.cat([o.unsqueeze(0) for o in outs], dim=0)
+
+        return outs, hs
 

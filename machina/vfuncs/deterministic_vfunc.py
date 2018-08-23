@@ -22,11 +22,19 @@ class DeterministicVfunc(BaseVfunc):
     def __init__(self, ob_space, net):
         BaseVfunc.__init__(self, ob_space)
         self.net = net
+        if hasattr(self.net, 'rnn'):
+            self.rnn = self.net.rnn
+        else:
+            self.rnn = False
 
         self.to(get_device())
 
-    def forward(self, obs):
-        return self.net(obs).reshape(-1)
+    def forward(self, obs, hs=None, mask=None):
+        if self.rnn:
+            vs, hs = self.net(obs, hs, mask)
+            return vs.squeeze(), hs
+        else:
+            return self.net(obs).reshape(-1)
 
 
 class NormalizedDeterministicVfunc(DeterministicVfunc):
