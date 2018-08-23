@@ -37,21 +37,21 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
                     o = env.reset()
                 if pol.rnn:
                     ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
-                    ac_real = [np.squeeze(ac_real)]
+                    ac_real = ac_real.reshape(*pol.ac_space.shape)
                     hs = a_i['hs']
                 else:
                     ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
-                next_o, r, next_d, e_i = env.step(ac_real)
+                next_o, r, next_d, e_i = env.step(np.array(ac_real))
                 obs.append(o)
                 rews.append(r)
-                acs.append([ac.squeeze().detach().cpu().numpy()])
+                acs.append(ac.squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape))
                 dones.append(d)
                 _a_i = dict()
                 for key in a_i.keys():
                     if isinstance(a_i[key], tuple):
                         _a_i[key] = tuple([h.squeeze().detach().cpu().numpy() for h in a_i[key]])
                     else:
-                        _a_i[key] = a_i[key].detach().cpu().numpy()
+                        _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape)
                 a_i = _a_i
                 a_is.append(a_i)
                 e_is.append(e_i)

@@ -49,8 +49,9 @@ parser.add_argument('--cuda', type=int, default=-1)
 parser.add_argument('--max_samples_per_iter', type=int, default=2048)
 parser.add_argument('--epoch_per_iter', type=int, default=4)
 parser.add_argument('--batch_size', type=int, default=8)
-parser.add_argument('--pol_lr', type=float, default=1e-4)
+parser.add_argument('--pol_lr', type=float, default=3e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
+parser.add_argument('--ent_beta', type=float, default=0.01)
 
 parser.add_argument('--ppo_type', type=str, choices=['clip', 'kl'], default='clip')
 
@@ -112,7 +113,7 @@ while args.max_episodes > total_epi:
         data = GAEVectorData(paths)
         data.preprocess(vf, args.gamma, args.lam, centerize=True)
         if args.ppo_type == 'clip':
-            result_dict = ppo_clip.train(data, pol, vf, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size, args.clip_param)
+            result_dict = ppo_clip.train(data, pol, vf, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size, args.clip_param, args.ent_beta)
         else:
             result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
             kl_beta = result_dict['new_kl_beta']

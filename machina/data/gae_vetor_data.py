@@ -35,22 +35,21 @@ class GAEVectorData(BaseData):
         with torch.no_grad():
             obs_shape = self.paths[0]['obs'][0].shape
             obs = torch.tensor([path['obs'] for path in self.paths], dtype=torch.float, device=get_device()).transpose(1, 0)
-            #init_hs = torch.tensor(np.concatenate([path['init_hs'] for path in self.paths], axis=0), dtype=torch.float, device=get_device())
             init_hs = torch.cat(
                 [torch.tensor(np.concatenate([path['init_hs'][0] for path in self.paths], axis=0), dtype=torch.float, device=get_device()).unsqueeze(0),
                 torch.tensor(np.concatenate([path['init_hs'][1] for path in self.paths], axis=0), dtype=torch.float, device=get_device()).unsqueeze(0)]
             )
             dones = torch.tensor(np.array([path['dones'] for path in self.paths]), dtype=torch.float, device=get_device()).t()
             vs, hs = vf(obs, init_hs, dones)
+
             last_obs = torch.tensor([path['last_ob'] for path in self.paths], dtype=torch.float, device=get_device()).unsqueeze(0)
-            last_vs, _ = vf(last_obs, hs)
+            last_d = torch.tensor(np.array([path['last_d'] for path in self.paths]), dtype=torch.float, device=get_device()).squeeze()
+            last_vs, _ = vf(last_obs, hs, last_d.unsqueeze(0))
 
             advs = torch.zeros_like(vs)
             rets = torch.zeros_like(vs)
 
             rews = torch.tensor([path['rews'] for path in self.paths], dtype=torch.float, device=get_device()).t()
-
-            last_d = torch.tensor(np.array([path['last_d'] for path in self.paths]), dtype=torch.float, device=get_device()).squeeze()
 
             last_gaelam = 0
             for t in reversed(range(self.num_step)):
@@ -70,7 +69,6 @@ class GAEVectorData(BaseData):
             self.data_map['dones'] = dones
             self.data_map['advs'] = advs
             self.data_map['rets'] = rets
-            self.data_map['vs'] = vs
             self.data_map['init_hs'] = init_hs
             if centerize:
                 self.data_map['advs'] = (self.data_map['advs'] - torch.mean(
@@ -81,6 +79,7 @@ class GAEVectorData(BaseData):
                     new_keys = self.paths[0][key].keys()
                     for new_key in new_keys:
                         self.data_map[new_key] = torch.tensor([path[key][new_key] for path in self.paths], dtype=torch.float, device=get_device()).transpose(1, 0)
+
 
     def shuffle(self):
         perm = np.arange(self.num_env)

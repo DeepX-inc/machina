@@ -87,23 +87,27 @@ class QNet(nn.Module):
         return self.output_layer(h)
 
 class PolNetLSTM(nn.Module):
-    def __init__(self, ob_space, ac_space, h=1024):
+    def __init__(self, ob_space, ac_space, h_size=1024, cell_size=512):
         super(PolNetLSTM, self).__init__()
-        self.h = h
+        self.h_size = h_size
+        self.cell_size = cell_size
         self.rnn = True
 
-        self.cell = nn.LSTMCell(ob_space.shape[0], hidden_size=h)
-        self.mean_layer = nn.Linear(h, ac_space.shape[0])
+        self.input_layer = nn.Linear(ob_space.shape[0], self.h_size)
+        self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
+        self.mean_layer = nn.Linear(self.cell_size, ac_space.shape[0])
         self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
 
         self.mean_layer.apply(mini_weight_init)
 
     def init_hs(self, batch_size=1):
-        new_hs = (next(self.parameters()).new(batch_size, self.h).zero_(), next(self.parameters()).new(batch_size, self.h).zero_())
+        new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
         return new_hs
 
     def forward(self, xs, hs, masks):
         time_seq, batch_size, *_ = xs.shape
+
+        xs = torch.relu(self.input_layer(xs))
 
         means = []
         for x, mask in zip(xs, masks):
@@ -116,22 +120,26 @@ class PolNetLSTM(nn.Module):
         return means, log_std, hs
 
 class VNetLSTM(nn.Module):
-    def __init__(self, ob_space, h=1024):
+    def __init__(self, ob_space, h_size=1024, cell_size=512):
         super(VNetLSTM, self).__init__()
-        self.h = h
+        self.h_size = h_size
+        self.cell_size = cell_size
         self.rnn = True
 
-        self.cell = nn.LSTMCell(ob_space.shape[0], hidden_size=h)
-        self.output_layer = nn.Linear(h, 1)
+        self.input_layer = nn.Linear(ob_space.shape[0], self.h_size)
+        self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
+        self.output_layer = nn.Linear(self.cell_size, 1)
 
         self.output_layer.apply(mini_weight_init)
 
     def init_hs(self, batch_size=1):
-        new_hs = (next(self.parameters()).new(batch_size, self.h).zero_(), next(self.parameters()).new(batch_size, self.h).zero_())
+        new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
         return new_hs
 
     def forward(self, xs, hs, masks):
         time_seq, batch_size, *_ = xs.shape
+
+        xs = torch.relu(self.input_layer(xs))
 
         outs = []
         for x, mask in zip(xs, masks):
