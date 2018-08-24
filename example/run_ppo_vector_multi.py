@@ -127,7 +127,7 @@ while args.max_episodes > total_epi:
             kl_beta = result_dict['new_kl_beta']
 
     total_epi += data.num_epi
-    step = len(paths) * len(paths[0]['rews'])
+    step = len(paths) * len(paths[0]['rews']) * args.world_size
     total_step += step
     rewards = []
     for path in paths:
