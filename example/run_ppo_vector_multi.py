@@ -34,6 +34,7 @@ from machina.envs import GymEnv
 from machina.data import GAEVectorData
 from machina.samplers import ParallelVectorSampler
 from machina.misc import logger
+from machina.optims import DistributedAdamW
 from machina.utils import measure, set_device
 from machina.nets.simple_net import PolNetLSTM, VNetLSTM
 
@@ -71,7 +72,8 @@ if not os.path.exists(args.log):
 
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
-pprint(vars(args))
+if args.local_rank == 0:
+    pprint(vars(args))
 
 if not os.path.exists(os.path.join(args.log, 'models')):
     os.mkdir(os.path.join(args.log, 'models'))
@@ -105,8 +107,8 @@ vf = DeterministicVfunc(ob_space, vf_net)
 
 sampler = ParallelVectorSampler(env, pol, args.max_samples_per_iter, args.num_parallel, seed=args.seed)
 
-optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
-optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
+optim_pol = DistributedAdamW(pol_net.parameters(), args.local_rank, args.world_size, args.pol_lr)
+optim_vf = DistributedAdamW(vf_net.parameters(), args.local_rank, args.world_size, args.vf_lr)
 
 total_epi = 0
 total_step = 0
@@ -123,11 +125,6 @@ while args.max_episodes > total_epi:
         else:
             result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
             kl_beta = result_dict['new_kl_beta']
-
-    tensor_list = list(pol.parameters())
-    dist.all_reduce_multigpu(tensor_list)
-    tensor_list = [p / args.world_size for p in tensor_list]
-    torch.nn.utils.vector_to_parameters(tensor_list, pol.parameters())
 
     total_epi += data.num_epi
     step = len(paths) * len(paths[0]['rews'])
