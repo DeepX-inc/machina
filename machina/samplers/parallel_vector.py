@@ -34,6 +34,7 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
             a_is = []
             e_is = []
             init_hs = hs
+            hs = (hs[0].detach(), hs[1].detach())
             while max_samples > n_samples:
                 if d:
                     o = env.reset()
