@@ -1,10 +1,12 @@
 import copy
+import time
 
 import numpy as np
 import torch
 import torch.multiprocessing as mp
 
 from machina.utils import cpu_mode
+from machina.misc import logger
 from machina.samplers.base import BaseSampler
 
 
@@ -98,7 +100,7 @@ class ParallelVectorSampler(BaseSampler):
         for p in self.processes:
             p.join()
 
-    def sample(self, pol, *args):
+    def sample(self, pol, too_long_to_wait_time=500, *args, **kwargs):
         for sp, p in zip(self.pol.parameters(), pol.parameters()):
             sp.data.copy_(p.data.to('cpu'))
 
@@ -107,8 +109,16 @@ class ParallelVectorSampler(BaseSampler):
         for exec_flag in self.exec_flags:
             exec_flag += 1
 
+        s = time.time()
         while True:
             if all([exec_flag == 0 for exec_flag in self.exec_flags]):
                 return list(self.paths)
+            now = time.time()
+            if (now - s) > too_long_to_wait_time:
+                if len(self.paths) == self.num_parallel:
+                    for exec_flag in self.exec_flags:
+                        exec_flag.zero_()
+                    logger.log('sampling time is too long to wait...')
+                    return list(self.paths)
 
 
