@@ -99,6 +99,15 @@ class DistributedAdamW(Optimizer):
                     p.data.add_(-group['weight_decay'], p.data)
 
                 p.data.addcdiv_(-step_size, exp_avg, denom)
+        params = []
+        for group in self.param_groups:
+            for p in group['params']:
+                if p.grad is None:
+                    continue
+                params.append(p)
+        params_vec = torch.nn.utils.parameters_to_vector(params)
+        dist.broadcast_multigpu([params_vec], 0)
+        torch.nn.utils.vector_to_parameters(params_vec, params)
 
         return loss
 
