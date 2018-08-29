@@ -65,11 +65,11 @@ class GAEVectorData(BaseData):
 
             self.data_map['obs'] = obs
             self.data_map['acs'] = torch.tensor([path['acs'] for path in self.paths], dtype=torch.float, device=get_device()).transpose(1, 0)
-            self.data_map['rews'] = rews
-            self.data_map['dones'] = dones
-            self.data_map['advs'] = advs
-            self.data_map['rets'] = rets
-            self.data_map['init_hs'] = init_hs
+            self.data_map['rews'] = rews.detach()
+            self.data_map['dones'] = dones.detach()
+            self.data_map['advs'] = advs.detach()
+            self.data_map['rets'] = rets.detach()
+            self.data_map['init_hs'] = init_hs.detach()
             if centerize:
                 self.data_map['advs'] = (self.data_map['advs'] - torch.mean(
                     self.data_map['advs'])) / (torch.std(self.data_map['advs']) + 1e-6)
