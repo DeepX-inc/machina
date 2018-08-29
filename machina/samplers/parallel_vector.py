@@ -16,7 +16,6 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
 
     np.random.seed(seed + process_id)
     torch.manual_seed(seed + process_id)
-    env.env.seed(seed + process_id)
 
     d = False
     o = env.reset()
