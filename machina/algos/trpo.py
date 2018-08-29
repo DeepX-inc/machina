@@ -73,7 +73,9 @@ def make_pol_loss(pol, batch, volatile=False):
     obs = batch['obs']
     acs = batch['acs']
     advs = batch['advs']
-    _, _, pd_params = pol(obs)
+    init_hs = batch['init_hs']
+    masks = batch['dones']
+    _, _, pd_params = pol(obs, init_hs, masks)
     llh = pol.pd.llh(acs, pd_params)
 
     pol_loss = - torch.mean(llh * advs)
@@ -81,9 +83,11 @@ def make_pol_loss(pol, batch, volatile=False):
 
 def make_kl(pol, batch):
     obs = batch['obs']
-    _, _, pd_params = pol(obs)
+    init_hs = batch['init_hs']
+    masks = batch['dones']
+    _, _, pd_params = pol(obs, init_hs, masks)
     return pol.pd.kl_pq(
-        {k:d.detach() for k, d in pd_params.items()},
+        {k:d.detach() if not isinstance(d, tuple) else (d[0].detach(), d[1].detach()) for k, d in pd_params.items()},
         pd_params
     )
 
@@ -129,7 +133,9 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
 def make_vf_loss(vf, batch):
     obs = batch['obs']
     rets = batch['rets']
-    vf_loss = 0.5 * torch.mean((vf(obs) - rets)**2)
+    init_hs = batch['init_hs']
+    masks = batch['dones']
+    vf_loss = 0.5 * torch.mean((vf(obs, init_hs, masks) - rets)**2)
     return vf_loss
 
 def update_vf(vf, optim_vf, batch):
