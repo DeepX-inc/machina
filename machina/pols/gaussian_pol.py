@@ -57,7 +57,10 @@ class GaussianPol(BasePol):
         action for deployment
         """
         if self.rnn:
+            time_seq, batch_size, *_ = obs.shape
             if hs is None:
+                if self.hs is None:
+                    self.hs = self.init_hs(batch_size)
                 hs = self.hs
             mean, _, hs = self.net(obs, hs, mask)
             self.hs = hs

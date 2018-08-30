@@ -98,7 +98,7 @@ else:
     vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)
 if args.use_parallel_sampler:
-    sampler = ParallelSampler(env)
+    sampler = ParallelSampler(env, pol, args.max_samples_per_iter, args.max_episodes_per_iter)
 else:
     sampler = BatchSampler(env)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)

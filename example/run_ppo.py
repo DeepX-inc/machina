@@ -56,7 +56,7 @@ parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
 
-parser.add_argument('--ppo_type', type=str, choices=['clip', 'kl'], default='kl')
+parser.add_argument('--ppo_type', type=str, choices=['clip', 'kl'], default='clip')
 
 parser.add_argument('--clip_param', type=float, default=0.2)
 
@@ -102,7 +102,7 @@ vf_net = VNet(ob_space)
 vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)
 if args.use_parallel_sampler:
-    sampler = ParallelSampler(env)
+    sampler = ParallelSampler(env, pol, args.max_samples_per_iter, args.max_episodes_per_iter, seed=args.seed)
 else:
     sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
@@ -122,7 +122,7 @@ while args.max_episodes > total_epi:
         data = GAEData(paths, shuffle=True)
         data.preprocess(vf, args.gamma, args.lam, centerize=True)
         if args.ppo_type == 'clip':
-            result_dict = ppo_clip.train(data, pol, vf, args.clip_param, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
+            result_dict = ppo_clip.train(data=data, pol=pol, vf=vf, clip_param=args.clip_param, optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size)
         else:
             result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
             kl_beta = result_dict['new_kl_beta']

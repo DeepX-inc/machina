@@ -38,9 +38,9 @@ class DeterministicVfunc(BaseVfunc):
                 masks = hs[0].new(time_seq, batch_size, 1).zero_()
             masks = masks.reshape(time_seq, batch_size, 1)
             vs, hs = self.net(obs, hs, masks)
-            return vs.squeeze(), hs
+            return vs.squeeze(), dict(hs=hs)
         else:
-            return self.net(obs).reshape(-1)
+            return self.net(obs).reshape(-1), dict()
 
 
 class NormalizedDeterministicVfunc(DeterministicVfunc):

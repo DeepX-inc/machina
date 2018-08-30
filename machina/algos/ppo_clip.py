@@ -26,19 +26,26 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
     obs = batch['obs']
     acs = batch['acs']
     advs = batch['advs']
-    init_hs = batch['init_hs']
-    masks = batch['dones']
+
+    if pol.rnn:
+        init_hs = batch['init_hs']
+        masks = batch['dones']
+
     old_llh = pol.pd.llh(
         batch['acs'],
         batch,
     )
 
-    _, _, pd_params = pol(obs, init_hs, masks)
+    if pol.rnn:
+        _, _, pd_params = pol(obs, init_hs, masks)
+    else:
+        _, _, pd_params = pol(obs)
+
     new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
-    pol_loss1 = ratio * advs
-    pol_loss2 = torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advs
-    pol_loss =  - torch.mean(torch.min(pol_loss1, pol_loss2))
+    pol_loss1 = - ratio * advs
+    pol_loss2 = - torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advs
+    pol_loss = torch.mean(torch.max(pol_loss1, pol_loss2))
 
     ent = pol.pd.ent(pd_params)
     pol_loss -= ent_beta * torch.mean(ent)
@@ -56,13 +63,18 @@ def update_pol(pol, optim_pol, batch, clip_param, ent_beta, max_grad_norm):
 def make_vf_loss(vf, batch, clip_param, clip=False):
     obs = batch['obs']
     rets = batch['rets']
-    init_hs = batch['init_hs']
-    masks = batch['dones']
 
-    vs, _ = vf(obs, init_hs, masks)
+    if vf.rnn:
+        init_hs = batch['init_hs']
+        masks = batch['dones']
+        vs, _ = vf(obs, init_hs, masks)
+    else:
+        vs, _ = vf(obs)
+
     vfloss1 = (vs - rets)**2
     if clip:
-        vpredclipped = vs + torch.clamp(vf(obs) - vs, -clip_param, clip_param)
+        old_vs = batch['old_vs']
+        vpredclipped = old_vs + torch.clamp(vs - old_vs, -clip_param, clip_param)
         vfloss2 = (vpredclipped - rets)**2
         vf_loss = 0.5 * torch.mean(torch.max(vfloss1, vfloss2))
     else:

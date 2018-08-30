@@ -59,7 +59,7 @@ class MixturePolNet(nn.Module):
 
 class VNet(nn.Module):
     def __init__(self, ob_space, h1=200, h2=100):
-        super(Vnet, self).__init__()
+        super(VNet, self).__init__()
         self.fc1 = nn.Linear(ob_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, 1)

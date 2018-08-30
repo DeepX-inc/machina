@@ -40,7 +40,8 @@ class GAEVectorData(BaseData):
                 torch.tensor(np.concatenate([path['init_hs'][1] for path in self.paths], axis=0), dtype=torch.float, device=get_device()).unsqueeze(0)]
             )
             dones = torch.tensor(np.array([path['dones'] for path in self.paths]), dtype=torch.float, device=get_device()).t()
-            vs, hs = vf(obs, init_hs, dones)
+            vs, v_i = vf(obs, init_hs, dones)
+            hs = v_i['hs']
 
             last_obs = torch.tensor([path['last_ob'] for path in self.paths], dtype=torch.float, device=get_device()).unsqueeze(0)
             last_d = torch.tensor(np.array([path['last_d'] for path in self.paths]), dtype=torch.float, device=get_device()).squeeze()
@@ -57,8 +58,8 @@ class GAEVectorData(BaseData):
                     next_nonterminal = 1.0 - last_d
                     next_vs = last_vs
                 else:
-                    nextnonterminal = 1.0 - dones[t+1]
-                    nextvalues = vs[t+1]
+                    next_nonterminal = 1.0 - dones[t+1]
+                    next_vs = vs[t+1]
                 delta = rews[t] + gamma * next_vs * next_nonterminal - vs[t]
                 advs[t] = last_gaelam = delta + gamma * lam * next_nonterminal * last_gaelam
             rets = advs + vs
@@ -70,6 +71,7 @@ class GAEVectorData(BaseData):
             self.data_map['advs'] = advs.detach()
             self.data_map['rets'] = rets.detach()
             self.data_map['init_hs'] = init_hs.detach()
+            self.data_map['old_vs'] = vs.detach()
             if centerize:
                 self.data_map['advs'] = (self.data_map['advs'] - torch.mean(
                     self.data_map['advs'])) / (torch.std(self.data_map['advs']) + 1e-6)

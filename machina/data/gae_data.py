@@ -55,7 +55,7 @@ class GAEData(BaseData):
     def preprocess(self, vf, gamma, lam, centerize=True):
         with torch.no_grad():
             all_path_vs = [vf(torch.tensor(path['obs'], dtype=torch.float,
-                                           device=get_device())).cpu().numpy() for path in self.paths]
+                                           device=get_device()))[0].cpu().numpy() for path in self.paths]
         for idx, path in enumerate(self.paths):
             path_vs = np.append(all_path_vs[idx], 0)
             rews = path['rews']
@@ -69,7 +69,7 @@ class GAEData(BaseData):
                 rets[t] = last_rew = rews[t] + gamma * last_rew
             path['advs'] = advs
             path['rets'] = rets
-            path['vs'] = path_vs[:-1]
+            path['old_vs'] = path_vs[:-1]
         self.path2data_map(centerize=centerize)
 
     def shuffle(self):

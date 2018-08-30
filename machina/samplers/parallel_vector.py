@@ -16,6 +16,7 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
 
     np.random.seed(seed + process_id)
     torch.manual_seed(seed + process_id)
+    torch.set_num_threads(1)
 
     d = False
     o = env.reset()
@@ -109,16 +110,7 @@ class ParallelVectorSampler(BaseSampler):
         for exec_flag in self.exec_flags:
             exec_flag += 1
 
-        s = time.time()
         while True:
             if all([exec_flag == 0 for exec_flag in self.exec_flags]):
                 return list(self.paths)
-            now = time.time()
-            if (now - s) > too_long_to_wait_time:
-                if len(self.paths) == self.num_parallel:
-                    for exec_flag in self.exec_flags:
-                        exec_flag.zero_()
-                    logger.log('sampling time is too long to wait...')
-                    return list(self.paths)
-
 

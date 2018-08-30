@@ -25,7 +25,7 @@ def one_path(env, pol, prepro=None):
         obs.append(o)
         rews.append(r)
         acs.append(ac.detach().cpu().numpy()[0])
-        a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys()])
+        a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys() if a_i[key] is not None])
         a_is.append(a_i)
         e_is.append(e_i)
         path_length += 1
@@ -40,7 +40,12 @@ def one_path(env, pol, prepro=None):
         e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
     )
 
-def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, exec_flags, process_id, prepro=None):
+def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, exec_flags, process_id, prepro=None, seed=256):
+
+    np.random.seed(seed + process_id)
+    torch.manual_seed(seed + process_id)
+    torch.set_num_threads(1)
+
     while True:
         if exec_flags[process_id] > 0:
             while max_samples > n_samples_global and max_episodes > n_episodes_global:
@@ -51,7 +56,7 @@ def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_epis
             exec_flags[process_id].zero_()
 
 class ParallelSampler(BaseSampler):
-    def __init__(self, env, pol, max_samples, max_episodes, num_parallel=8, prepro=None):
+    def __init__(self, env, pol, max_samples, max_episodes, num_parallel=8, prepro=None, seed=256):
         BaseSampler.__init__(self, env)
         self.pol = copy.deepcopy(pol)
         self.pol.to('cpu')
@@ -68,7 +73,7 @@ class ParallelSampler(BaseSampler):
         self.paths = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
-            p = mp.Process(target=sample_process, args=(self.pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, ind, prepro))
+            p = mp.Process(target=sample_process, args=(self.pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, ind, prepro, seed))
             p.start()
             self.processes.append(p)
 
