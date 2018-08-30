@@ -55,6 +55,8 @@ parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--pol_lr', type=float, default=3e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--ent_beta', type=float, default=0.01)
+parser.add_argument('--h_size', type=int, default=1024)
+parser.add_argument('--cell_size', type=int, default=512)
 
 parser.add_argument('--ppo_type', type=str, choices=['clip', 'kl'], default='clip')
 
@@ -100,9 +102,9 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = PolNetLSTM(ob_space, ac_space)
+pol_net = PolNetLSTM(ob_space, ac_space, args.h_size, args.cell_size)
 pol = GaussianPol(ob_space, ac_space, pol_net)
-vf_net = VNetLSTM(ob_space)
+vf_net = VNetLSTM(ob_space, args.h_size, args.cell_size)
 vf = DeterministicVfunc(ob_space, vf_net)
 
 sampler = ParallelVectorSampler(env, pol, args.max_samples_per_iter, args.num_parallel, seed=args.seed)

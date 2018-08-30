@@ -109,12 +109,13 @@ class PolNetLSTM(nn.Module):
 
         xs = torch.relu(self.input_layer(xs))
 
-        means = []
+        hiddens = []
         for x, mask in zip(xs, masks):
             hs = (hs[0] * (1 - mask), hs[1] * (1 - mask))
             hs = self.cell(x, hs)
-            means.append(torch.tanh(self.mean_layer(hs[0])))
-        means = torch.cat([m.unsqueeze(0) for m in means], dim=0)
+            hiddens.append(hs[0])
+        hiddens = torch.cat([h.unsqueeze(0) for h in hiddens], dim=0)
+        means = torch.tanh(self.mean_layer(hiddens))
         log_std = self.log_std_param.expand_as(means)
 
         return means, log_std, hs
@@ -141,12 +142,13 @@ class VNetLSTM(nn.Module):
 
         xs = torch.relu(self.input_layer(xs))
 
-        outs = []
+        hiddens = []
         for x, mask in zip(xs, masks):
             hs = (hs[0] * (1 - mask), hs[1] * (1 - mask))
             hs = self.cell(x, hs)
-            outs.append(self.output_layer(hs[0]))
-        outs = torch.cat([o.unsqueeze(0) for o in outs], dim=0)
+            hiddens.append(hs[0])
+        hiddens = torch.cat([h.unsqueeze(0) for h in hiddens], dim=0)
+        outs = self.output_layer(hiddens)
 
         return outs, hs
 
