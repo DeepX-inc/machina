@@ -50,6 +50,8 @@ parser.add_argument('--max_samples_per_iter', type=int, default=1024)
 parser.add_argument('--epoch_per_iter', type=int, default=4)
 parser.add_argument('--batch_size', type=int, default=2)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
+parser.add_argument('--h_size', type=int, default=1024)
+parser.add_argument('--cell_size', type=int, default=512)
 
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
@@ -80,9 +82,9 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = PolNetLSTM(ob_space, ac_space)
+pol_net = PolNetLSTM(ob_space, ac_space, args.h_size, args.cell_size)
 pol = GaussianPol(ob_space, ac_space, pol_net)
-vf_net = VNetLSTM(ob_space)
+vf_net = VNetLSTM(ob_space, args.h_size, args.cell_size)
 vf = DeterministicVfunc(ob_space, vf_net)
 
 sampler = ParallelVectorSampler(env, pol, args.max_samples_per_iter, args.num_parallel, seed=args.seed)
@@ -119,13 +121,11 @@ while args.max_episodes > total_epi:
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
         torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_max.pkl'))
         torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_max.pkl'))
         max_rew = mean_rew
 
     torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_last.pkl'))
     torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_last.pkl'))
     del data
 
