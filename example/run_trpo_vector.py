@@ -46,9 +46,9 @@ parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
 
-parser.add_argument('--max_samples_per_iter', type=int, default=2048)
+parser.add_argument('--max_samples_per_iter', type=int, default=1024)
 parser.add_argument('--epoch_per_iter', type=int, default=4)
-parser.add_argument('--batch_size', type=int, default=8)
+parser.add_argument('--batch_size', type=int, default=2)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 
 parser.add_argument('--gamma', type=float, default=0.995)
@@ -101,7 +101,7 @@ while args.max_episodes > total_epi:
         result_dict = trpo.train(data, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
 
     total_epi += data.num_epi
-    step = len(paths) * len(paths[0]['rews']) * args.world_size
+    step = len(paths) * len(paths[0]['rews'])
     total_step += step
     rewards = []
     for path in paths:
