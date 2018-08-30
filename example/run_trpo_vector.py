@@ -45,6 +45,7 @@ parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--num_threads', type=int, default=4)
 
 parser.add_argument('--max_samples_per_iter', type=int, default=1024)
 parser.add_argument('--epoch_per_iter', type=int, default=4)
@@ -71,7 +72,7 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
-torch.set_num_threads(1)
+torch.set_num_threads(args.num_threads)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
