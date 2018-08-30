@@ -135,7 +135,8 @@ def make_vf_loss(vf, batch):
     rets = batch['rets']
     init_hs = batch['init_hs']
     masks = batch['dones']
-    vf_loss = 0.5 * torch.mean((vf(obs, init_hs, masks) - rets)**2)
+    vs, _ = vf(obs, init_hs, masks)
+    vf_loss = 0.5 * torch.mean((vs - rets)**2)
     return vf_loss
 
 def update_vf(vf, optim_vf, batch):
