@@ -65,8 +65,8 @@ class GaussianPol(BasePol):
             mean, _, hs = self.net(obs, hs, mask)
             self.hs = hs
         else:
-            mean, _ = self.net(obs)
+            mean, log_std = self.net(obs)
         mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
-        return mean_real
+        return mean_real, mean, dict(mean=mean, log_std=log_std)
 
 
