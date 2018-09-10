@@ -24,7 +24,6 @@ def one_path(env, pol, prepro=None):
         hs = None
     while not d:
         o = prepro(o)
-        ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
         if pol.rnn:
             ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
             ac_real = ac_real.reshape(*pol.ac_space.shape)
