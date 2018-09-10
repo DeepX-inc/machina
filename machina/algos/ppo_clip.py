@@ -36,7 +36,9 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
             init_hs = batch['init_hs']
             masks = batch['dones']
 
-    old_llh = pol.pd.llh(
+    pd = pol.pd if hasattr(pol, 'pd') else pol.module.pd
+
+    old_llh = pd.llh(
         batch['acs'],
         batch,
     )
@@ -52,13 +54,13 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
         else:
             _, _, pd_params = pol(obs)
 
-    new_llh = pol.pd.llh(acs, pd_params)
+    new_llh = pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
     pol_loss1 = - ratio * advs
     pol_loss2 = - torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advs
     pol_loss = torch.mean(torch.max(pol_loss1, pol_loss2))
 
-    ent = pol.pd.ent(pd_params)
+    ent = pd.ent(pd_params)
     pol_loss -= ent_beta * torch.mean(ent)
 
     return pol_loss
