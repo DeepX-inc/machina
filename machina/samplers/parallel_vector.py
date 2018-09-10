@@ -34,7 +34,8 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
             a_is = []
             e_is = []
             init_hs = hs
-            hs = (hs[0].detach(), hs[1].detach())
+            if pol.rnn:
+                hs = (hs[0].detach(), hs[1].detach())
             while max_samples > n_samples:
                 if d:
                     o = env.reset()
@@ -51,6 +52,8 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
                 dones.append(d)
                 _a_i = dict()
                 for key in a_i.keys():
+                    if a_i[key] is None:
+                        continue
                     if isinstance(a_i[key], tuple):
                         _a_i[key] = tuple([h.squeeze().detach().cpu().numpy() for h in a_i[key]])
                     else:
