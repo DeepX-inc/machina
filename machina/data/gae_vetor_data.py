@@ -70,7 +70,7 @@ class GAEVectorData(BaseData):
             self.data_map['dones'] = dones.detach()
             self.data_map['advs'] = advs.detach()
             self.data_map['rets'] = rets.detach()
-            self.data_map['init_hs'] = init_hs.detach()
+            self.data_map['init_hs'] = init_hs.detach().unsqueeze(0)
             self.data_map['old_vs'] = vs.detach()
             if centerize:
                 self.data_map['advs'] = (self.data_map['advs'] - torch.mean(
