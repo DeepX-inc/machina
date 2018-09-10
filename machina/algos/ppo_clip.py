@@ -27,19 +27,30 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
     acs = batch['acs']
     advs = batch['advs']
 
-    if pol.rnn:
-        init_hs = batch['init_hs']
-        masks = batch['dones']
+    if hasattr(pol, 'rnn'):
+        if pol.rnn:
+            init_hs = batch['init_hs']
+            masks = batch['dones']
+    else:
+        if pol.module.rnn:
+            init_hs = batch['init_hs']
+            masks = batch['dones']
 
     old_llh = pol.pd.llh(
         batch['acs'],
         batch,
     )
 
-    if pol.rnn:
-        _, _, pd_params = pol(obs, init_hs, masks)
+    if hasattr(pol, 'rnn'):
+        if pol.rnn:
+            _, _, pd_params = pol(obs, init_hs, masks)
+        else:
+            _, _, pd_params = pol(obs)
     else:
-        _, _, pd_params = pol(obs)
+        if pol.module.rnn:
+            _, _, pd_params = pol(obs, init_hs, masks)
+        else:
+            _, _, pd_params = pol(obs)
 
     new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
@@ -64,12 +75,20 @@ def make_vf_loss(vf, batch, clip_param, clip=False):
     obs = batch['obs']
     rets = batch['rets']
 
-    if vf.rnn:
-        init_hs = batch['init_hs']
-        masks = batch['dones']
-        vs, _ = vf(obs, init_hs, masks)
+    if hasattr(vf, 'rnn'):
+        if vf.rnn:
+            init_hs = batch['init_hs']
+            masks = batch['dones']
+            vs, _ = vf(obs, init_hs, masks)
+        else:
+            vs, _ = vf(obs)
     else:
-        vs, _ = vf(obs)
+        if vf.module.rnn:
+            init_hs = batch['init_hs']
+            masks = batch['dones']
+            vs, _ = vf(obs, init_hs, masks)
+        else:
+            vs, _ = vf(obs)
 
     vfloss1 = (vs - rets)**2
     if clip:
