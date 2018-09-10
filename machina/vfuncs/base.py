@@ -15,6 +15,7 @@
 
 import torch.nn as nn
 class BaseVfunc(nn.Module):
-    def __init__(self, ob_space):
+    def __init__(self, ob_space, data_parallel=False):
         nn.Module.__init__(self)
         self.ob_space = ob_space
+        self.data_parallel = data_parallel

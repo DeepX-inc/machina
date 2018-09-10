@@ -15,13 +15,14 @@
 
 import numpy as np
 import torch
+import torch.nn as nn
 from machina.pols import BasePol
 from machina.pds.gaussian_pd import GaussianPd
 from machina.utils import get_device
 
 class GaussianPol(BasePol):
-    def __init__(self, ob_space, ac_space, net, normalize_ac=True):
-        BasePol.__init__(self, ob_space, ac_space, normalize_ac)
+    def __init__(self, ob_space, ac_space, net, normalize_ac=True, data_parallel=False, dim=0):
+        BasePol.__init__(self, ob_space, ac_space, normalize_ac, data_parallel)
         self.net = net
         if hasattr(self.net, 'rnn'):
             self.rnn = self.net.rnn
@@ -30,6 +31,9 @@ class GaussianPol(BasePol):
             self.rnn = False
         self.pd = GaussianPd(ob_space, ac_space)
         self.to(get_device())
+        if data_parallel:
+            self.dp_net = nn.DataParallel(self.net, dim=dim)
+        self.dp_run = False
 
     def forward(self, obs, hs=None, masks=None):
         if self.rnn:
@@ -41,9 +45,15 @@ class GaussianPol(BasePol):
                 masks = hs[0].new(time_seq, batch_size, 1).zero_()
             masks = masks.reshape(time_seq, batch_size, 1)
 
-            mean, log_std, hs = self.net(obs, hs, masks)
+            if self.dp_run:
+                mean, log_std, hs = self.dp_net(obs, hs, masks)
+            else:
+                mean, log_std, hs = self.net(obs, hs, masks)
         else:
-            mean, log_std = self.net(obs)
+            if self.dp_run:
+                mean, log_std = self.dp_net(obs)
+            else:
+                mean, log_std = self.net(obs)
         log_std = log_std.expand_as(mean)
         ac = self.pd.sample(dict(mean=mean, log_std=log_std))
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
