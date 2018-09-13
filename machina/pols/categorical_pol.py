@@ -56,7 +56,7 @@ class CategoricalPol(BasePol):
                 pi = self.net(obs)
         ac = self.pd.sample(dict(pi=pi))
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
-        return ac_real, ac, dict(pi=pi)
+        return ac_real, ac, dict(pi=pi, hs=hs)
 
     def init_hs(self, batch_size):
         return self.net.init_hs(batch_size)
