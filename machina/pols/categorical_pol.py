@@ -17,19 +17,19 @@ import numpy as np
 import torch
 import torch.nn as nn
 from machina.pols import BasePol
-from machina.pds.gaussian_pd import GaussianPd
+from machina.pds.categorical_pd import CategoricalPd
 from machina.utils import get_device
 
-class GaussianPol(BasePol):
+class CategoricalPol(BasePol):
     def __init__(self, ob_space, ac_space, net, normalize_ac=True, data_parallel=False, dim=0):
-        BasePol.__init__(self, ob_space, ac_space, normalize_ac, data_parallel)
+        BasePol.__init__(self, ob_space, ac_space, normalize_ac, data_parallel, discrete=True)
         self.net = net
         if hasattr(self.net, 'rnn'):
             self.rnn = self.net.rnn
             self.hs = None
         else:
             self.rnn = False
-        self.pd = GaussianPd(ob_space, ac_space)
+        self.pd = CategoricalPd(ob_space, ac_space)
         self.to(get_device())
         if data_parallel:
             self.dp_net = nn.DataParallel(self.net, dim=dim)
@@ -46,18 +46,17 @@ class GaussianPol(BasePol):
             masks = masks.reshape(time_seq, batch_size, 1)
 
             if self.dp_run:
-                mean, log_std, hs = self.dp_net(obs, hs, masks)
+                pi, hs = self.dp_net(obs, hs, masks)
             else:
-                mean, log_std, hs = self.net(obs, hs, masks)
+                pi, hs = self.net(obs, hs, masks)
         else:
             if self.dp_run:
-                mean, log_std = self.dp_net(obs)
+                pi = self.dp_net(obs)
             else:
-                mean, log_std = self.net(obs)
-        log_std = log_std.expand_as(mean)
-        ac = self.pd.sample(dict(mean=mean, log_std=log_std))
+                pi = self.net(obs)
+        ac = self.pd.sample(dict(pi=pi))
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
-        return ac_real, ac, dict(mean=mean, log_std=log_std, hs=hs)
+        return ac_real, ac, dict(pi=pi, hs=hs)
 
     def init_hs(self, batch_size):
         return self.net.init_hs(batch_size)
@@ -72,11 +71,13 @@ class GaussianPol(BasePol):
                 if self.hs is None:
                     self.hs = self.init_hs(batch_size)
                 hs = self.hs
-            mean, _, hs = self.net(obs, hs, mask)
+            pi, hs = self.net(obs, hs, mask)
             self.hs = hs
         else:
-            mean, log_std = self.net(obs)
-        mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
-        return mean_real, mean, dict(mean=mean, log_std=log_std, hs=hs)
+            pi = self.net(obs)
+        _, ac = torch.max(pi, dim=-1)
+        ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
+        return ac_real, ac, dict(pi=pi, hs=hs)
+
 
 

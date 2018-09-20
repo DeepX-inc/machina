@@ -4,6 +4,7 @@ import time
 import numpy as np
 import torch
 import torch.multiprocessing as mp
+import gym
 
 from machina.utils import cpu_mode
 from machina.misc import logger
@@ -41,14 +42,20 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
                     o = env.reset()
                 if pol.rnn:
                     ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
-                    ac_real = ac_real.reshape(*pol.ac_space.shape)
+                    if isinstance(pol.ac_space, gym.spaces.Box):
+                        ac_real = ac_real.reshape(*pol.ac_space.shape)
+                    else:
+                        ac_real = ac_real.reshape(())
                     hs = a_i['hs']
                 else:
                     ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
                 next_o, r, next_d, e_i = env.step(np.array(ac_real))
                 obs.append(o)
                 rews.append(r)
-                acs.append(ac.squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape))
+                if isinstance(pol.ac_space, gym.spaces.Box):
+                    acs.append(ac.squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape))
+                else:
+                    acs.append(ac.squeeze().detach().cpu().numpy().reshape(()))
                 dones.append(d)
                 _a_i = dict()
                 for key in a_i.keys():
@@ -57,7 +64,10 @@ def sample_process(pol, env, max_samples, paths, exec_flags, process_id, prepro=
                     if isinstance(a_i[key], tuple):
                         _a_i[key] = tuple([h.squeeze().detach().cpu().numpy() for h in a_i[key]])
                     else:
-                        _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape)
+                        if isinstance(pol.ac_space, gym.spaces.Box):
+                            _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape)
+                        else:
+                            _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape((pol.ac_space.n, ))
                 a_i = _a_i
                 a_is.append(a_i)
                 e_is.append(e_i)

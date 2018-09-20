@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn.init import kaiming_uniform_, uniform_
 import torch.nn.functional as F
+import gym
 
 def mini_weight_init(m):
     if m.__class__.__name__ == 'Linear':
@@ -16,20 +17,34 @@ def weight_init(m):
 class PolNet(nn.Module):
     def __init__(self, ob_space, ac_space, h1=200, h2=100):
         super(PolNet, self).__init__()
+
+        if isinstance(ac_space, gym.spaces.Box):
+            self.discrete = False
+        else:
+            self.discrete = True
+
         self.fc1 = nn.Linear(ob_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
-        self.mean_layer = nn.Linear(h2, ac_space.shape[0])
-        self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
-
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
-        self.mean_layer.apply(mini_weight_init)
+
+        if not self.discrete:
+            self.mean_layer = nn.Linear(h2, ac_space.shape[0])
+            self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
+            self.mean_layer.apply(mini_weight_init)
+        else:
+            self.output_layer = nn.Linear(h2, ac_space.n)
+            self.output_layer.apply(mini_weight_init)
 
     def forward(self, ob):
         h = F.relu(self.fc1(ob))
         h = F.relu(self.fc2(h))
-        mean = torch.tanh(self.mean_layer(h))
-        return mean, self.log_std_param
+        if not self.discrete:
+            mean = torch.tanh(self.mean_layer(h))
+            return mean, self.log_std_param
+        else:
+            pi = torch.softmax(self.output_layer(h), dim=-1)
+            return pi
 
 class MixturePolNet(nn.Module):
     def __init__(self, ob_space, ac_space, mixture, h1=200, h2=100):
@@ -93,12 +108,22 @@ class PolNetLSTM(nn.Module):
         self.cell_size = cell_size
         self.rnn = True
 
+        if isinstance(ac_space, gym.spaces.Box):
+            self.discrete = False
+        else:
+            self.discrete = True
+
         self.input_layer = nn.Linear(ob_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
-        self.mean_layer = nn.Linear(self.cell_size, ac_space.shape[0])
-        self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
+        if not self.discrete:
+            self.mean_layer = nn.Linear(self.cell_size, ac_space.shape[0])
+            self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
 
-        self.mean_layer.apply(mini_weight_init)
+            self.mean_layer.apply(mini_weight_init)
+        else:
+            self.output_layer = nn.Linear(self.cell_size, ac_space.n)
+
+            self.output_layer.apply(mini_weight_init)
 
     def init_hs(self, batch_size=1):
         new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
@@ -117,10 +142,15 @@ class PolNetLSTM(nn.Module):
             hs = self.cell(x, hs)
             hiddens.append(hs[0])
         hiddens = torch.cat([h.unsqueeze(0) for h in hiddens], dim=0)
-        means = torch.tanh(self.mean_layer(hiddens))
-        log_std = self.log_std_param.expand_as(means)
 
-        return means, log_std, hs
+        if not self.discrete:
+            means = torch.tanh(self.mean_layer(hiddens))
+            log_std = self.log_std_param.expand_as(means)
+            return means, log_std, hs
+        else:
+            pi = torch.softmax(self.output_layer(hiddens), dim=-1)
+            return pi, hs
+
 
 class VNetLSTM(nn.Module):
     def __init__(self, ob_space, h_size=1024, cell_size=512):
