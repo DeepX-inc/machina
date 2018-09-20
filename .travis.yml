@@ -7,6 +7,6 @@ install:
   - pip install --default-timeout=2000 -q -e .
 
 script:
-  - nosetests -x tests --process-timeout 2000 --with-coverage --cover-package machina -v --with-timer --process_restartworker
+  - nosetests -x tests --process-timeout 2000 --with-coverage --cover-package machina
 
 sudo: false
