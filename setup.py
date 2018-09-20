@@ -17,7 +17,7 @@ install_requires = [
     'numpy>=1.13.3',
     'terminaltables',
     'pandas',
-    'pybullet',
+    'pybullet == 1.8.8',
 ]
 
 setup(
@@ -28,7 +28,7 @@ setup(
     author='Reiji Hatsugai',
     author_email='reiji.hatsugai@deepx.co.jp',
     url='https://github.com/DeepX-inc/machina',
-    license='MIT License',
+    license='Apache License',
     packages=['machina',
               ],
     zip_safe=False,
