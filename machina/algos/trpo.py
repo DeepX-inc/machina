@@ -42,13 +42,14 @@ def linesearch(
     fullstep,
     expected_improve_rate,
     max_backtracks=10,
-    accept_ratio=.1
+    accept_ratio=.1,
+    ent_beta = 0
 ):
     fval = f(pol, batch).detach()
     for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):
         xnew = x + stepfrac * fullstep
         nn.utils.vector_to_parameters(xnew, pol.parameters())
-        newfval = f(pol, batch).detach()
+        newfval = f(pol, batch, ent_beta=ent_beta).detach()
         actual_improve = fval - newfval
         expected_improve = expected_improve_rate * stepfrac
         ratio = actual_improve / expected_improve
@@ -76,8 +77,8 @@ def make_kl(pol, batch):
     )
 
 
-def update_pol(pol, batch, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10):
-    pol_loss = lf.pg(pol, batch)
+def update_pol(pol, batch, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10, ent_beta=0):
+    pol_loss = lf.pg(pol, batch, ent_beta)
     grads = torch.autograd.grad(pol_loss, pol.parameters(), create_graph=True)
     grads = [g.contiguous() for g in grads]
     flat_pol_loss_grad = nn.utils.parameters_to_vector(grads).detach()
@@ -111,7 +112,7 @@ def update_pol(pol, batch, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10)
     prev_params = nn.utils.parameters_to_vector(
         [p.contiguous() for p in pol.parameters()]).detach()
     success, new_params = linesearch(pol, batch, lf.pg, prev_params, fullstep,
-                                     neggdotstepdir / lm[0])
+                                     neggdotstepdir / lm[0], ent_beta=ent_beta)
     nn.utils.vector_to_parameters(new_params, pol.parameters())
 
     return pol_loss.detach().cpu().numpy()
@@ -128,7 +129,7 @@ def update_vf(vf, optim_vf, batch):
 def train(traj, pol, vf,
           optim_vf,
           epoch=5, batch_size=64, num_epi_per_seq=1,  # optimization hypers
-          max_kl=0.01, num_cg=10, damping=0.1,
+          max_kl=0.01, num_cg=10, damping=0.1, ent_beta=0
           ):
     """
     Train function for trust region policy optimization.
@@ -169,7 +170,7 @@ def train(traj, pol, vf,
         batch_size=traj.num_epi)
     for batch in iterator:
         pol_loss = update_pol(pol, batch, max_kl=max_kl,
-                              num_cg=num_cg, damping=damping)
+                              num_cg=num_cg, damping=damping, ent_beta=ent_beta)
         pol_losses.append(pol_loss)
 
     iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(

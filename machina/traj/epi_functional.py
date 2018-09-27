@@ -3,6 +3,7 @@ These are functions which is applied to episodes.
 """
 
 import numpy as np
+import copy
 import torch
 
 from machina.utils import get_device
@@ -186,3 +187,21 @@ def compute_h_masks(data):
         epi['h_masks'] = h_masks
 
     return data
+
+def compute_pseudo_rews(data, reward_giver):
+    epis = data.current_epis
+    for epi in epis:
+        rews = reward_giver.get_reward(torch.tensor(epi['obs'], dtype=torch.float, device=get_device()),
+                                   torch.tensor(epi['acs'], dtype=torch.float, device=get_device()))
+        epi['real_rews'] = copy.deepcopy(epi['rews'])
+        epi['rews'] = rews
+    return data
+
+def train_test_split(epis, train_size):
+    num_epi = len(epis)
+    num_train = int(num_epi * train_size)
+    indices = np.arange(num_epi)
+    train_epis, test_epis = [[epis[indice] for indice in indices] for indices in
+                             np.array_split(indices, [num_train])]
+
+    return train_epis, test_epis
