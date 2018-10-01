@@ -26,7 +26,7 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import GaussianPol
+from machina.pols import GaussianPol, CategoricalPol
 from machina.algos import ppo_clip, ppo_kl
 from machina.vfuncs import DeterministicVfunc
 from machina.envs import GymEnv
@@ -93,7 +93,10 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 pol_net = PolNetLSTM(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net)
+if isinstance(ac_space, gym.spaces.Box):
+    pol = GaussianPol(ob_space, ac_space, pol_net)
+else:
+    pol = CategoricalPol(ob_space, ac_space, pol_net)
 vf_net = VNetLSTM(ob_space)
 vf = DeterministicVfunc(ob_space, vf_net)
 

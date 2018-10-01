@@ -4,9 +4,9 @@ python:
   - "3.5"
 
 install:
-  - pip install --default-timeout=1000 -q -e .
+  - pip install --default-timeout=2000 -q -e .
 
 script:
-  - nosetests -x tests --with-coverage --cover-package machina
+  - nosetests -x tests --process-timeout 2000 --with-coverage --cover-package machina
 
 sudo: false

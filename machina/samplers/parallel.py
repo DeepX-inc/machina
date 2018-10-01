@@ -3,6 +3,7 @@ import copy
 import numpy as np
 import torch
 import torch.multiprocessing as mp
+import gym
 
 from machina.utils import cpu_mode
 from machina.samplers.base import BaseSampler
@@ -18,14 +19,44 @@ def one_path(env, pol, prepro=None):
     o = env.reset()
     d = False
     path_length = 0
+    if pol.rnn:
+        hs = pol.init_hs(batch_size=1)
+    else:
+        hs = None
     while not d:
         o = prepro(o)
-        ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
-        next_o, r, d, e_i = env.step(ac_real[0])
+        if pol.rnn:
+            ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
+            if isinstance(pol.ac_space, gym.spaces.Box):
+                ac_real = ac_real.reshape(*pol.ac_space.shape)
+            else:
+                ac_real = ac_real.reshape(())
+            hs = a_i['hs']
+        else:
+            ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
+            if isinstance(pol.ac_space, gym.spaces.Box):
+                ac_real = ac_real.reshape(*pol.ac_space.shape)
+            else:
+                ac_real = ac_real.reshape(())
+        next_o, r, d, e_i = env.step(np.array(ac_real))
         obs.append(o)
         rews.append(r)
-        acs.append(ac.detach().cpu().numpy()[0])
-        a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys() if a_i[key] is not None])
+        if isinstance(pol.ac_space, gym.spaces.Box):
+            acs.append(ac.squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape))
+        else:
+            acs.append(ac.squeeze().detach().cpu().numpy().reshape(()))
+        _a_i = dict()
+        for key in a_i.keys():
+            if a_i[key] is None:
+                continue
+            if isinstance(a_i[key], tuple):
+                _a_i[key] = tuple([h.squeeze().detach().cpu().numpy() for h in a_i[key]])
+            else:
+                if isinstance(pol.ac_space, gym.spaces.Box):
+                    _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape)
+                else:
+                    _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape((pol.ac_space.n, ))
+        a_i = _a_i
         a_is.append(a_i)
         e_is.append(e_i)
         path_length += 1
