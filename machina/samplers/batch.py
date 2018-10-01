@@ -9,7 +9,7 @@ class BatchSampler(BaseSampler):
     def __init__(self, env):
         BaseSampler.__init__(self, env)
 
-    def one_path(self, pol, prepro=None):
+    def one_path(self, pol, deterministic=False, prepro=None):
         if prepro is None:
             prepro = lambda x: x
         obs = []
@@ -22,7 +22,11 @@ class BatchSampler(BaseSampler):
         path_length = 0
         while not d:
             o = prepro(o)
-            ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
+            if not deterministic:
+                ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
+            else:
+                ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.flaot).unsqueeze(0))
+            #TODO: fix for discrete and multi discrete
             next_o, r, d, e_i = self.env.step(ac_real[0])
             obs.append(o)
             rews.append(r)
@@ -42,7 +46,7 @@ class BatchSampler(BaseSampler):
             e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
         )
 
-    def sample(self, pol, max_samples, max_episodes, prepro=None):
+    def sample(self, pol, max_samples, max_episodes, deterministic=False, prepro=None):
         sampling_pol = copy.deepcopy(pol)
         sampling_pol = sampling_pol.cpu()
         sampling_pol.eval()
@@ -51,7 +55,7 @@ class BatchSampler(BaseSampler):
         paths = []
         with cpu_mode():
             while max_samples > n_samples and max_episodes > n_episodes:
-                l, path = self.one_path(sampling_pol, prepro)
+                l, path = self.one_path(sampling_pol, deterministic, prepro)
                 n_samples += l
                 n_episodes += 1
                 paths.append(path)
