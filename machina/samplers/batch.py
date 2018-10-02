@@ -25,7 +25,7 @@ class BatchSampler(BaseSampler):
             if not deterministic:
                 ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
             else:
-                ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.flaot).unsqueeze(0))
+                ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.float).unsqueeze(0))
             #TODO: fix for discrete and multi discrete
             next_o, r, d, e_i = self.env.step(ac_real[0])
             obs.append(o)
