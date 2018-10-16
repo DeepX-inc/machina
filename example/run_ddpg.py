@@ -32,11 +32,11 @@ from machina.algos import ddpg
 from machina.prepro import BasePrePro
 from machina.qfuncs import DeterministicQfunc
 from machina.envs import GymEnv
-from machina.data import ReplayData, GAEData
+from machina.data import ReplayData
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
 from machina.utils import set_device, measure
-from machina.nets import DeterministicPolNet, QNet
+from machina.nets import PolNet, QNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -94,7 +94,7 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = DeterministicPolNet(ob_space, ac_space, args.h1, args.h2)
+pol_net = PolNet(ob_space, ac_space, args.h1, args.h2)
 noise = OrnsteinUhlenbeckActionNoise(mu = np.zeros(ac_space.shape[0]))
 pol = DeterministicPol(ob_space, ac_space, pol_net, noise)
 targ_pol = copy.deepcopy(pol)

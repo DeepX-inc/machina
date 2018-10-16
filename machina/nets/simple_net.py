@@ -57,26 +57,6 @@ class MixturePolNet(nn.Module):
         pi = F.softmax(pi, dim=1)
         return pi, mean, self.log_std_param
 
-
-class DeterministicPolNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=200, h2=100):
-        nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0], h1)
-        self.fc2 = nn.Linear(h1,h2)
-        self.mean_layer = nn.Linear(h2, ac_space.shape[0])
-
-        self.fc1.apply(weight_init)
-        self.fc2.apply(weight_init)
-        self.mean_layer.apply(mini_weight_init)
-
-    def forward(self, ob):
-        h = F.relu(self.fc1(ob))
-        h = F.relu(self.fc2(h))
-        mean = torch.tanh(self.mean_layer(h))
-        return mean
-
-
-
 class VNet(nn.Module):
     def __init__(self, ob_space, h1=200, h2=100):
         nn.Module.__init__(self)
