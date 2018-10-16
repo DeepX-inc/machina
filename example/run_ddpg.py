@@ -27,7 +27,8 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import DeterministicPol, OrnsteinUhlenbeckActionNoise
+from machina.pols import DeterministicActionNoisePol
+from machina.noise import OUActionNoise
 from machina.algos import ddpg
 from machina.prepro import BasePrePro
 from machina.qfuncs import DeterministicQfunc
@@ -95,8 +96,8 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 pol_net = PolNet(ob_space, ac_space, args.h1, args.h2)
-noise = OrnsteinUhlenbeckActionNoise(mu = np.zeros(ac_space.shape[0]))
-pol = DeterministicPol(ob_space, ac_space, pol_net, noise)
+noise = OUActionNoise(ac_space.shape)
+pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net, noise)
 targ_pol = copy.deepcopy(pol)
 qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
