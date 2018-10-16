@@ -67,8 +67,6 @@ parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
 
-args.cuda = args.cuda if torch.cuda.is_available() else -1
-set_device(args.cuda)
 
 if not os.path.exists(args.log):
     os.mkdir(args.log)
@@ -82,6 +80,10 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
+
+device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
+device = torch.device(device_name)
+set_device(device)
 
 if args.roboschool:
     import roboschool
