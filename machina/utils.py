@@ -24,10 +24,7 @@ _DEVICE = torch.device('cpu')
 
 def set_device(device):
     global _DEVICE
-    if device < 0:
-        _DEVICE = 'cpu'
-    else:
-        _DEVICE = device
+    _DEVICE = device
 
 
 def get_device():
