@@ -28,7 +28,7 @@ class BatchSampler(BaseSampler):
             obs.append(o)
             rews.append(r)
             acs.append(ac.detach().cpu().numpy()[0])
-            a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys()])
+            a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys() if a_i[key] is not None])
             a_is.append(a_i)
             e_is.append(e_i)
             path_length += 1

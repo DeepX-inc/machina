@@ -26,7 +26,7 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import GaussianPol, MixtureGaussianPol
+from machina.pols import GaussianPol, CategoricalPol
 from machina.algos import trpo
 from machina.prepro import BasePrePro
 from machina.vfuncs import NormalizedDeterministicVfunc, DeterministicVfunc
@@ -35,7 +35,7 @@ from machina.data import GAEData
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
 from machina.utils import measure
-from machina.nets import PolNet, VNet, MixturePolNet
+from machina.nets import PolNet, VNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -47,7 +47,6 @@ parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--use_parallel_sampler', action='store_true', default=False)
 
-parser.add_argument('--mixture', type=int, default=1)
 parser.add_argument('--max_samples_per_iter', type=int, default=5000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=250)
 parser.add_argument('--epoch_per_iter', type=int, default=5)
@@ -85,12 +84,11 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-if args.mixture > 1:
-    pol_net = MixturePolNet(ob_space, ac_space, args.mixture)
-    pol = MixtureGaussianPol(ob_space, ac_space, pol_net)
-else:
-    pol_net = PolNet(ob_space, ac_space)
+pol_net = PolNet(ob_space, ac_space)
+if isinstance(ac_space, gym.spaces.Box):
     pol = GaussianPol(ob_space, ac_space, pol_net)
+else:
+    pol = CategoricalPol(ob_space, ac_space, pol_net)
 vf_net = VNet(ob_space)
 if args.normalize_v:
     vf = NormalizedDeterministicVfunc(ob_space, vf_net)
@@ -98,7 +96,7 @@ else:
     vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)
 if args.use_parallel_sampler:
-    sampler = ParallelSampler(env)
+    sampler = ParallelSampler(env, pol, args.max_samples_per_iter, args.max_episodes_per_iter)
 else:
     sampler = BatchSampler(env)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)

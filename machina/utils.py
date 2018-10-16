@@ -51,3 +51,14 @@ def measure(name):
     e = time.time()
     logger.log("{}: {:.4f}sec".format(name, e-s))
 
+def detach_tensor_dict(d):
+    _d = dict()
+    for key in d.keys():
+        if d[key] is None:
+            continue
+        if isinstance(d[key], tuple):
+            _d[key] = (d[key][0].detach(), d[key][1].detach())
+            continue
+        _d[key] = d[key].detach()
+    return _d
+

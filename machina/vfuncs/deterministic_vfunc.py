@@ -14,19 +14,45 @@
 # ==============================================================================
 
 import torch
+import torch.nn as nn
 
 from machina.vfuncs.base import BaseVfunc
 from machina.utils import get_device
 
 class DeterministicVfunc(BaseVfunc):
-    def __init__(self, ob_space, net):
-        BaseVfunc.__init__(self, ob_space)
+    def __init__(self, ob_space, net, data_parallel=False, dim=0):
+        BaseVfunc.__init__(self, ob_space, data_parallel)
         self.net = net
+        if hasattr(self.net, 'rnn'):
+            self.rnn = self.net.rnn
+        else:
+            self.rnn = False
 
         self.to(get_device())
 
-    def forward(self, obs):
-        return self.net(obs).reshape(-1)
+        if data_parallel:
+            self.dp_net = nn.DataParallel(self.net, dim=dim)
+        self.dp_run = False
+
+    def forward(self, obs, hs=None, masks=None):
+        if self.rnn:
+            time_seq, batch_size, *_ = obs.shape
+            if hs is None:
+                hs = self.net.init_hs(batch_size)
+            if masks is None:
+                masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            masks = masks.reshape(time_seq, batch_size, 1)
+            if self.dp_run:
+                vs, hs = self.dp_net(obs, hs, masks)
+            else:
+                vs, hs = self.net(obs, hs, masks)
+            return vs.squeeze(), dict(hs=hs)
+        else:
+            if self.dp_run:
+                vs = self.dp_net(obs)
+            else:
+                vs = self.net(obs)
+            return vs.reshape(-1), dict()
 
 
 class NormalizedDeterministicVfunc(DeterministicVfunc):
