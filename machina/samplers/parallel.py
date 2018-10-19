@@ -8,7 +8,7 @@ import gym
 from machina.utils import cpu_mode
 from machina.samplers.base import BaseSampler
 
-def one_path(env, pol, prepro=None):
+def one_path(env, pol, deterministic=False, prepro=None):
     if prepro is None:
         prepro = lambda x: x
     obs = []
@@ -26,14 +26,22 @@ def one_path(env, pol, prepro=None):
     while not d:
         o = prepro(o)
         if pol.rnn:
-            ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
+            if not deterministic:
+                ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
+            else:
+                ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
+            #TODO: fix for multi discrete
             if isinstance(pol.ac_space, gym.spaces.Box):
                 ac_real = ac_real.reshape(*pol.ac_space.shape)
             else:
                 ac_real = ac_real.reshape(())
             hs = a_i['hs']
         else:
-            ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
+            if not deterministic:
+                ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
+            else:
+                ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.float).unsqueeze(0))
+            #TODO: fix for multi discrete
             if isinstance(pol.ac_space, gym.spaces.Box):
                 ac_real = ac_real.reshape(*pol.ac_space.shape)
             else:
@@ -41,6 +49,7 @@ def one_path(env, pol, prepro=None):
         next_o, r, d, e_i = env.step(np.array(ac_real))
         obs.append(o)
         rews.append(r)
+        #TODO: fix for multi discrete
         if isinstance(pol.ac_space, gym.spaces.Box):
             acs.append(ac.squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape))
         else:
@@ -52,6 +61,7 @@ def one_path(env, pol, prepro=None):
             if isinstance(a_i[key], tuple):
                 _a_i[key] = tuple([h.squeeze().detach().cpu().numpy() for h in a_i[key]])
             else:
+                #TODO: fix for multi discrete
                 if isinstance(pol.ac_space, gym.spaces.Box):
                     _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape)
                 else:
@@ -71,7 +81,7 @@ def one_path(env, pol, prepro=None):
         e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
     )
 
-def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, exec_flags, process_id, prepro=None, seed=256):
+def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
 
     np.random.seed(seed + process_id)
     torch.manual_seed(seed + process_id)
@@ -80,7 +90,7 @@ def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_epis
     while True:
         if exec_flags[process_id] > 0:
             while max_samples > n_samples_global and max_episodes > n_episodes_global:
-                l, path = one_path(env, pol, prepro)
+                l, path = one_path(env, pol, deterministic_flag, prepro)
                 n_samples_global += l
                 n_episodes_global += 1
                 paths.append(path)
@@ -100,11 +110,12 @@ class ParallelSampler(BaseSampler):
         self.n_samples_global = torch.tensor(0, dtype=torch.long).share_memory_()
         self.n_episodes_global = torch.tensor(0, dtype=torch.long).share_memory_()
         self.exec_flags = [torch.tensor(0, dtype=torch.long).share_memory_() for _ in range(self.num_parallel)]
+        self.deterministic_flag = torch.tensor(0, dtype=torch.uint8).share_memory_()
 
         self.paths = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
-            p = mp.Process(target=sample_process, args=(self.pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, ind, prepro, seed))
+            p = mp.Process(target=sample_process, args=(self.pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
             p.start()
             self.processes.append(p)
 
@@ -112,11 +123,20 @@ class ParallelSampler(BaseSampler):
         for p in self.processes:
             p.join()
 
-    def sample(self, pol, *args):
+    def sample(self, pol, *args, **kwargs):
+        deterministic = kwargs.pop('deterministic', False)
+        if deterministic:
+            self.deterministic_flag.zero_()
+            self.deterministic_flag += 1
+        else:
+            self.deterministic_flag.zero_()
+
         for sp, p in zip(self.pol.parameters(), pol.parameters()):
             sp.data.copy_(p.data.to('cpu'))
+
         self.n_samples_global.zero_()
         self.n_episodes_global.zero_()
+
         del self.paths[:]
 
         for exec_flag in self.exec_flags:
