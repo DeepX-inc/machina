@@ -19,9 +19,8 @@ def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
     rews = batch['rews']
     next_obs = batch['next_obs']
     terminals = batch['terminals']
-    next_q = 0
     _, _, param = targ_pol(next_obs)
-    next_q += targ_qf(next_obs, param['mean'])
+    next_q = targ_qf(next_obs, param['mean'])
     targ = rews + gamma * next_q * (1 - terminals)
     targ = targ.detach()
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
