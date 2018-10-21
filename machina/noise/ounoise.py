@@ -38,3 +38,4 @@ class OUActionNoise(BaseActionNoise):
             self.x_prev = self.x0
         else:
             self.x_prev = np.zeros_like(self.mu, dtype = np.float32)
+            
