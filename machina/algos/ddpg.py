@@ -55,4 +55,3 @@ def train(off_data,
     logger.log("Optimization finished!")
 
     return {'PolLoss': pol_losses, 'QfLoss': qf_losses}
-
