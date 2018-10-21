@@ -7,7 +7,6 @@ from machina.misc import logger
 
 def make_pol_loss(pol, qf, batch):
     obs = batch['obs']
-    q = 0
     _, _, param = pol(obs)
     q = qf(obs, param['mean'])
     pol_loss = -torch.mean(q)
