@@ -13,4 +13,4 @@
 # limitations under the License.
 # ==============================================================================
 
-from machina.algos import ppo_clip, trpo, vpg, ppo_kl
+from machina.algos import ppo_clip, trpo, vpg, ppo_kl, ddpg

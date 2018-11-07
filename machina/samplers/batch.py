@@ -18,6 +18,7 @@ class BatchSampler(BaseSampler):
         a_is = []
         e_is = []
         o = self.env.reset()
+        pol.reset()
         d = False
         path_length = 0
         while not d:
