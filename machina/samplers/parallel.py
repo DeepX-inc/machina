@@ -14,16 +14,17 @@ def one_path(env, pol, deterministic=False, prepro=None):
     obs = []
     acs = []
     rews = []
+    dones = []
     a_is = []
     e_is = []
     o = env.reset()
-    d = False
+    done = False
     path_length = 0
     if pol.rnn:
         hs = pol.init_hs(batch_size=1)
     else:
         hs = None
-    while not d:
+    while not done:
         o = prepro(o)
         if pol.rnn:
             if not deterministic:
@@ -46,9 +47,10 @@ def one_path(env, pol, deterministic=False, prepro=None):
                 ac_real = ac_real.reshape(*pol.ac_space.shape)
             else:
                 ac_real = ac_real.reshape(())
-        next_o, r, d, e_i = env.step(np.array(ac_real))
+        next_o, r, done, e_i = env.step(np.array(ac_real))
         obs.append(o)
         rews.append(r)
+        dones.append(done)
         #TODO: fix for multi discrete
         if isinstance(pol.ac_space, gym.spaces.Box):
             acs.append(ac.squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape))
@@ -70,13 +72,14 @@ def one_path(env, pol, deterministic=False, prepro=None):
         a_is.append(a_i)
         e_is.append(e_i)
         path_length += 1
-        if d:
+        if done:
             break
         o = next_o
     return path_length, dict(
         obs=np.array(obs, dtype='float32'),
         acs=np.array(acs, dtype='float32'),
         rews=np.array(rews, dtype='float32'),
+        dones=np.array(dones, dtype='float32'),
         a_is=dict([(key, np.array([a_i[key] for a_i in a_is], dtype='float32')) for key in a_is[0].keys()]),
         e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
     )

@@ -62,3 +62,12 @@ def centerize_advs(data, eps=1e-6):
 
     return data
 
+def add_next_obs(data):
+    epis = data.current_epis
+    for epi in epis:
+        obs = epi['obs']
+        next_obs = np.roll(obs, -1)
+        epi['next_obs'] = next_obs
+
+    return data
+
