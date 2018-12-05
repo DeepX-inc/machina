@@ -54,3 +54,11 @@ def compute_advs(data, gamma, lam):
 
     return data
 
+def centerize_advs(data, eps=1e-6):
+    epis = data.current_epis
+    _advs = np.concatenate([epi['advs'] for epi in epis])
+    for epi in epis:
+        epi['advs'] = (epi['advs'] - np.mean(_advs)) / (np.std(_advs) + eps)
+
+    return data
+

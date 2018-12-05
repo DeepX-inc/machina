@@ -31,7 +31,7 @@ from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
 from machina.envs import GymEnv
-from machina.data import GAEData
+from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
 from machina.utils import measure
@@ -119,8 +119,13 @@ while args.max_episodes > total_epi:
         else:
             paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
     with measure('train'):
-        data = GAEData(paths, shuffle=True)
-        data.preprocess(vf, args.gamma, args.lam, centerize=True)
+        data = Data()
+        data.add_epis(paths)
+        data = compute_vs(data, vf)
+        data = compute_rets(data, args.gamma)
+        data = compute_advs(data, args.gamma, args.lam)
+        data = centerize_advs(data)
+        data.register_epis()
         if args.ppo_type == 'clip':
             result_dict = ppo_clip.train(data=data, pol=pol, vf=vf, clip_param=args.clip_param, optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size)
         else:
