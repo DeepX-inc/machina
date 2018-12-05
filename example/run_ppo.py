@@ -34,7 +34,7 @@ from machina.envs import GymEnv
 from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
-from machina.utils import measure
+from machina.utils import measure, set_device
 from machina.nets.simple_net import PolNet, VNet, MixturePolNet
 
 parser = argparse.ArgumentParser()
@@ -55,6 +55,7 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
+parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--ppo_type', type=str, choices=['clip', 'kl'], default='clip')
 
@@ -79,6 +80,10 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
+
+device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
+device = torch.device(device_name)
+set_device(device)
 
 if args.roboschool:
     import roboschool
