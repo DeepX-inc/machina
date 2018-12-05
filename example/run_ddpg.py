@@ -111,7 +111,6 @@ else:
     sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
-off_data = ReplayData(max_data_size=args.max_data_size + 1, ob_dim=ob_space.shape[0], ac_dim=ac_space.shape[0])
 off_data = Data()
 
 total_epi = 0

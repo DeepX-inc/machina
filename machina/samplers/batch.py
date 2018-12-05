@@ -15,6 +15,7 @@ class BatchSampler(BaseSampler):
         obs = []
         acs = []
         rews = []
+        dones = []
         a_is = []
         e_is = []
         o = self.env.reset()
