@@ -31,7 +31,7 @@ from machina.algos import trpo
 from machina.prepro import BasePrePro
 from machina.vfuncs import NormalizedDeterministicVfunc, DeterministicVfunc
 from machina.envs import GymEnv
-from machina.data import GAEData
+from machina.data import Data, compute_vs, compute_rets, compute_advs
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
 from machina.utils import measure
@@ -111,8 +111,12 @@ while args.max_episodes > total_epi:
         else:
             paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
     with measure('train'):
-        data = GAEData(paths, shuffle=True)
-        data.preprocess(vf, args.gamma, args.lam, centerize=True)
+        data = Data()
+        data.add_epis(paths)
+        data = compute_vs(data, vf)
+        data = compute_rets(data, args.gamma)
+        data = compute_advs(data, args.gamma, args.lam)
+        data.register_epis()
         result_dict = trpo.train(data, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
 
     total_epi += data.num_epi

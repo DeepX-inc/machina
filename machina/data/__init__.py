@@ -13,7 +13,10 @@
 # limitations under the License.
 # ==============================================================================
 
+from machina.data.data import Data
 from machina.data.base import BaseData
 from machina.data.gae_data import GAEData
 from machina.data.gae_vetor_data import GAEVectorData
 from machina.data.replay_data import ReplayData
+
+from machina.data.data_functions import compute_vs, compute_rets, compute_advs
