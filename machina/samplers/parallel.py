@@ -8,7 +8,7 @@ import gym
 from machina.utils import cpu_mode
 from machina.samplers.base import BaseSampler
 
-def one_path(env, pol, deterministic=False, prepro=None):
+def one_epi(env, pol, deterministic=False, prepro=None):
     if prepro is None:
         prepro = lambda x: x
     obs = []
@@ -19,7 +19,7 @@ def one_path(env, pol, deterministic=False, prepro=None):
     e_is = []
     o = env.reset()
     done = False
-    path_length = 0
+    epi_length = 0
     if pol.rnn:
         hs = pol.init_hs(batch_size=1)
     else:
@@ -71,11 +71,11 @@ def one_path(env, pol, deterministic=False, prepro=None):
         a_i = _a_i
         a_is.append(a_i)
         e_is.append(e_i)
-        path_length += 1
+        epi_length += 1
         if done:
             break
         o = next_o
-    return path_length, dict(
+    return epi_length, dict(
         obs=np.array(obs, dtype='float32'),
         acs=np.array(acs, dtype='float32'),
         rews=np.array(rews, dtype='float32'),
@@ -84,7 +84,7 @@ def one_path(env, pol, deterministic=False, prepro=None):
         e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
     )
 
-def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, paths, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
+def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
 
     np.random.seed(seed + process_id)
     torch.manual_seed(seed + process_id)
@@ -93,10 +93,10 @@ def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_epis
     while True:
         if exec_flags[process_id] > 0:
             while max_samples > n_samples_global and max_episodes > n_episodes_global:
-                l, path = one_path(env, pol, deterministic_flag, prepro)
+                l, epi = one_epi(env, pol, deterministic_flag, prepro)
                 n_samples_global += l
                 n_episodes_global += 1
-                paths.append(path)
+                epis.append(epi)
             exec_flags[process_id].zero_()
 
 class ParallelSampler(BaseSampler):
@@ -115,10 +115,10 @@ class ParallelSampler(BaseSampler):
         self.exec_flags = [torch.tensor(0, dtype=torch.long).share_memory_() for _ in range(self.num_parallel)]
         self.deterministic_flag = torch.tensor(0, dtype=torch.uint8).share_memory_()
 
-        self.paths = mp.Manager().list()
+        self.epis = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
-            p = mp.Process(target=sample_process, args=(self.pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.paths, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
+            p = mp.Process(target=sample_process, args=(self.pol, env, max_samples, max_episodes, self.n_samples_global, self.n_episodes_global, self.epis, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
             p.start()
             self.processes.append(p)
 
@@ -140,12 +140,12 @@ class ParallelSampler(BaseSampler):
         self.n_samples_global.zero_()
         self.n_episodes_global.zero_()
 
-        del self.paths[:]
+        del self.epis[:]
 
         for exec_flag in self.exec_flags:
             exec_flag += 1
 
         while True:
             if all([exec_flag == 0 for exec_flag in self.exec_flags]):
-                return list(self.paths)
+                return list(self.epis)
 

@@ -107,12 +107,12 @@ max_rew = -1e6
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.use_prepro:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
     with measure('train'):
         data = Data()
-        data.add_epis(paths)
+        data.add_epis(epis)
         data = compute_vs(data, vf)
         data = compute_rets(data, args.gamma)
         data = compute_advs(data, args.gamma, args.lam)
@@ -121,16 +121,16 @@ while args.max_episodes > total_epi:
         result_dict = trpo.train(data, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
 
     total_epi += data.num_epi
-    step = sum([len(path['rews']) for path in paths])
+    step = sum([len(epi['rews']) for epi in epis])
     total_step += step
-    rewards = [np.sum(path['rews']) for path in paths]
+    rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_step,
                           rewards,
                           plot_title=args.env_name)
 
-    mean_rew = np.mean([np.sum(path['rews']) for path in paths])
+    mean_rew = np.mean([np.sum(epi['rews']) for epi in epis])
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
         torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_max.pkl'))
@@ -141,7 +141,4 @@ while args.max_episodes > total_epi:
     torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_last.pkl'))
     torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_last.pkl'))
     del data
-
-
-
 
