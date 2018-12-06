@@ -31,10 +31,10 @@ from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
 from machina.envs import GymEnv
-from machina.data import GAEData
+from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
-from machina.utils import measure
+from machina.utils import measure, set_device
 from machina.nets.simple_net import PolNet, VNet, MixturePolNet
 
 parser = argparse.ArgumentParser()
@@ -55,6 +55,7 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
+parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--ppo_type', type=str, choices=['clip', 'kl'], default='clip')
 
@@ -79,6 +80,10 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
+
+device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
+device = torch.device(device_name)
+set_device(device)
 
 if args.roboschool:
     import roboschool
@@ -119,8 +124,13 @@ while args.max_episodes > total_epi:
         else:
             paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
     with measure('train'):
-        data = GAEData(paths, shuffle=True)
-        data.preprocess(vf, args.gamma, args.lam, centerize=True)
+        data = Data()
+        data.add_epis(paths)
+        data = compute_vs(data, vf)
+        data = compute_rets(data, args.gamma)
+        data = compute_advs(data, args.gamma, args.lam)
+        data = centerize_advs(data)
+        data.register_epis()
         if args.ppo_type == 'clip':
             result_dict = ppo_clip.train(data=data, pol=pol, vf=vf, clip_param=args.clip_param, optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size)
         else:

@@ -33,7 +33,7 @@ from machina.algos import ddpg
 from machina.prepro import BasePrePro
 from machina.qfuncs import DeterministicQfunc
 from machina.envs import GymEnv
-from machina.data import ReplayData
+from machina.data import Data, add_next_obs
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
 from machina.utils import set_device, measure
@@ -100,10 +100,13 @@ ac_space = env.action_space
 pol_net = PolNet(ob_space, ac_space, args.h1, args.h2)
 noise = OUActionNoise(ac_space.shape)
 pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net, noise)
-targ_pol = copy.deepcopy(pol)
+targ_pol_net = PolNet(ob_space, ac_space, args.h1, args.h2)
+targ_noise = OUActionNoise(ac_space.shape)
+targ_pol = DeterministicActionNoisePol(ob_space, ac_space, targ_pol_net, targ_noise)
 qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
-targ_qf = copy.deepcopy(qf)
+targ_qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
+targ_qf = DeterministicQfunc(ob_space, ac_space, targ_qf_net)
 prepro = BasePrePro(ob_space)
 if args.use_parallel_sampler:
     sampler = ParallelSampler(env)
@@ -111,7 +114,7 @@ else:
     sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
-off_data = ReplayData(max_data_size=args.max_data_size + 1, ob_dim=ob_space.shape[0], ac_dim=ac_space.shape[0])
+off_data = Data()
 
 total_epi = 0
 total_step = 0
@@ -125,7 +128,9 @@ while args.max_episodes > total_epi:
             paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
             paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-    off_data.add_paths(paths)
+    off_data.add_epis(paths)
+    add_next_obs(off_data)
+    off_data.register_epis()
 
     epi = len(paths)
     total_epi += epi

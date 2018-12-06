@@ -40,9 +40,9 @@ def make_qf_loss(qf, vf, batch, gamma):
     acs = batch['acs']
     rews = batch['rews']
     next_obs = batch['next_obs']
-    terminals = batch['terminals']
+    dones = batch['dones']
 
-    targ = rews + gamma * vf(next_obs) * (1 - terminals)
+    targ = rews + gamma * vf(next_obs) * (1 - dones)
     targ = targ.detach()
 
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
@@ -73,7 +73,7 @@ def train(off_data,
     qf_losses = []
     pol_losses = []
     logger.log("Optimizing...")
-    for batch in off_data.iterate(batch_size, epoch):
+    for batch in off_data.random_batch(batch_size, epoch):
         vf_loss = make_vf_loss(pol, qf, vf, batch, sampling)
         optim_vf.zero_grad()
         vf_loss.backward()

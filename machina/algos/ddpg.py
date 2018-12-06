@@ -18,10 +18,10 @@ def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
     acs = batch['acs']
     rews = batch['rews']
     next_obs = batch['next_obs']
-    terminals = batch['terminals']
+    dones = batch['dones']
     _, _, param = targ_pol(next_obs)
     next_q = targ_qf(next_obs, param['mean'])
-    targ = rews + gamma * next_q * (1 - terminals)
+    targ = rews + gamma * next_q * (1 - dones)
     targ = targ.detach()
     return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
 
@@ -36,7 +36,7 @@ def train(off_data,
     pol_losses = []
     qf_losses = []
     logger.log("Optimizing...")
-    for batch in off_data.iterate(batch_size, epoch):
+    for batch in off_data.random_batch(batch_size, epoch):
         qf_bellman_loss = make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma)
         optim_qf.zero_grad()
         qf_bellman_loss.backward()
