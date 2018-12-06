@@ -105,20 +105,11 @@ class Data(object):
             self._next_id = 0
 
     def random_batch_once(self, batch_size, indices=None):
-        indices = self._get_indices(indices, shuffle=False)
-
-        target_indices = torch.zeros(batch_size, dtype=torch.long, device=get_device())
-        count = 0
-        while count < batch_size:
-            index = np.random.randint(len(indices))
-            if not (indices[index] + 1 in indices):
-                continue
-            target_indices[count] = indices[index]
-            count += 1
+        indices = self._get_indices(indices, shuffle=True)
 
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][target_indices]
+            data_map[key] = self.data_map[key][indices[:batch_size]]
         return data_map
 
     def random_batch(self, batch_size, epoch=1, indices=None):
