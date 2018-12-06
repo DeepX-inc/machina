@@ -21,10 +21,10 @@ from machina.utils import get_device
 class Data(object):
     def __init__(self):
         self.data_map = dict()
-        self._num_epi = 0
         self._next_id = 0
 
         self.current_epis = None
+        self._epis_index = np.array([0])
 
     @property
     def num_step(self):
@@ -34,11 +34,10 @@ class Data(object):
 
     @property
     def num_epi(self):
-        return self._num_epi
+        return len(self._epis_index) - 1
 
     def add_epis(self, epis):
         self.current_epis = epis
-        self._num_epi += len(epis)
 
     def _concat_data_map(self, data_map):
         if self.data_map:
@@ -63,11 +62,23 @@ class Data(object):
 
         self._concat_data_map(data_map)
 
+        epis_index = []
+        index = 0
+        for epi in epis:
+            l_epi = len(epi[list(epi.key())[0]])
+            index += l_epi
+            epis_index.append(index)
+        epis_index = np.array(epis_index) + self._epis_index[-1]
+        self._epis_index = np.concatenate([self._epis_index, epis_index])
+
         self.current_epis = None
 
     def add_data(self, data):
         self._concat_data_map(data.data_map)
-        self._num_epi += data.num_epi
+
+        epis_index = data._epis_index
+        epis_index = epis_index + self._epis_index[-1]
+        self._epis_index = np.concatenate([self._epis_index, epis_index[1:]])
 
     def _shuffled_indices(self, indices):
         return indices[torch.randperm(len(indices), device=get_device())]
@@ -120,3 +131,7 @@ class Data(object):
     def full_batch(self, epoch=1):
         for _ in range(epoch):
             yield self.data_map
+
+    def iterate_epi(self):
+        for i in range(len(self._epis_index) - 1):
+            yield self.data_map[self._epis_index[i]:self._epis_index[i+1]]
