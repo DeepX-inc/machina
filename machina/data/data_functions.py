@@ -18,6 +18,8 @@ import torch
 
 from machina.utils import get_device
 
+#TODO: mask, init_hs for rnn
+
 def compute_vs(data, vf):
     epis = data.current_epis
     with torch.no_grad():

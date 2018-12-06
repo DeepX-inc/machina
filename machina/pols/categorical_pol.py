@@ -21,26 +21,20 @@ from machina.pds.categorical_pd import CategoricalPd
 from machina.utils import get_device
 
 class CategoricalPol(BasePol):
-    def __init__(self, ob_space, ac_space, net, normalize_ac=True, data_parallel=False, dim=0):
-        BasePol.__init__(self, ob_space, ac_space, normalize_ac, data_parallel, discrete=True)
-        self.net = net
-        if hasattr(self.net, 'rnn'):
-            self.rnn = self.net.rnn
-            self.hs = None
-        else:
-            self.rnn = False
+    def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
+        BasePol.__init__(self, ob_space, ac_space, net, rnn,  normalize_ac, data_parallel, parallel_dim)
         self.pd = CategoricalPd(ob_space, ac_space)
         self.to(get_device())
-        if data_parallel:
-            self.dp_net = nn.DataParallel(self.net, dim=dim)
-        self.dp_run = False
 
     def forward(self, obs, hs=None, masks=None):
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
 
             if hs is None:
-                hs = self.init_hs(batch_size)
+                if self.hs is None:
+                    self.hs = self.net.init_hs(batch_size)
+                hs = self.hs
+
             if masks is None:
                 masks = hs[0].new(time_seq, batch_size, 1).zero_()
             masks = masks.reshape(time_seq, batch_size, 1)
@@ -49,6 +43,7 @@ class CategoricalPol(BasePol):
                 pi, hs = self.dp_net(obs, hs, masks)
             else:
                 pi, hs = self.net(obs, hs, masks)
+            self.hs = hs
         else:
             if self.dp_run:
                 pi = self.dp_net(obs)
@@ -57,9 +52,6 @@ class CategoricalPol(BasePol):
         ac = self.pd.sample(dict(pi=pi))
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(pi=pi, hs=hs)
-
-    def init_hs(self, batch_size):
-        return self.net.init_hs(batch_size)
 
     def deterministic_ac_real(self, obs, hs=None, mask=None):
         """
@@ -78,6 +70,3 @@ class CategoricalPol(BasePol):
         _, ac = torch.max(pi, dim=-1)
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(pi=pi, hs=hs)
-
-
-

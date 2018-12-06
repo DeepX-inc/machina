@@ -26,7 +26,7 @@ import gym
 import pybullet_envs
 
 import machina as mc
-from machina.pols import GaussianPol, MixtureGaussianPol
+from machina.pols import GaussianPol, CategoricalPol
 from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
@@ -35,7 +35,7 @@ from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
 from machina.utils import measure, set_device
-from machina.nets.simple_net import PolNet, VNet, MixturePolNet
+from machina.nets.simple_net import PolNet, VNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -97,12 +97,11 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-if args.mixture > 1:
-    pol_net = MixturePolNet(ob_space, ac_space, args.mixture)
-    pol = MixtureGaussianPol(ob_space, ac_space, pol_net)
-else:
-    pol_net = PolNet(ob_space, ac_space)
+pol_net = PolNet(ob_space, ac_space)
+if isinstance(ac_space, gym.spaces.Box):
     pol = GaussianPol(ob_space, ac_space, pol_net)
+else:
+    pol = CategoricalPol(ob_space, ac_space, pol_net)
 vf_net = VNet(ob_space)
 vf = DeterministicVfunc(ob_space, vf_net)
 prepro = BasePrePro(ob_space)

@@ -1,88 +1,28 @@
+# Copyright 2018 DeepX Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
 import copy
 
+import gym
 import numpy as np
 import torch
 import torch.multiprocessing as mp
-import gym
 
 from machina.utils import cpu_mode
-from machina.samplers.base import BaseSampler
+from machina.samplers.base import BaseSampler, one_epi
 
-def one_epi(env, pol, deterministic=False, prepro=None):
-    if prepro is None:
-        prepro = lambda x: x
-    obs = []
-    acs = []
-    rews = []
-    dones = []
-    a_is = []
-    e_is = []
-    o = env.reset()
-    done = False
-    epi_length = 0
-    if pol.rnn:
-        hs = pol.init_hs(batch_size=1)
-    else:
-        hs = None
-    while not done:
-        o = prepro(o)
-        if pol.rnn:
-            if not deterministic:
-                ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
-            else:
-                ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.float).unsqueeze(0).unsqueeze(0), hs)
-            #TODO: fix for multi discrete
-            if isinstance(pol.ac_space, gym.spaces.Box):
-                ac_real = ac_real.reshape(*pol.ac_space.shape)
-            else:
-                ac_real = ac_real.reshape(())
-            hs = a_i['hs']
-        else:
-            if not deterministic:
-                ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float).unsqueeze(0))
-            else:
-                ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.float).unsqueeze(0))
-            #TODO: fix for multi discrete
-            if isinstance(pol.ac_space, gym.spaces.Box):
-                ac_real = ac_real.reshape(*pol.ac_space.shape)
-            else:
-                ac_real = ac_real.reshape(())
-        next_o, r, done, e_i = env.step(np.array(ac_real))
-        obs.append(o)
-        rews.append(r)
-        dones.append(done)
-        #TODO: fix for multi discrete
-        if isinstance(pol.ac_space, gym.spaces.Box):
-            acs.append(ac.squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape))
-        else:
-            acs.append(ac.squeeze().detach().cpu().numpy().reshape(()))
-        _a_i = dict()
-        for key in a_i.keys():
-            if a_i[key] is None:
-                continue
-            if isinstance(a_i[key], tuple):
-                _a_i[key] = tuple([h.squeeze().detach().cpu().numpy() for h in a_i[key]])
-            else:
-                #TODO: fix for multi discrete
-                if isinstance(pol.ac_space, gym.spaces.Box):
-                    _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape(*pol.ac_space.shape)
-                else:
-                    _a_i[key] = a_i[key].squeeze().detach().cpu().numpy().reshape((pol.ac_space.n, ))
-        a_i = _a_i
-        a_is.append(a_i)
-        e_is.append(e_i)
-        epi_length += 1
-        if done:
-            break
-        o = next_o
-    return epi_length, dict(
-        obs=np.array(obs, dtype='float32'),
-        acs=np.array(acs, dtype='float32'),
-        rews=np.array(rews, dtype='float32'),
-        dones=np.array(dones, dtype='float32'),
-        a_is=dict([(key, np.array([a_i[key] for a_i in a_is], dtype='float32')) for key in a_is[0].keys()]),
-        e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
-    )
 
 def sample_process(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
 
