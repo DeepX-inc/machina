@@ -9,7 +9,7 @@ class BatchSampler(BaseSampler):
     def __init__(self, env):
         BaseSampler.__init__(self, env)
 
-    def one_path(self, pol, deterministic=False, prepro=None):
+    def one_epi(self, pol, deterministic=False, prepro=None):
         if prepro is None:
             prepro = lambda x: x
         obs = []
@@ -21,7 +21,7 @@ class BatchSampler(BaseSampler):
         o = self.env.reset()
         pol.reset()
         done = False
-        path_length = 0
+        epi_length = 0
         while not done:
             o = prepro(o)
             if not deterministic:
@@ -37,11 +37,11 @@ class BatchSampler(BaseSampler):
             a_i = dict([(key, a_i[key].detach().cpu().numpy()[0]) for key in a_i.keys() if a_i[key] is not None])
             a_is.append(a_i)
             e_is.append(e_i)
-            path_length += 1
+            epi_length += 1
             if done:
                 break
             o = next_o
-        return path_length, dict(
+        return epi_length, dict(
             obs=np.array(obs, dtype='float32'),
             acs=np.array(acs, dtype='float32'),
             rews=np.array(rews, dtype='float32'),
@@ -56,11 +56,11 @@ class BatchSampler(BaseSampler):
         sampling_pol.eval()
         n_samples = 0
         n_episodes = 0
-        paths = []
+        epis = []
         with cpu_mode():
             while max_samples > n_samples and max_episodes > n_episodes:
-                l, path = self.one_path(sampling_pol, deterministic, prepro)
+                l, epi = self.one_epi(sampling_pol, deterministic, prepro)
                 n_samples += l
                 n_episodes += 1
-                paths.append(path)
-        return paths
+                epis.append(epi)
+        return epis

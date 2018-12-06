@@ -125,16 +125,16 @@ count = 0
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.use_prepro:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-    off_data.add_epis(paths)
+            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+    off_data.add_epis(epis)
     add_next_obs(off_data)
     off_data.register_epis()
 
-    epi = len(paths)
+    epi = len(epis)
     total_epi += epi
-    step = sum([len(path['rews']) for path in paths])
+    step = sum([len(epi['rews']) for epi in epis])
     total_step += step
 
     with measure('train'):
@@ -145,13 +145,13 @@ while args.max_episodes > total_epi:
             args.tau, args.gamma, args.lam
         )
 
-    rewards = [np.sum(path['rews']) for path in paths]
+    rewards = [np.sum(epi['rews']) for epi in epis]
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_step,
                           rewards,
                           plot_title=args.env_name)
 
-    mean_rew = np.mean([np.sum(path['rews']) for path in paths])
+    mean_rew = np.mean([np.sum(epi['rews']) for epi in epis])
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
         torch.save(qf.state_dict(), os.path.join(args.log, 'models',  'qf_max.pkl'))

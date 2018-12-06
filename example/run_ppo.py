@@ -120,12 +120,12 @@ kl_beta = args.init_kl_beta
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.use_prepro:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
     with measure('train'):
         data = Data()
-        data.add_epis(paths)
+        data.add_epis(epis)
         data = compute_vs(data, vf)
         data = compute_rets(data, args.gamma)
         data = compute_advs(data, args.gamma, args.lam)
@@ -137,9 +137,9 @@ while args.max_episodes > total_epi:
             result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
             kl_beta = result_dict['new_kl_beta']
     total_epi += data.num_epi
-    step = sum([len(path['rews']) for path in paths])
+    step = sum([len(epi['rews']) for epi in epis])
     total_step += step
-    rewards = [np.sum(path['rews']) for path in paths]
+    rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_step,
