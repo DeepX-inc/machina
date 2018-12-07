@@ -26,7 +26,9 @@ class CategoricalPol(BasePol):
         self.pd = CategoricalPd(ob_space, ac_space)
         self.to(get_device())
 
-    def forward(self, obs, hs=None, masks=None):
+    def forward(self, obs, hs=None, h_masks=None):
+        obs = self._check_obs_shape(obs)
+
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
 
@@ -35,14 +37,14 @@ class CategoricalPol(BasePol):
                     self.hs = self.net.init_hs(batch_size)
                 hs = self.hs
 
-            if masks is None:
-                masks = hs[0].new(time_seq, batch_size, 1).zero_()
-            masks = masks.reshape(time_seq, batch_size, 1)
+            if h_masks is None:
+                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            h_masks = h_masks.reshape(time_seq, batch_size, 1)
 
             if self.dp_run:
-                pi, hs = self.dp_net(obs, hs, masks)
+                pi, hs = self.dp_net(obs, hs, h_masks)
             else:
-                pi, hs = self.net(obs, hs, masks)
+                pi, hs = self.net(obs, hs, h_masks)
             self.hs = hs
         else:
             if self.dp_run:

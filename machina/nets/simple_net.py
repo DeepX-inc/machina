@@ -129,7 +129,7 @@ class PolNetLSTM(nn.Module):
         new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
         return new_hs
 
-    def forward(self, xs, hs, masks):
+    def forward(self, xs, hs, h_masks):
         time_seq, batch_size, *_ = xs.shape
 
         hs = (hs[0].reshape(batch_size, self.cell_size), hs[1].reshape(batch_size, self.cell_size))
@@ -137,7 +137,7 @@ class PolNetLSTM(nn.Module):
         xs = torch.relu(self.input_layer(xs))
 
         hiddens = []
-        for x, mask in zip(xs, masks):
+        for x, mask in zip(xs, h_masks):
             hs = (hs[0] * (1 - mask), hs[1] * (1 - mask))
             hs = self.cell(x, hs)
             hiddens.append(hs[0])
@@ -169,7 +169,7 @@ class VNetLSTM(nn.Module):
         new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
         return new_hs
 
-    def forward(self, xs, hs, masks):
+    def forward(self, xs, hs, h_masks):
         time_seq, batch_size, *_ = xs.shape
 
         hs = (hs[0].reshape(batch_size, self.cell_size), hs[1].reshape(batch_size, self.cell_size))
@@ -177,7 +177,7 @@ class VNetLSTM(nn.Module):
         xs = torch.relu(self.input_layer(xs))
 
         hiddens = []
-        for x, mask in zip(xs, masks):
+        for x, mask in zip(xs, h_masks):
             hs = (hs[0] * (1 - mask), hs[1] * (1 - mask))
             hs = self.cell(x, hs)
             hiddens.append(hs[0])

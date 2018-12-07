@@ -19,4 +19,4 @@ from machina.data.gae_data import GAEData
 from machina.data.gae_vetor_data import GAEVectorData
 from machina.data.replay_data import ReplayData
 
-from machina.data.data_functions import compute_vs, compute_rets, compute_advs, centerize_advs, add_next_obs
+from machina.data.data_functions import compute_vs, compute_rets, compute_advs, centerize_advs, add_next_obs, add_h_masks

@@ -36,7 +36,7 @@ def one_epi(env, pol, deterministic=False, prepro=None):
             ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float))
         else:
             ac_real, ac, a_i = pol.deterministic_ac_real(torch.tensor(o, dtype=torch.float))
-        ac_space = ac_real.reshape(pol.ac_space.shape)
+        ac_real = ac_real.reshape(pol.ac_space.shape)
         next_o, r, done, e_i = env.step(np.array(ac_real))
         obs.append(o)
         rews.append(r)
