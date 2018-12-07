@@ -42,7 +42,6 @@ parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
-parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--use_parallel_sampler',
