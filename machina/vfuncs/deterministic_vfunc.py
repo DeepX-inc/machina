@@ -20,7 +20,7 @@ from machina.vfuncs.base import BaseVfunc
 from machina.utils import get_device
 
 class DeterministicVfunc(BaseVfunc):
-    def __init__(self, ob_space, net, rnn, data_parallel=False, parallel_dim=0):
+    def __init__(self, ob_space, net, rnn=False, data_parallel=False, parallel_dim=0):
         BaseVfunc.__init__(self, ob_space, net, rnn, data_parallel, parallel_dim)
         self.to(get_device())
 
