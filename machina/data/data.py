@@ -174,6 +174,8 @@ class Data(object):
 
                 lengths = [list(b.values())[0].size(0) for b in batch]
                 max_length = max(lengths)
+                if max_length == 0:
+                    continue
                 out_masks = torch.ones((max_length, cur_batch_size), dtype=torch.float, device=get_device())
                 time_slice = list(functools.reduce(lambda x,y: x+y, [list(range(l, max_length)) for l in lengths]))
                 batch_idx = list(functools.reduce(lambda x,y: x+y, [(max_length - l) * [i] for i, l in enumerate(lengths)]))
