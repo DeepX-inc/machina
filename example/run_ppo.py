@@ -45,7 +45,8 @@ parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--use_parallel_sampler', action='store_true', default=False)
+parser.add_argument('--use_parallel_sampler',
+                    action='store_true', default=False)
 
 parser.add_argument('--max_samples_per_iter', type=int, default=5000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=250)
@@ -57,7 +58,8 @@ parser.add_argument('--use_prepro', action='store_true', default=False)
 parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--rnn', action='store_true', default=False)
-parser.add_argument('--ppo_type', type=str, choices=['clip', 'kl'], default='clip')
+parser.add_argument('--ppo_type', type=str,
+                    choices=['clip', 'kl'], default='clip')
 
 parser.add_argument('--clip_param', type=float, default=0.2)
 
@@ -91,7 +93,8 @@ if args.roboschool:
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env = GymEnv(args.env_name, log_dir=os.path.join(
+    args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 
 ob_space = env.observation_space
@@ -113,7 +116,8 @@ else:
 vf = DeterministicVfunc(ob_space, vf_net, args.rnn)
 prepro = BasePrePro(ob_space)
 if args.use_parallel_sampler:
-    sampler = ParallelSampler(env, pol, args.max_samples_per_iter, args.max_episodes_per_iter, seed=args.seed)
+    sampler = ParallelSampler(
+        env, pol, args.max_samples_per_iter, args.max_episodes_per_iter, seed=args.seed)
 else:
     sampler = BatchSampler(env)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
@@ -126,9 +130,11 @@ kl_beta = args.init_kl_beta
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.use_prepro:
-            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+            epis = sampler.sample(pol, args.max_samples_per_iter,
+                                  args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
-            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+            epis = sampler.sample(
+                pol, args.max_samples_per_iter, args.max_episodes_per_iter)
     with measure('train'):
         data = Data()
         data.add_epis(epis)
@@ -139,9 +145,11 @@ while args.max_episodes > total_epi:
         data = add_h_masks(data)
         data.register_epis()
         if args.ppo_type == 'clip':
-            result_dict = ppo_clip.train(data=data, pol=pol, vf=vf, clip_param=args.clip_param, optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size)
+            result_dict = ppo_clip.train(data=data, pol=pol, vf=vf, clip_param=args.clip_param,
+                                         optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size)
         else:
-            result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ, optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
+            result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ,
+                                       optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
             kl_beta = result_dict['new_kl_beta']
     total_epi += data.num_epi
     step = sum([len(epi['rews']) for epi in epis])
@@ -154,17 +162,22 @@ while args.max_episodes > total_epi:
                           plot_title=args.env_name)
 
     if mean_rew > max_rew:
-        torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
-        torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_max.pkl'))
-        torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_max.pkl'))
+        torch.save(pol.state_dict(), os.path.join(
+            args.log, 'models', 'pol_max.pkl'))
+        torch.save(vf.state_dict(), os.path.join(
+            args.log, 'models', 'vf_max.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(
+            args.log, 'models', 'optim_pol_max.pkl'))
+        torch.save(optim_vf.state_dict(), os.path.join(
+            args.log, 'models', 'optim_vf_max.pkl'))
         max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_last.pkl'))
-    torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
-    torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_last.pkl'))
+    torch.save(pol.state_dict(), os.path.join(
+        args.log, 'models', 'pol_last.pkl'))
+    torch.save(vf.state_dict(), os.path.join(
+        args.log, 'models', 'vf_last.pkl'))
+    torch.save(optim_pol.state_dict(), os.path.join(
+        args.log, 'models', 'optim_pol_last.pkl'))
+    torch.save(optim_vf.state_dict(), os.path.join(
+        args.log, 'models', 'optim_vf_last.pkl'))
     del data
-
-
-
