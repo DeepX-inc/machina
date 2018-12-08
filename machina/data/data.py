@@ -68,7 +68,7 @@ class Data(object):
         epis_index = []
         index = 0
         for epi in epis:
-            l_epi = len(list(epi.values())[0])
+            l_epi = len(epi['rews'])
             index += l_epi
             epis_index.append(index)
         epis_index = np.array(epis_index) + self._epis_index[-1]
