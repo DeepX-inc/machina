@@ -181,3 +181,4 @@ while args.max_episodes > total_epi:
     torch.save(optim_vf.state_dict(), os.path.join(
         args.log, 'models', 'optim_vf_last.pkl'))
     del data
+del sampler

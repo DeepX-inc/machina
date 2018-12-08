@@ -64,7 +64,7 @@ class ParallelSampler(BaseSampler):
 
     def __del__(self):
         for p in self.processes:
-            p.join()
+            p.terminate()
 
     def sample(self, pol, *args, **kwargs):
         deterministic = kwargs.pop('deterministic', False)
