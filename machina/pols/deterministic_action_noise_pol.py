@@ -26,13 +26,14 @@ class DeterministicActionNoisePol(BasePol):
         self.to(get_device())
 
     def reset(self):
+        super(DeterministicActionNoisePol, self).reset()
         if self.noise is not None:
             self.noise.reset()
         else:
             pass
 
     def forward(self, obs):
-        mean, _ = self.net(obs)
+        mean = self.net(obs)
         ac = mean
         if self.noise is not None:
             action_noise = self.noise()
@@ -46,6 +47,6 @@ class DeterministicActionNoisePol(BasePol):
         """
         action for deployment
         """
-        mean, _ = self.net(obs)
+        mean = self.net(obs)
         mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
         return mean_real
