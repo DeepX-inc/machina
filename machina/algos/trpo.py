@@ -54,7 +54,6 @@ def linesearch(
         accept_ratio=.1
     ):
     fval = f(pol, batch, True).detach()
-    print("loss before", fval.item())
     for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):
         xnew = x + stepfrac * fullstep
         nn.utils.vector_to_parameters(xnew, pol.parameters())
@@ -62,11 +61,8 @@ def linesearch(
         actual_improve = fval - newfval
         expected_improve = expected_improve_rate * stepfrac
         ratio = actual_improve / expected_improve
-        print("a/e/r", actual_improve.item(), expected_improve.item(), ratio.item())
 
         if ratio.item() > accept_ratio and actual_improve.item() > 0:
-        #if actual_improve[0] > 0:
-            print("loss after", newfval.item())
             return True, xnew
     return False, x
 
@@ -75,25 +71,30 @@ def make_pol_loss(pol, batch, volatile=False):
     acs = batch['acs']
     advs = batch['advs']
 
+    pol.reset()
     if pol.rnn:
-        init_hs = batch['init_hs']
-        masks = batch['dones']
-        _, _, pd_params = pol(obs, init_hs, masks)
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+        _, _, pd_params = pol(obs, h_masks=h_masks)
     else:
+        out_masks = torch.ones_like(advs)
         _, _, pd_params = pol(obs)
 
     llh = pol.pd.llh(acs, pd_params)
 
-    pol_loss = - torch.mean(llh * advs)
+    pol_loss = - torch.mean(llh * advs * out_masks)
     return pol_loss
 
 def make_kl(pol, batch):
     obs = batch['obs']
+
+    pol.reset()
     if pol.rnn:
-        init_hs = batch['init_hs']
-        masks = batch['dones']
-        _, _, pd_params = pol(obs, init_hs, masks)
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+        _, _, pd_params = pol(obs, h_masks=h_masks)
     else:
+        out_masks = torch.ones_like(batch['advs'])
         _, _, pd_params = pol(obs)
 
     return pol.pd.kl_pq(
@@ -144,14 +145,16 @@ def make_vf_loss(vf, batch):
     obs = batch['obs']
     rets = batch['rets']
 
+    vf.reset()
     if vf.rnn:
-        init_hs = batch['init_hs']
-        masks = batch['dones']
-        vs, _ = vf(obs, init_hs, masks)
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+        vs, _ = vf(obs, h_masks=h_masks)
     else:
+        out_masks = torch.ones_like(rets)
         vs, _ = vf(obs)
 
-    vf_loss = 0.5 * torch.mean((vs - rets)**2)
+    vf_loss = 0.5 * torch.mean((vs - rets)**2 * out_masks)
     return vf_loss
 
 def update_vf(vf, optim_vf, batch):
@@ -163,21 +166,20 @@ def update_vf(vf, optim_vf, batch):
 
 def train(data, pol, vf,
         optim_vf,
-        epoch=5, batch_size=64,# optimization hypers
+        epoch=5, batch_size=64, num_epi_per_seq=1,# optimization hypers
         max_kl=0.01, num_cg=10, damping=0.1,
         ):
 
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    for batch in data.full_batch(1):
+    iterator = data.full_batch(1) if not pol.rnn else data.iterate_rnn(batch_size=data.num_epi)
+    for batch in iterator:
         pol_loss = update_pol(pol, batch, max_kl=max_kl, num_cg=num_cg, damping=damping)
         pol_losses.append(pol_loss)
-        if 'Normalized' in vf.__class__.__name__:
-            vf.set_mean(torch.mean(batch['rets'], 0, keepdim=True))
-            vf.set_std(torch.std(batch['rets'], 0, keepdim=True))
 
-    for batch in data.iterate(batch_size=batch_size, epoch=epoch):
+    iterator = data.iterate(batch_size, epoch) if not pol.rnn else data.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+    for batch in iterator:
         vf_loss = update_vf(vf, optim_vf, batch)
         vf_losses.append(vf_loss)
 
