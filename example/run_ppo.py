@@ -138,7 +138,7 @@ while args.max_episodes > total_epi:
     with measure('train'):
         data = Data()
         data.add_epis(epis)
-        data = compute_vs(data, vf, args.rnn)
+        data = compute_vs(data, vf)
         data = compute_rets(data, args.gamma)
         data = compute_advs(data, args.gamma, args.lam)
         data = centerize_advs(data)

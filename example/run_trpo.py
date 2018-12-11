@@ -29,13 +29,13 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol
 from machina.algos import trpo
 from machina.prepro import BasePrePro
-from machina.vfuncs import NormalizedDeterministicVfunc, DeterministicVfunc
+from machina.vfuncs import DeterministicVfunc
 from machina.envs import GymEnv
-from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs
+from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs, add_h_masks
 from machina.samplers import BatchSampler, ParallelSampler
 from machina.misc import logger
 from machina.utils import measure
-from machina.nets import PolNet, VNet
+from machina.nets import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -52,8 +52,8 @@ parser.add_argument('--max_episodes_per_iter', type=int, default=250)
 parser.add_argument('--epoch_per_iter', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
-parser.add_argument('--normalize_v', action='store_true', default=False)
 parser.add_argument('--use_prepro', action='store_true', default=False)
+parser.add_argument('--rnn', action='store_true', default=False)
 
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
@@ -84,16 +84,21 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = PolNet(ob_space, ac_space)
+if args.rnn:
+    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
+else:
+    pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net)
+    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
 else:
-    pol = CategoricalPol(ob_space, ac_space, pol_net)
-vf_net = VNet(ob_space)
-if args.normalize_v:
-    vf = NormalizedDeterministicVfunc(ob_space, vf_net)
+    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+
+if args.rnn:
+    vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
 else:
-    vf = DeterministicVfunc(ob_space, vf_net)
+    vf_net = VNet(ob_space)
+vf = DeterministicVfunc(ob_space, vf_net, args.rnn)
+
 prepro = BasePrePro(ob_space)
 if args.use_parallel_sampler:
     sampler = ParallelSampler(env, pol, args.max_samples_per_iter, args.max_episodes_per_iter)
@@ -117,6 +122,7 @@ while args.max_episodes > total_epi:
         data = compute_rets(data, args.gamma)
         data = compute_advs(data, args.gamma, args.lam)
         data = centerize_advs(data)
+        data = add_h_masks(data)
         data.register_epis()
         result_dict = trpo.train(data, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
 

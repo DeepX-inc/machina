@@ -19,12 +19,12 @@ import torch
 from machina.utils import get_device
 
 
-def compute_vs(data, vf, rnn=False):
+def compute_vs(data, vf):
     epis = data.current_epis
     vf.reset()
     with torch.no_grad():
         for epi in epis:
-            if rnn:
+            if vf.rnn:
                 obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device()).unsqueeze(1)
             else:
                 obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
