@@ -13,18 +13,38 @@
 # limitations under the License.
 # ==============================================================================
 
+import gym
 import numpy as np
 import torch
 import torch.nn as nn
 
 class BasePol(nn.Module):
-    def __init__(self, ob_space, ac_space, normalize_ac=True, data_parallel=False, discrete=False):
+    def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         nn.Module.__init__(self)
         self.ob_space = ob_space
         self.ac_space = ac_space
+        self.net = net
+
+        self.rnn = rnn
+        self.hs = None
+
         self.normalize_ac = normalize_ac
         self.data_parallel = data_parallel
-        self.discrete = discrete
+        if data_parallel:
+            self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
+        self.dp_run = False
+
+        self.discrete = isinstance(ac_space, gym.spaces.MultiDiscrete) or isinstance(ac_space, gym.spaces.Discrete)
+
+        if not self.discrete:
+            self.pd_shape = ac_space.shape
+        else:
+            if isinstance(ac_space, gym.spaces.MultiDiscrete):
+                nvec = ac_space.nvec
+                assert any([nvec[0] == nv for nv in nvec])
+                self.pd_shape = (len(nvec), nvec[0])
+            elif isinstance(ac_space, gym.spaces.Discrete):
+                self.pd_shape = (ac_space.n, )
 
     def convert_ac_for_real(self, x):
         if not self.discrete:
@@ -37,4 +57,15 @@ class BasePol(nn.Module):
         return x
 
     def reset(self):
-        pass
+        if self.rnn:
+            self.hs = None
+
+    def _check_obs_shape(self, obs):
+        if self.rnn:
+            additional_shape = 2
+        else:
+            additional_shape = 1
+        if len(obs.shape) < additional_shape + len(self.ob_space.shape):
+            for _ in range(additional_shape + len(self.ob_space.shape) - len(obs.shape)):
+                obs = obs.unsqueeze(0)
+        return obs

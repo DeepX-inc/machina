@@ -21,34 +21,31 @@ from machina.pds.gaussian_pd import GaussianPd
 from machina.utils import get_device
 
 class GaussianPol(BasePol):
-    def __init__(self, ob_space, ac_space, net, normalize_ac=True, data_parallel=False, dim=0):
-        BasePol.__init__(self, ob_space, ac_space, normalize_ac, data_parallel)
-        self.net = net
-        if hasattr(self.net, 'rnn'):
-            self.rnn = self.net.rnn
-            self.hs = None
-        else:
-            self.rnn = False
+    def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
+        BasePol.__init__(self, ob_space, ac_space, net, rnn, normalize_ac, data_parallel, parallel_dim)
         self.pd = GaussianPd(ob_space, ac_space)
         self.to(get_device())
-        if data_parallel:
-            self.dp_net = nn.DataParallel(self.net, dim=dim)
-        self.dp_run = False
 
-    def forward(self, obs, hs=None, masks=None):
+    def forward(self, obs, hs=None, h_masks=None):
+        obs = self._check_obs_shape(obs)
+
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
 
             if hs is None:
-                hs = self.init_hs(batch_size)
-            if masks is None:
-                masks = hs[0].new(time_seq, batch_size, 1).zero_()
-            masks = masks.reshape(time_seq, batch_size, 1)
+                if self.hs is None:
+                    self.hs = self.net.init_hs(batch_size)
+                hs = self.hs
+
+            if h_masks is None:
+                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            h_masks = h_masks.reshape(time_seq, batch_size, 1)
 
             if self.dp_run:
-                mean, log_std, hs = self.dp_net(obs, hs, masks)
+                mean, log_std, hs = self.dp_net(obs, hs, h_masks)
             else:
-                mean, log_std, hs = self.net(obs, hs, masks)
+                mean, log_std, hs = self.net(obs, hs, h_masks)
+            self.hs = hs
         else:
             if self.dp_run:
                 mean, log_std = self.dp_net(obs)
@@ -59,9 +56,6 @@ class GaussianPol(BasePol):
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(mean=mean, log_std=log_std, hs=hs)
 
-    def init_hs(self, batch_size):
-        return self.net.init_hs(batch_size)
-
     def deterministic_ac_real(self, obs, hs=None, mask=None):
         """
         action for deployment
@@ -70,7 +64,7 @@ class GaussianPol(BasePol):
             time_seq, batch_size, *_ = obs.shape
             if hs is None:
                 if self.hs is None:
-                    self.hs = self.init_hs(batch_size)
+                    self.hs = self.net.init_hs(batch_size)
                 hs = self.hs
             mean, _, hs = self.net(obs, hs, mask)
             self.hs = hs
@@ -78,5 +72,3 @@ class GaussianPol(BasePol):
             mean, log_std = self.net(obs)
         mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
         return mean_real, mean, dict(mean=mean, log_std=log_std, hs=hs)
-
-

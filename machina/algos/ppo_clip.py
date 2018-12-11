@@ -28,8 +28,10 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
     advs = batch['advs']
 
     if pol.rnn:
-        init_hs = batch['init_hs']
-        masks = batch['dones']
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+    else:
+        out_masks = torch.ones_like(advs)
 
     pd = pol.pd
 
@@ -38,8 +40,9 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
         batch,
     )
 
+    pol.reset()
     if pol.rnn:
-        _, _, pd_params = pol(obs, init_hs, masks)
+        _, _, pd_params = pol(obs, h_masks=h_masks)
     else:
         _, _, pd_params = pol(obs)
 
@@ -47,7 +50,8 @@ def make_pol_loss(pol, batch, clip_param, ent_beta):
     ratio = torch.exp(new_llh - old_llh)
     pol_loss1 = - ratio * advs
     pol_loss2 = - torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advs
-    pol_loss = torch.mean(torch.max(pol_loss1, pol_loss2))
+    pol_loss = torch.max(pol_loss1, pol_loss2)
+    pol_loss = torch.mean(pol_loss * out_masks)
 
     ent = pd.ent(pd_params)
     pol_loss -= ent_beta * torch.mean(ent)
@@ -66,21 +70,23 @@ def make_vf_loss(vf, batch, clip_param, clip=False):
     obs = batch['obs']
     rets = batch['rets']
 
+    vf.reset()
     if vf.rnn:
-        init_hs = batch['init_hs']
-        masks = batch['dones']
-        vs, _ = vf(obs, init_hs, masks)
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+        vs, _ = vf(obs, h_masks=h_masks)
     else:
+        out_masks = torch.ones_like(rets)
         vs, _ = vf(obs)
 
     vfloss1 = (vs - rets)**2
     if clip:
-        old_vs = batch['old_vs']
+        old_vs = batch['vs']
         vpredclipped = old_vs + torch.clamp(vs - old_vs, -clip_param, clip_param)
         vfloss2 = (vpredclipped - rets)**2
-        vf_loss = 0.5 * torch.mean(torch.max(vfloss1, vfloss2))
+        vf_loss = 0.5 * torch.mean(torch.max(vfloss1, vfloss2) * out_masks)
     else:
-        vf_loss = 0.5 * torch.mean(vfloss1)
+        vf_loss = 0.5 * torch.mean(vfloss1 * out_masks)
     return vf_loss
 
 def update_vf(vf, optim_vf, batch, clip_param, clip, max_grad_norm):
@@ -102,7 +108,8 @@ def train(data, pol, vf,
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    for batch in data.iterate(batch_size, epoch):
+    iterator = data.iterate(batch_size, epoch) if not pol.rnn else data.iterate_rnn(batch_size, epoch=epoch)
+    for batch in iterator:
         pol_loss = update_pol(pol, optim_pol, batch, clip_param, ent_beta, max_grad_norm)
         vf_loss = update_vf(vf, optim_vf, batch, clip_param, clip_vfunc, max_grad_norm)
 

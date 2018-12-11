@@ -20,32 +20,26 @@ from machina.vfuncs.base import BaseVfunc
 from machina.utils import get_device
 
 class DeterministicVfunc(BaseVfunc):
-    def __init__(self, ob_space, net, data_parallel=False, dim=0):
-        BaseVfunc.__init__(self, ob_space, data_parallel)
-        self.net = net
-        if hasattr(self.net, 'rnn'):
-            self.rnn = self.net.rnn
-        else:
-            self.rnn = False
-
+    def __init__(self, ob_space, net, rnn=False, data_parallel=False, parallel_dim=0):
+        BaseVfunc.__init__(self, ob_space, net, rnn, data_parallel, parallel_dim)
         self.to(get_device())
 
-        if data_parallel:
-            self.dp_net = nn.DataParallel(self.net, dim=dim)
-        self.dp_run = False
+    def forward(self, obs, hs=None, h_masks=None):
+        obs = self._check_obs_shape(obs)
 
-    def forward(self, obs, hs=None, masks=None):
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
             if hs is None:
-                hs = self.net.init_hs(batch_size)
-            if masks is None:
-                masks = hs[0].new(time_seq, batch_size, 1).zero_()
-            masks = masks.reshape(time_seq, batch_size, 1)
+                if self.hs is None:
+                    self.hs = self.net.init_hs(batch_size)
+                hs = self.hs
+            if h_masks is None:
+                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            h_masks = h_masks.reshape(time_seq, batch_size, 1)
             if self.dp_run:
-                vs, hs = self.dp_net(obs, hs, masks)
+                vs, hs = self.dp_net(obs, hs, h_masks)
             else:
-                vs, hs = self.net(obs, hs, masks)
+                vs, hs = self.net(obs, hs, h_masks)
             return vs.squeeze(), dict(hs=hs)
         else:
             if self.dp_run:
@@ -53,7 +47,6 @@ class DeterministicVfunc(BaseVfunc):
             else:
                 vs = self.net(obs)
             return vs.reshape(-1), dict()
-
 
 class NormalizedDeterministicVfunc(DeterministicVfunc):
     def __init__(self, ob_space, net):

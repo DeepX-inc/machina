@@ -18,12 +18,17 @@ import torch
 
 from machina.utils import get_device
 
-def compute_vs(data, vf):
+
+def compute_vs(data, vf, rnn=False):
     epis = data.current_epis
+    vf.reset()
     with torch.no_grad():
         for epi in epis:
-            epi['vs'] = vf(torch.tensor(epi['obs'], dtype=torch.float,
-                device=get_device()))[0].cpu().numpy()
+            if rnn:
+                obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device()).unsqueeze(1)
+            else:
+                obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
+            epi['vs'] = vf(obs)[0].detach().cpu().numpy()
 
     return data
 
@@ -72,3 +77,11 @@ def add_next_obs(data):
 
     return data
 
+def add_h_masks(data):
+    epis = data.current_epis
+    for epi in epis:
+        h_masks = np.zeros_like(epi['rews'])
+        h_masks[0] = 1
+        epi['h_masks'] = h_masks
+
+    return data
