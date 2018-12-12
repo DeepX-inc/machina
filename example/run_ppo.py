@@ -61,10 +61,9 @@ parser.add_argument('--ppo_type', type=str,
                     choices=['clip', 'kl'], default='clip')
 
 parser.add_argument('--clip_param', type=float, default=0.2)
-parser.add_argument('--max_grad_norm', type=float, default=1)
-
+parser.add_argument('--max_grad_norm', type=float, default=1) 
 parser.add_argument('--kl_targ', type=float, default=0.01)
-parser.add_argument('--init_kl_beta', type=float, default=1)
+parser.add_argument('--init_kl_beta', type=float, default=10)
 
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
