@@ -28,40 +28,61 @@ def make_pol_loss(pol, batch, kl_beta):
     acs = batch['acs']
     advs = batch['advs']
 
-    old_mean = batch['mean']
-    old_log_std = batch['log_std']
+    if pol.rnn:
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+    else:
+        out_masks = torch.ones_like(advs)
+
+    pd = pol.pd
 
     old_llh = pol.pd.llh(
         batch['acs'],
         batch
     )
 
-    _, _, pd_params = pol(obs)
+    pol.reset()
+    if pol.rnn:
+        _, _, pd_params = pol(obs, h_masks=h_masks)
+    else:
+        _, _, pd_params = pol(obs)
+
     new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
-    pol_loss = ratio * advs
+    pol_loss = ratio * advs * out_masks
 
     kl = pol.pd.kl_pq(
         batch,
         pd_params
     )
 
-    pol_loss -= kl_beta * kl
+    pol_loss -= kl_beta * kl * out_masks
     pol_loss = - torch.mean(pol_loss)
 
     return pol_loss
 
-def update_pol(pol, optim_pol, batch, kl_beta):
+def update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm):
     pol_loss = make_pol_loss(pol, batch, kl_beta)
     optim_pol.zero_grad()
     pol_loss.backward()
+    torch.nn.utils.clip_grad_norm_(pol.parameters(), max_grad_norm)
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
 def make_vf_loss(vf, batch):
     obs = batch['obs']
     rets = batch['rets']
-    vf_loss = 0.5 * torch.mean((vf(obs) - rets)**2)
+
+    vf.reset()
+    if vf.rnn:
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+        vs, _ = vf(obs, h_masks=h_masks)
+    else:
+        out_masks = torch.ones_like(rets)
+        vs, _ = vf(obs)
+
+    vf_loss = 0.5 * torch.mean((vs - rets)**2 * out_masks)
     return vf_loss
 
 def update_vf(vf, optim_vf, batch):
@@ -74,21 +95,25 @@ def update_vf(vf, optim_vf, batch):
 def train(data, pol, vf,
         kl_beta, kl_targ,
         optim_pol, optim_vf,
-        epoch, batch_size,# optimization hypers
+        epoch, batch_size, max_grad_norm,
+        num_epi_per_seq=1# optimization hypers
         ):
 
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    for batch in data.iterate(batch_size, epoch):
-        pol_loss = update_pol(pol, optim_pol, batch, kl_beta)
+    iterator = data.iterate(batch_size, epoch) if not pol.rnn else data.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+    for batch in iterator:
+        pol_loss = update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm)
         vf_loss = update_vf(vf, optim_vf, batch)
 
         pol_losses.append(pol_loss)
         vf_losses.append(vf_loss)
 
-    batch = next(data.full_batch())
+    iterator = data.full_batch(1) if not pol.rnn else data.iterate_rnn(batch_size=data.num_epi)
+    batch = next(iterator)
     with torch.no_grad():
+        pol.reset()
         _, _, pd_params = pol(batch['obs'])
         kl_mean = torch.mean(
             pol.pd.kl_pq(
