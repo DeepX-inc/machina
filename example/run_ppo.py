@@ -57,13 +57,15 @@ parser.add_argument('--use_prepro', action='store_true', default=False)
 parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--rnn', action='store_true', default=False)
+parser.add_argument('--max_grad_norm', type=float, default=10)
+
 parser.add_argument('--ppo_type', type=str,
                     choices=['clip', 'kl'], default='clip')
 
 parser.add_argument('--clip_param', type=float, default=0.2)
-parser.add_argument('--max_grad_norm', type=float, default=1) 
+
 parser.add_argument('--kl_targ', type=float, default=0.01)
-parser.add_argument('--init_kl_beta', type=float, default=10)
+parser.add_argument('--init_kl_beta', type=float, default=1)
 
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
@@ -147,8 +149,8 @@ while args.max_episodes > total_epi:
             result_dict = ppo_clip.train(data=data, pol=pol, vf=vf, clip_param=args.clip_param,
                                          optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
         else:
-            result_dict = ppo_kl.train(data, pol, vf, kl_beta, args.kl_targ,
-                                       optim_pol, optim_vf, args.epoch_per_iter, args.batch_size)
+            result_dict = ppo_kl.train(data=data, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
+                                       optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
     total_epi += data.num_epi
     step = sum([len(epi['rews']) for epi in epis])
