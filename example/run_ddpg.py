@@ -34,7 +34,7 @@ from machina.prepro import BasePrePro
 from machina.qfuncs import DeterministicQfunc
 from machina.envs import GymEnv
 from machina.data import Data, add_next_obs
-from machina.samplers import BatchSampler, ParallelSampler
+from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import set_device, measure
 from machina.nets import PolNet, QNet
@@ -42,15 +42,12 @@ from machina.nets import PolNet, QNet
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--use_parallel_sampler', action='store_true', default=False)
+parser.add_argument('--num_parallel', type=int, default=4)
 
-parser.add_argument('--max_data_size', type=int, default=1000000)
-parser.add_argument('--min_data_size', type=int, default=10000)
 parser.add_argument('--max_samples_per_iter', type=int, default=2000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=10000)
 parser.add_argument('--epoch_per_iter', type=int, default=5)
@@ -85,9 +82,6 @@ device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
 device = torch.device(device_name)
 set_device(device)
 
-if args.roboschool:
-    import roboschool
-
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
@@ -103,15 +97,16 @@ pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net, noise)
 targ_pol_net = PolNet(ob_space, ac_space, args.h1, args.h2)
 targ_noise = OUActionNoise(ac_space.shape)
 targ_pol = DeterministicActionNoisePol(ob_space, ac_space, targ_pol_net, targ_noise)
+
 qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 targ_qf = DeterministicQfunc(ob_space, ac_space, targ_qf_net)
+
 prepro = BasePrePro(ob_space)
-if args.use_parallel_sampler:
-    sampler = ParallelSampler(env)
-else:
-    sampler = BatchSampler(env)
+
+sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, seed=args.seed)
+
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 off_data = Data()
@@ -163,3 +158,4 @@ while args.max_episodes > total_epi:
     torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models',  'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models',  'optim_qf_last.pkl'))
+del sampler

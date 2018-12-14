@@ -32,7 +32,7 @@ from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
 from machina.envs import GymEnv
 from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs, add_h_masks
-from machina.samplers import BatchSampler, ParallelSampler
+from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import measure
 from machina.nets import PolNet, VNet, PolNetLSTM, VNetLSTM
@@ -40,12 +40,11 @@ from machina.nets import PolNet, VNet, PolNetLSTM, VNetLSTM
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--use_parallel_sampler', action='store_true', default=False)
+parser.add_argument('--num_parallel', type=int, default=4)
 
 parser.add_argument('--max_samples_per_iter', type=int, default=5000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=250)
@@ -72,9 +71,6 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
-if args.roboschool:
-    import roboschool
-
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
@@ -100,10 +96,8 @@ else:
 vf = DeterministicVfunc(ob_space, vf_net, args.rnn)
 
 prepro = BasePrePro(ob_space)
-if args.use_parallel_sampler:
-    sampler = ParallelSampler(env, pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-else:
-    sampler = BatchSampler(env)
+
+sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, seed=args.seed)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 
 total_epi = 0
