@@ -21,6 +21,8 @@ import torch
 import torch.multiprocessing as mp
 
 
+LARGE_NUMBER = 100000000
+
 def one_epi(env, pol, deterministic=False, prepro=None):
     if prepro is None:
         prepro = lambda x: x
@@ -116,15 +118,14 @@ class EpiSampler(object):
         for p in self.processes:
             p.terminate()
 
-    def sample(self, pol, max_episodes, max_samples, deterministic=False):
-        if deterministic:
-            self.deterministic_flag.zero_()
-            self.deterministic_flag += 1
-        else:
-            self.deterministic_flag.zero_()
-
+    def sample(self, pol, max_episodes=None, max_samples=None, deterministic=False):
         for sp, p in zip(self.pol.parameters(), pol.parameters()):
             sp.data.copy_(p.data.to('cpu'))
+
+        if max_episodes is None and max_samples is None:
+            raise ValueError('Either max_episodes or max_samples have not to be None')
+        max_episodes = max_episodes if max_episodes is not None else LARGE_NUMBER
+        max_samples = max_samples if max_samples is not None else LARGE_NUMBER
 
         self.n_samples_global.zero_()
         self.n_episodes_global.zero_()
@@ -133,6 +134,12 @@ class EpiSampler(object):
         self.max_samples += max_samples
         self.max_episodes.zero_()
         self.max_episodes += max_episodes
+
+        if deterministic:
+            self.deterministic_flag.zero_()
+            self.deterministic_flag += 1
+        else:
+            self.deterministic_flag.zero_()
 
         del self.epis[:]
 
