@@ -46,8 +46,7 @@ parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
 
-parser.add_argument('--max_samples_per_iter', type=int, default=5000)
-parser.add_argument('--max_episodes_per_iter', type=int, default=250)
+parser.add_argument('--max_episodes_per_iter', type=int, default=256)
 parser.add_argument('--epoch_per_iter', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
@@ -106,9 +105,9 @@ max_rew = -1e6
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.use_prepro:
-            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+            epis = sampler.sample(pol, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
-            epis = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+            epis = sampler.sample(pol, args.max_episodes_per_iter)
     with measure('train'):
         data = Data()
         data.add_epis(epis)
