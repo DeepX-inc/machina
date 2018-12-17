@@ -13,5 +13,18 @@
 # limitations under the License.
 # ==============================================================================
 
-from machina.envs.gym_env import GymEnv
-from machina.envs.continuous2discrete_env import C2DEnv
+import unittest
+
+import gym
+import numpy as np
+import torch
+
+from machina.envs import GymEnv, C2DEnv
+
+
+def test_continuous2discrete():
+    continuous_env = GymEnv('LunarLanderContinuous-v2', record_video=False)
+    discrete_env = C2DEnv(continuous_env)
+
+    discrete_env.reset()
+    out = discrete_env.step([3, 10])
