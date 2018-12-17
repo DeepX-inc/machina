@@ -29,7 +29,7 @@ from machina.pols import GaussianPol, CategoricalPol
 from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
-from machina.envs import GymEnv
+from machina.envs import GymEnv, C2DEnv
 from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs, add_h_masks
 from machina.samplers import EpiSampler
 from machina.misc import logger
@@ -40,6 +40,7 @@ from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
+parser.add_argument('--c2d', action='store_true', default=False)
 parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
@@ -95,6 +96,8 @@ logger.add_tabular_output(score_file)
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
+if args.c2d:
+    env = C2DEnv(env)
 
 ob_space = env.observation_space
 ac_space = env.action_space
@@ -104,9 +107,13 @@ if args.rnn:
 else:
     pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, rnn=args.rnn)
+    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
+elif isinstance(ac_space, gym.spaces.Discrete):
+    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+elif isinstance(ac_space, gym.spaces.MultiDiscrete):
+    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
 else:
-    pol = CategoricalPol(ob_space, ac_space, pol_net, rnn=args.rnn)
+    raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
 if args.rnn:
     vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)

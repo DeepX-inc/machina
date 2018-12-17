@@ -24,6 +24,10 @@ class PolNet(nn.Module):
             self.discrete = False
         else:
             self.discrete = True
+            if isinstance(ac_space, gym.spaces.MultiDiscrete):
+                self.multi = True
+            else:
+                self.multi = False
 
         self.fc1 = nn.Linear(ob_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
@@ -36,8 +40,12 @@ class PolNet(nn.Module):
                 self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
             self.mean_layer.apply(mini_weight_init)
         else:
-            self.output_layer = nn.Linear(h2, ac_space.n)
-            self.output_layer.apply(mini_weight_init)
+            if self.multi:
+                self.output_layers = [nn.Linear(h2, vec) for vec in ac_space.nvec]
+                map(lambda x: x.apply(mini_weight_init), self.output_layers)
+            else:
+                self.output_layer = nn.Linear(h2, ac_space.n)
+                self.output_layer.apply(mini_weight_init)
 
     def forward(self, ob):
         h = F.relu(self.fc1(ob))
@@ -49,8 +57,10 @@ class PolNet(nn.Module):
             else:
                 return mean
         else:
-            pi = torch.softmax(self.output_layer(h), dim=-1)
-            return pi
+            if self.multi:
+                return torch.cat([torch.softmax(ol(h), dim=-1).unsqueeze(-2) for ol in self.output_layers], dim=-2)
+            else:
+                return torch.softmax(self.output_layer(h), dim=-1)
 
 class VNet(nn.Module):
     def __init__(self, ob_space, h1=200, h2=100):
@@ -92,6 +102,10 @@ class PolNetLSTM(nn.Module):
             self.discrete = False
         else:
             self.discrete = True
+            if isinstance(ac_space, gym.spaces.MultiDiscrete):
+                self.multi = True
+            else:
+                self.multi = False
 
         self.input_layer = nn.Linear(ob_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
@@ -101,9 +115,12 @@ class PolNetLSTM(nn.Module):
 
             self.mean_layer.apply(mini_weight_init)
         else:
-            self.output_layer = nn.Linear(self.cell_size, ac_space.n)
-
-            self.output_layer.apply(mini_weight_init)
+            if self.multi:
+                self.output_layers = [nn.Linear(self.cell_size, vec) for vec in ac_space.nvec]
+                map(lambda x: x.apply(mini_weight_init), self.output_layers)
+            else:
+                self.output_layer = nn.Linear(self.cell_size, ac_space.n)
+                self.output_layer.apply(mini_weight_init)
 
     def init_hs(self, batch_size=1):
         new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
@@ -128,9 +145,10 @@ class PolNetLSTM(nn.Module):
             log_std = self.log_std_param.expand_as(means)
             return means, log_std, hs
         else:
-            pi = torch.softmax(self.output_layer(hiddens), dim=-1)
-            return pi, hs
-
+            if self.multi:
+                return torch.cat([torch.softmax(ol(hiddens), dim=-1).unsqueeze(-2) for ol in self.output_layers], dim=-2), hs
+            else:
+                return torch.softmax(self.output_layer(hiddens), dim=-1), hs
 
 class VNetLSTM(nn.Module):
     def __init__(self, ob_space, h_size=1024, cell_size=512):
