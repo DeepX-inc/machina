@@ -1,0 +1,56 @@
+# Copyright 2018 DeepX Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
+
+import torch.nn as nn
+
+class BaseSAVfunc(nn.Module):
+    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0):
+        nn.Module.__init__(self)
+        self.ob_space = ob_space
+        self.ac_space = ac_space
+        self.net = net
+
+        self.rnn = rnn
+        self.hs = None
+
+        self.data_parallel = data_parallel
+        if data_parallel:
+            self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
+        self.dp_run = False
+
+    def reset(self):
+        if self.rnn:
+            self.hs = None
+
+    def _check_obs_shape(self, obs):
+        if self.rnn:
+            additional_shape = 2
+        else:
+            additional_shape = 1
+        if len(obs.shape) < additional_shape + len(self.ob_space.shape):
+            for _ in range(additional_shape + len(self.ob_space.shape) - len(obs.shape)):
+                obs.unsqueeze(0)
+        return obs
+
+    def _check_acs_shape(self, acs):
+        if self.rnn:
+            additional_shape = 2
+        else:
+            additional_shape = 1
+        if len(acs.shape) < additional_shape + len(self.ac_space.shape):
+            for _ in range(additional_shape + len(self.ac_space.shape) - len(acs.shape)):
+                acs.unsqueeze(0)
+        return acs

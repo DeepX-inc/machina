@@ -13,19 +13,18 @@
 # limitations under the License.
 # ==============================================================================
 
-import torch
-import torch.nn as nn
-
-from machina.vfuncs.base import BaseVfunc
+from machina.vfuncs.state_action_vfuncs.base import BaseSAVfunc
 from machina.utils import get_device
 
-class DeterministicVfunc(BaseVfunc):
-    def __init__(self, ob_space, net, rnn=False, data_parallel=False, parallel_dim=0):
-        BaseVfunc.__init__(self, ob_space, net, rnn, data_parallel, parallel_dim)
+
+class DeterministicSAVfunc(BaseSAVfunc):
+    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0):
+        super().__init__(ob_space, ac_space, net, rnn, data_parallel, parallel_dim)
         self.to(get_device())
 
-    def forward(self, obs, hs=None, h_masks=None):
+    def forward(self, obs, acs, hs=None, h_masks=None):
         obs = self._check_obs_shape(obs)
+        acs = self._check_acs_shape(acs)
 
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
@@ -37,30 +36,13 @@ class DeterministicVfunc(BaseVfunc):
                 h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
             h_masks = h_masks.reshape(time_seq, batch_size, 1)
             if self.dp_run:
-                vs, hs = self.dp_net(obs, hs, h_masks)
+                vs, hs = self.dp_net(obs, acs, hs, h_masks)
             else:
-                vs, hs = self.net(obs, hs, h_masks)
+                vs, hs = self.net(obs, acs, hs, h_masks)
             return vs.squeeze(), dict(hs=hs)
         else:
             if self.dp_run:
-                vs = self.dp_net(obs)
+                vs = self.dp_net(obs, acs)
             else:
-                vs = self.net(obs)
+                vs = self.net(obs, acs)
             return vs.reshape(-1), dict()
-
-class NormalizedDeterministicVfunc(DeterministicVfunc):
-    def __init__(self, ob_space, net):
-        DeterministicVfunc.__init__(self, ob_space, net)
-        self.x_mean = torch.zeros(1)
-        self.x_std = torch.ones(1)
-
-    def forward(self, obs):
-        return self.net(obs).reshape(-1) * self.x_std + self.x_mean
-
-    def set_mean(self, mean):
-        self.x_mean.data.copy_(mean)
-
-    def set_std(self, std):
-        self.x_std.data.copy_(std)
-
-

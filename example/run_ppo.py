@@ -28,7 +28,7 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
 from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
-from machina.vfuncs import DeterministicVfunc
+from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs, add_h_masks
 from machina.samplers import EpiSampler
@@ -119,7 +119,7 @@ if args.rnn:
     vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
 else:
     vf_net = VNet(ob_space)
-vf = DeterministicVfunc(ob_space, vf_net, args.rnn)
+vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
 
 if args.use_prepro:
     prepro = BasePrePro(ob_space)

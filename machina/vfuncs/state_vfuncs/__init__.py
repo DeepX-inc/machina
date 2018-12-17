@@ -13,6 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-from machina.qfuncs.base import BaseQfunc
-from machina.qfuncs.deterministic_qfunc import DeterministicQfunc
 
+from machina.vfuncs.state_vfuncs.base import BaseSVfunc
+from machina.vfuncs.state_vfuncs.deterministic_state_vfunc import DeterministicSVfunc, NormalizedDeterministicSVfunc

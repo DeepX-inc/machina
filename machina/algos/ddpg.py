@@ -8,7 +8,7 @@ from machina.misc import logger
 def make_pol_loss(pol, qf, batch):
     obs = batch['obs']
     _, _, param = pol(obs)
-    q = qf(obs, param['mean'])
+    q, _ = qf(obs, param['mean'])
     pol_loss = -torch.mean(q)
     return pol_loss
 
@@ -20,10 +20,11 @@ def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
     next_obs = batch['next_obs']
     dones = batch['dones']
     _, _, param = targ_pol(next_obs)
-    next_q = targ_qf(next_obs, param['mean'])
+    next_q, _ = targ_qf(next_obs, param['mean'])
     targ = rews + gamma * next_q * (1 - dones)
     targ = targ.detach()
-    return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
+    q, _ = qf(obs, acs)
+    return 0.5 * torch.mean((q - targ)**2)
 
 
 def train(off_data,
