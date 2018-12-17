@@ -17,7 +17,6 @@ install_requires = [
     'numpy>=1.13.3',
     'terminaltables',
     'pandas',
-    'pybullet == 1.8.8',
 ]
 
 setup(
