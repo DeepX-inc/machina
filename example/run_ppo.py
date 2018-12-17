@@ -25,7 +25,7 @@ import torch.nn.functional as F
 import gym
 
 import machina as mc
-from machina.pols import GaussianPol, CategoricalPol
+from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
 from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
