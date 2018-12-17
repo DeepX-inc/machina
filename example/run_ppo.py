@@ -32,7 +32,7 @@ from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicVfunc
 from machina.envs import GymEnv
 from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs, add_h_masks
-from machina.samplers import BatchSampler, ParallelSampler
+from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import measure, set_device
 from machina.nets.simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
@@ -44,11 +44,9 @@ parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--use_parallel_sampler',
-                    action='store_true', default=False)
+parser.add_argument('--num_parallel', type=int, default=4)
 
-parser.add_argument('--max_samples_per_iter', type=int, default=5000)
-parser.add_argument('--max_episodes_per_iter', type=int, default=250)
+parser.add_argument('--max_episodes_per_iter', type=int, default=256)
 parser.add_argument('--epoch_per_iter', type=int, default=50)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
@@ -115,12 +113,11 @@ if args.rnn:
 else:
     vf_net = VNet(ob_space)
 vf = DeterministicVfunc(ob_space, vf_net, args.rnn)
+
 prepro = BasePrePro(ob_space)
-if args.use_parallel_sampler:
-    sampler = ParallelSampler(
-        env, pol, args.max_samples_per_iter, args.max_episodes_per_iter, seed=args.seed)
-else:
-    sampler = BatchSampler(env)
+
+sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, seed=args.seed)
+
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 
@@ -131,11 +128,9 @@ kl_beta = args.init_kl_beta
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.use_prepro:
-            epis = sampler.sample(pol, args.max_samples_per_iter,
-                                  args.max_episodes_per_iter, prepro.prepro_with_update)
+            epis = sampler.sample(pol, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
-            epis = sampler.sample(
-                pol, args.max_samples_per_iter, args.max_episodes_per_iter)
+            epis = sampler.sample(pol, args.max_episodes_per_iter)
     with measure('train'):
         data = Data()
         data.add_epis(epis)
