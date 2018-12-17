@@ -37,6 +37,7 @@ from machina.data import Data, add_next_obs
 from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import set_device, measure
+
 from simple_net import PolNet, QNet
 
 parser = argparse.ArgumentParser()

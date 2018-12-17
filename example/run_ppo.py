@@ -35,6 +35,7 @@ from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize
 from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import measure, set_device
+
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
