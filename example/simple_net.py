@@ -15,8 +15,10 @@ def weight_init(m):
         m.bias.data.fill_(0)
 
 class PolNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=200, h2=100):
+    def __init__(self, ob_space, ac_space, h1=200, h2=100, deterministic=False):
         super(PolNet, self).__init__()
+
+        self.deterministic = deterministic
 
         if isinstance(ac_space, gym.spaces.Box):
             self.discrete = False
@@ -30,7 +32,8 @@ class PolNet(nn.Module):
 
         if not self.discrete:
             self.mean_layer = nn.Linear(h2, ac_space.shape[0])
-            self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
+            if not self.deterministic:
+                self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
             self.mean_layer.apply(mini_weight_init)
         else:
             self.output_layer = nn.Linear(h2, ac_space.n)
@@ -41,7 +44,10 @@ class PolNet(nn.Module):
         h = F.relu(self.fc2(h))
         if not self.discrete:
             mean = torch.tanh(self.mean_layer(h))
-            return mean, self.log_std_param
+            if not self.deterministic:
+                return mean, self.log_std_param
+            else:
+                return mean
         else:
             pi = torch.softmax(self.output_layer(h), dim=-1)
             return pi
