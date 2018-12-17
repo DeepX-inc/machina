@@ -24,7 +24,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import gym
-import pybullet_envs
 
 import machina as mc
 from machina.pols import DeterministicActionNoisePol
