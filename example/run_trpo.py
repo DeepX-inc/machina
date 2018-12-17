@@ -35,7 +35,7 @@ from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize
 from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import measure
-from machina.nets import PolNet, VNet, PolNetLSTM, VNetLSTM
+from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -94,7 +94,10 @@ else:
     vf_net = VNet(ob_space)
 vf = DeterministicVfunc(ob_space, vf_net, args.rnn)
 
-prepro = BasePrePro(ob_space)
+if args.use_prepro:
+    prepro = BasePrePro(ob_space)
+else:
+    prepro = None
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, seed=args.seed)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)

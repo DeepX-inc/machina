@@ -37,7 +37,7 @@ from machina.data import Data, add_next_obs
 from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import set_device, measure
-from machina.nets import PolNet, QNet
+from simple_net import PolNet, QNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -102,7 +102,10 @@ qf = DeterministicQfunc(ob_space, ac_space, qf_net)
 targ_qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 targ_qf = DeterministicQfunc(ob_space, ac_space, targ_qf_net)
 
-prepro = BasePrePro(ob_space)
+if args.use_prepro:
+    prepro = BasePrePro(ob_space)
+else:
+    prepro = None
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, seed=args.seed)
 
