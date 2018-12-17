@@ -45,7 +45,7 @@ class MultiCategoricalPd(BasePd):
         p_pis = p_params['pis']
         q_pis = q_params['pis']
         kls = []
-        for p_pi, q_pi in zip(torch.chunk(p_pis, pi_pis.size(-2), -2), torch.chunk(q_pis, q_pis.size(-2), -2)):
+        for p_pi, q_pi in zip(torch.chunk(p_pis, p_pis.size(-2), -2), torch.chunk(q_pis, q_pis.size(-2), -2)):
             kls.append(kl_divergence(Categorical(p_pi), Categorical(q_pi)))
         return sum(kls)
 

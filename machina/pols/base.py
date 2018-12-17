@@ -35,6 +35,7 @@ class BasePol(nn.Module):
         self.dp_run = False
 
         self.discrete = isinstance(ac_space, gym.spaces.MultiDiscrete) or isinstance(ac_space, gym.spaces.Discrete)
+        self.multi = isinstance(ac_space, gym.spaces.MultiDiscrete)
 
         if not self.discrete:
             self.pd_shape = ac_space.shape
