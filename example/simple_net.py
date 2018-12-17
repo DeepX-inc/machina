@@ -46,32 +46,6 @@ class PolNet(nn.Module):
             pi = torch.softmax(self.output_layer(h), dim=-1)
             return pi
 
-class MixturePolNet(nn.Module):
-    def __init__(self, ob_space, ac_space, mixture, h1=200, h2=100):
-        super(MixturePolNet, self).__init__()
-        self.fc1 = nn.Linear(ob_space.shape[0], h1)
-        self.fc2 = nn.Linear(h1, h2)
-        self.mean_layer = nn.Linear(h2, ac_space.shape[0]*mixture + mixture)
-        self.log_std_param = nn.Parameter(torch.randn(mixture, ac_space.shape[0])*1e-10 - 1)
-
-        self.fc1.apply(weight_init)
-        self.fc2.apply(weight_init)
-        self.mean_layer.apply(mini_weight_init)
-        self.ac_space = ac_space
-        self.mixture = mixture
-
-    def forward(self, ob):
-        h = F.relu(self.fc1(ob))
-        h = F.relu(self.fc2(h))
-        out = F.tanh(self.mean_layer(h))
-        out = out.contiguous()
-        mean = out[:, :self.ac_space.shape[0]*self.mixture]
-        mean = mean.contiguous()
-        mean = mean.view(-1, self.mixture, self.ac_space.shape[0])
-        pi = out[:, self.ac_space.shape[0]*self.mixture:]
-        pi = F.softmax(pi, dim=1)
-        return pi, mean, self.log_std_param
-
 class VNet(nn.Module):
     def __init__(self, ob_space, h1=200, h2=100):
         super(VNet, self).__init__()
