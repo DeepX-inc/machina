@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import numpy as np
 import torch
 from torch.distributions import Categorical, kl_divergence
@@ -40,5 +41,3 @@ class CategoricalPd(BasePd):
     def ent(self, params):
         pi = params['pi']
         return Categorical(pi).entropy()
-
-
