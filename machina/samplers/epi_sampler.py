@@ -123,7 +123,7 @@ class EpiSampler(object):
             sp.data.copy_(p.data.to('cpu'))
 
         if max_episodes is None and max_samples is None:
-            raise ValueError('Either max_episodes or max_samples have not to be None')
+            raise ValueError('Either max_episodes or max_samples needs not to be None')
         max_episodes = max_episodes if max_episodes is not None else LARGE_NUMBER
         max_samples = max_samples if max_samples is not None else LARGE_NUMBER
 
