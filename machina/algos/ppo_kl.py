@@ -23,6 +23,7 @@ import torch
 import torch.nn as nn
 from machina.misc import logger
 
+
 def make_pol_loss(pol, batch, kl_beta):
     obs = batch['obs']
     acs = batch['acs']
@@ -114,7 +115,10 @@ def train(traj, pol, vf,
     batch = next(iterator)
     with torch.no_grad():
         pol.reset()
-        _, _, pd_params = pol(batch['obs'])
+        if pol.rnn:
+            _, _, pd_params = pol(batch['obs'], h_masks=batch['h_masks'])
+        else:
+            _, _, pd_params = pol(batch['obs'])
         kl_mean = torch.mean(
             pol.pd.kl_pq(
                 batch,
