@@ -15,52 +15,14 @@
 #
 # This is an implementation of Soft Actor Critic.
 # See https://arxiv.org/abs/1801.01290
-#
+
 
 import torch
 import torch.nn as nn
+
+from machina import loss_functional as lf
 from machina.misc import logger
 
-def make_pol_loss(pol, qf, vf, batch, sampling):
-    obs = batch['obs']
-
-    pol_loss = 0
-    _, _, pd_params = pol(obs)
-    # TODO: fast sampling
-    for _ in range(sampling):
-        acs = pol.pd.sample(pd_params)
-        llh = pol.pd.llh(acs.detach(), pd_params)
-        pol_loss += llh * (llh.detach() - qf(obs, acs).detach() + vf(obs).detach())
-    pol_loss /= sampling
-
-    return torch.mean(pol_loss)
-
-def make_qf_loss(qf, vf, batch, gamma):
-    obs = batch['obs']
-    acs = batch['acs']
-    rews = batch['rews']
-    next_obs = batch['next_obs']
-    dones = batch['dones']
-
-    targ = rews + gamma * vf(next_obs) * (1 - dones)
-    targ = targ.detach()
-
-    return 0.5 * torch.mean((qf(obs, acs) - targ)**2)
-
-def make_vf_loss(pol, qf, vf, batch, sampling):
-    obs = batch['obs']
-
-    targ = 0
-    _, _, pd_params = pol(obs)
-    # TODO: fast sampling
-    for _ in range(sampling):
-        acs = pol.pd.sample(pd_params)
-        llh = pol.pd.llh(acs, pd_params)
-        targ += qf(obs, acs) - llh
-    targ /= sampling
-    targ = targ.detach()
-
-    return 0.5 * torch.mean((vf(obs) - targ)**2)
 
 def train(off_data,
         pol, qf, vf,
@@ -74,17 +36,17 @@ def train(off_data,
     pol_losses = []
     logger.log("Optimizing...")
     for batch in off_data.random_batch(batch_size, epoch):
-        vf_loss = make_vf_loss(pol, qf, vf, batch, sampling)
+        vf_loss = lf.sac_sv(pol, qf, vf, batch, sampling)
         optim_vf.zero_grad()
         vf_loss.backward()
         optim_vf.step()
 
-        qf_loss = make_qf_loss(qf, vf, batch, gamma)
+        qf_loss = lf.sac_sav(qf, vf, batch, gamma)
         optim_qf.zero_grad()
         qf_loss.backward()
         optim_qf.step()
 
-        pol_loss = make_pol_loss(pol, qf, vf, batch, sampling)
+        pol_loss = lf.sac(pol, qf, vf, batch, sampling)
         optim_pol.zero_grad()
         pol_loss.backward()
         optim_pol.step()

@@ -14,38 +14,24 @@
 # ==============================================================================
 #
 # This is an implementation of Vanilla Policy Gradient.
-#
 
 
 import torch
 import torch.nn as nn
+
+from machina import loss_functional as lf
 from machina.misc import logger
 
-def make_pol_loss(pol, batch):
-    obs = batch['obs']
-    acs = batch['acs']
-    advs = batch['advs']
-    _, _, pd_params = pol(obs)
-    llh = pol.pd.llh(acs, pd_params)
-
-    pol_loss = - torch.mean(llh * advs)
-    return pol_loss
 
 def update_pol(pol, optim_pol, batch):
-    pol_loss = make_pol_loss(pol, batch)
+    pol_loss = lf.pg(pol, batch)
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
-def make_vf_loss(vf, batch):
-    obs = batch['obs']
-    rets = batch['rets']
-    vf_loss = 0.5 * torch.mean((vf(obs) - rets)**2)
-    return vf_loss
-
 def update_vf(vf, optim_vf, batch):
-    vf_loss = make_vf_loss(vf, batch)
+    vf_loss = lf.monte_carlo(vf, batch)
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()

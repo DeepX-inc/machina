@@ -21,73 +21,21 @@
 
 import torch
 import torch.nn as nn
+
+from machina import loss_functional as lf
 from machina.misc import logger
 
 
-def make_pol_loss(pol, batch, kl_beta):
-    obs = batch['obs']
-    acs = batch['acs']
-    advs = batch['advs']
-
-    if pol.rnn:
-        h_masks = batch['h_masks']
-        out_masks = batch['out_masks']
-    else:
-        out_masks = torch.ones_like(advs)
-
-    pd = pol.pd
-
-    old_llh = pol.pd.llh(
-        batch['acs'],
-        batch
-    )
-
-    pol.reset()
-    if pol.rnn:
-        _, _, pd_params = pol(obs, h_masks=h_masks)
-    else:
-        _, _, pd_params = pol(obs)
-
-    new_llh = pol.pd.llh(acs, pd_params)
-    ratio = torch.exp(new_llh - old_llh)
-    pol_loss = ratio * advs * out_masks
-
-    kl = pol.pd.kl_pq(
-        batch,
-        pd_params
-    )
-
-    pol_loss -= kl_beta * kl * out_masks
-    pol_loss = - torch.mean(pol_loss)
-
-    return pol_loss
-
 def update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm):
-    pol_loss = make_pol_loss(pol, batch, kl_beta)
+    pol_loss = lf.pg_kl(pol, batch, kl_beta)
     optim_pol.zero_grad()
     pol_loss.backward()
     torch.nn.utils.clip_grad_norm_(pol.parameters(), max_grad_norm)
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
-def make_vf_loss(vf, batch):
-    obs = batch['obs']
-    rets = batch['rets']
-
-    vf.reset()
-    if vf.rnn:
-        h_masks = batch['h_masks']
-        out_masks = batch['out_masks']
-        vs, _ = vf(obs, h_masks=h_masks)
-    else:
-        out_masks = torch.ones_like(rets)
-        vs, _ = vf(obs)
-
-    vf_loss = 0.5 * torch.mean((vs - rets)**2 * out_masks)
-    return vf_loss
-
 def update_vf(vf, optim_vf, batch):
-    vf_loss = make_vf_loss(vf, batch)
+    vf_loss = lf.monte_carlo(vf, batch)
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()

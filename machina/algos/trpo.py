@@ -22,6 +22,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from machina import loss_functional as lf
 from machina.misc import logger
 from machina.utils import detach_tensor_dict
 
@@ -66,25 +67,6 @@ def linesearch(
             return True, xnew
     return False, x
 
-def make_pol_loss(pol, batch, volatile=False):
-    obs = batch['obs']
-    acs = batch['acs']
-    advs = batch['advs']
-
-    pol.reset()
-    if pol.rnn:
-        h_masks = batch['h_masks']
-        out_masks = batch['out_masks']
-        _, _, pd_params = pol(obs, h_masks=h_masks)
-    else:
-        out_masks = torch.ones_like(advs)
-        _, _, pd_params = pol(obs)
-
-    llh = pol.pd.llh(acs, pd_params)
-
-    pol_loss = - torch.mean(llh * advs * out_masks)
-    return pol_loss
-
 def make_kl(pol, batch):
     obs = batch['obs']
 
@@ -102,8 +84,8 @@ def make_kl(pol, batch):
         pd_params
     )
 
-def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10):
-    pol_loss = make_pol_loss(pol, batch)
+def update_pol(pol, batch, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10):
+    pol_loss = lf.pg(pol, batch)
     grads = torch.autograd.grad(pol_loss, pol.parameters(), create_graph=True)
     grads = [g.contiguous() for g in grads]
     flat_pol_loss_grad = nn.utils.parameters_to_vector(grads).detach()
@@ -135,30 +117,14 @@ def update_pol(pol, batch, make_pol_loss=make_pol_loss, make_kl=make_kl, max_kl=
     neggdotstepdir = torch.sum(-flat_pol_loss_grad * stepdir, 0, keepdim=True)
 
     prev_params = nn.utils.parameters_to_vector([p.contiguous() for p in pol.parameters()]).detach()
-    success, new_params = linesearch(pol, batch, make_pol_loss, prev_params, fullstep,
+    success, new_params = linesearch(pol, batch, lf.pg, prev_params, fullstep,
                                      neggdotstepdir / lm[0])
     nn.utils.vector_to_parameters(new_params, pol.parameters())
 
     return pol_loss.detach().cpu().numpy()
 
-def make_vf_loss(vf, batch):
-    obs = batch['obs']
-    rets = batch['rets']
-
-    vf.reset()
-    if vf.rnn:
-        h_masks = batch['h_masks']
-        out_masks = batch['out_masks']
-        vs, _ = vf(obs, h_masks=h_masks)
-    else:
-        out_masks = torch.ones_like(rets)
-        vs, _ = vf(obs)
-
-    vf_loss = 0.5 * torch.mean((vs - rets)**2 * out_masks)
-    return vf_loss
-
 def update_vf(vf, optim_vf, batch):
-    vf_loss = make_vf_loss(vf, batch)
+    vf_loss = lf.monte_carlo(vf, batch)
     optim_vf.zero_grad()
     vf_loss.backward()
     optim_vf.step()

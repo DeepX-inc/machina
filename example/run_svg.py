@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import argparse
 import copy
 import json
@@ -24,18 +25,19 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import gym
-import pybullet_envs
 
 import machina as mc
-from machina.pols import GaussianPol, MixtureGaussianPol
+from machina.pols import GaussianPol
 from machina.algos import svg
 from machina.prepro import BasePrePro
-from machina.qfuncs import DeterministicQfunc
+from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv
-from machina.data import ReplayData, GAEData
-from machina.samplers import BatchSampler
+from machina.traj import Traj
+from machina.traj import epi_functional as ef
+from machina.samplers import EpiSampler
 from machina.misc import logger
-from machina.utils import set_gpu, measure
+from machina.utils import set_device, measure
+
 from net import PolNet, QNet, MixturePolNet
 
 parser = argparse.ArgumentParser()

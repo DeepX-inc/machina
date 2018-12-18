@@ -13,10 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import argparse
+import copy
 import json
 import os
-import copy
 from pprint import pprint
 
 import numpy as np
@@ -40,22 +41,21 @@ from machina.utils import set_device, measure
 
 from simple_net import PolNet, QNet
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--record', action='store_true', default=False)
-parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--max_episodes_per_iter', type=int, default=256)
-parser.add_argument('--epoch_per_iter', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=1e-3)
 parser.add_argument('--use_prepro', action='store_true', default=False)
-parser.add_argument('--cuda', type=int, default=-1)
 parser.add_argument('--h1', type=int, default=32)
 parser.add_argument('--h2', type=int, default=32)
 
@@ -63,7 +63,6 @@ parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
-
 
 if not os.path.exists(args.log):
     os.mkdir(args.log)
@@ -113,13 +112,12 @@ sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, se
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
+
 off_traj = Traj()
 
 total_epi = 0
 total_step = 0
 max_rew = -1e6
-
-count = 0
 
 while args.max_episodes > total_epi:
     with measure('sample'):
@@ -127,19 +125,19 @@ while args.max_episodes > total_epi:
             epis = sampler.sample(pol, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
             epis = sampler.sample(pol, args.max_episodes_per_iter)
-    on_traj = Traj()
-    on_traj.add_epis(epis)
-
-    on_traj = ef.add_next_obs(on_traj)
-    on_traj.register_epis()
-
-    off_traj.add_traj(on_traj)
-
-    total_epi += on_traj.num_epi
-    step = on_traj.num_step
-    total_step += step
-
     with measure('train'):
+        on_traj = Traj()
+        on_traj.add_epis(epis)
+
+        on_traj = ef.add_next_obs(on_traj)
+        on_traj.register_epis()
+
+        off_traj.add_traj(on_traj)
+
+        total_epi += on_traj.num_epi
+        step = on_traj.num_step
+        total_step += step
+
         result_dict = ddpg.train(
             off_traj,
             pol, targ_pol, qf, targ_qf,
