@@ -24,7 +24,7 @@ from machina import loss_functional as lf
 from machina.misc import logger
 
 
-def train(off_data,
+def train(off_traj,
         pol, qf, vf,
         optim_pol, optim_qf, optim_vf,
         epoch, batch_size,# optimization hypers
@@ -35,7 +35,7 @@ def train(off_data,
     qf_losses = []
     pol_losses = []
     logger.log("Optimizing...")
-    for batch in off_data.random_batch(batch_size, epoch):
+    for batch in off_traj.random_batch(batch_size, epoch):
         vf_loss = lf.sac_sv(pol, qf, vf, batch, sampling)
         optim_vf.zero_grad()
         vf_loss.backward()

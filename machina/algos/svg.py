@@ -24,8 +24,8 @@ from machina import loss_functional as lf
 from machina.misc import logger
 
 
-def train(off_data,
-        pol, qf, targ_qf,
+def train(off_traj,
+        pol, targ_pol, qf, targ_qf,
         optim_pol, optim_qf,
         epoch, batch_size,# optimization hypers
         tau, gamma, # advantage estimation
@@ -35,8 +35,8 @@ def train(off_data,
     pol_losses = []
     qf_losses = []
     logger.log("Optimizing...")
-    for batch in off_data.iterate(batch_size, epoch):
-        qf_bellman_loss = lf.bellman(qf, targ_qf, pol, batch, gamma, deterministic=False, sampling=sampling)
+    for batch in off_traj.iterate(batch_size, epoch):
+        qf_bellman_loss = lf.bellman(qf, targ_qf, targ_pol, batch, gamma, deterministic=False, sampling=sampling)
         optim_qf.zero_grad()
         qf_bellman_loss.backward()
         optim_qf.step()
@@ -46,8 +46,9 @@ def train(off_data,
         pol_loss.backward()
         optim_pol.step()
 
-        for p, targ_p in zip(qf.parameters(), targ_qf.parameters()):
-            targ_p.copy_((1 - tau) * targ_p + tau * p)
+        for q, targ_q, p, targ_p in zip(qf.parameters(), targ_qf.parameters(), pol.parameters(), targ_pol.parameters()):
+            targ_p.detach().copy_((1 - tau) * targ_p.detach() + tau * p.detach())
+            targ_q.detach().copy_((1 - tau) * targ_q.detach() + tau * q.detach())
         qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
         pol_losses.append(pol_loss.detach().cpu().numpy())
 

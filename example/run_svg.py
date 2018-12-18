@@ -30,7 +30,7 @@ import machina as mc
 from machina.pols import GaussianPol
 from machina.algos import svg
 from machina.prepro import BasePrePro
-from machina.vfuncs import DeterministicSVfunc
+from machina.vfuncs import DeterministicSAVfunc
 from machina.envs import GymEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -38,37 +38,28 @@ from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import set_device, measure
 
-from net import PolNet, QNet, MixturePolNet
+from simple_net import PolNet, QNet
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='LunarLanderContinuous-v2')
-parser.add_argument('--roboschool', action='store_true', default=False)
+parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--record', action='store_true', default=False)
-parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
+parser.add_argument('--num_parallel', type=int, default=4)
 parser.add_argument('--cuda', type=int, default=-1)
 
-parser.add_argument('--mixture', type=int, default=1)
-parser.add_argument('--max_data_size', type=int, default=1000000)
-parser.add_argument('--min_data_size', type=int, default=10000)
-parser.add_argument('--max_samples_per_iter', type=int, default=2000)
-parser.add_argument('--max_episodes_per_iter', type=int, default=10000)
+parser.add_argument('--max_episodes_per_iter', type=int, default=256)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--sampling', type=int, default=10)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=3e-4)
 parser.add_argument('--use_prepro', action='store_true', default=False)
 
-parser.add_argument('--batch_type', type=str, choices=['large', 'small'], default='large')
-
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 args = parser.parse_args()
-
-args.cuda = args.cuda if torch.cuda.is_available() else -1
-set_gpu(args.cuda)
 
 if not os.path.exists(args.log):
     os.mkdir(args.log)
@@ -83,8 +74,9 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
-if args.roboschool:
-    import roboschool
+device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
+device = torch.device(device_name)
+set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
@@ -95,56 +87,68 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-if args.mixture > 1:
-    pol_net = MixturePolNet(ob_space, ac_space, args.mixture)
-    pol = MixtureGaussianPol(ob_space, ac_space, pol_net)
-else:
-    pol_net = PolNet(ob_space, ac_space)
-    pol = GaussianPol(ob_space, ac_space, pol_net)
+pol_net = PolNet(ob_space, ac_space)
+pol = GaussianPol(ob_space, ac_space, pol_net)
+
+targ_pol_net = PolNet(ob_space, ac_space)
+targ_pol_net.load_state_dict(pol_net.state_dict())
+targ_pol = GaussianPol(ob_space, ac_space, targ_pol_net)
+
 qf_net = QNet(ob_space, ac_space)
-qf = DeterministicQfunc(ob_space, ac_space, qf_net)
-targ_qf = copy.deepcopy(qf)
-prepro = BasePrePro(ob_space)
-sampler = BatchSampler(env)
+qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
+
+targ_qf_net = QNet(ob_space, ac_space)
+targ_qf_net.load_state_dict(targ_qf_net.state_dict())
+targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
+
+if args.use_prepro:
+    prepro = BasePrePro(ob_space)
+else:
+    prepro = None
+
+sampler = EpiSampler(env, pol, args.num_parallel, prepro=prepro, seed=args.seed)
+
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
+
+off_traj = Traj()
 
 total_epi = 0
 total_step = 0
 max_rew = -1e6
-off_data = ReplayData(args.max_data_size, ob_space.shape[0], ac_space.shape[0])
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.use_prepro:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter, prepro.prepro_with_update)
+            epis = sampler.sample(pol, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
-            paths = sampler.sample(pol, args.max_samples_per_iter, args.max_episodes_per_iter)
-
-    total_epi += len(paths)
-    step = sum([len(path['rews']) for path in paths])
-    total_step += step
-
-    off_data.add_paths(paths)
-
-    if off_data.size <= args.min_data_size:
-        continue
-
+            epis = sampler.sample(pol, args.max_episodes_per_iter)
     with measure('train'):
+        on_traj = Traj()
+        on_traj.add_epis(epis)
+
+        on_traj = ef.add_next_obs(on_traj)
+        on_traj.register_epis()
+
+        off_traj.add_traj(on_traj)
+
+        total_epi += on_traj.num_epi
+        step = on_traj.num_step
+        total_step += step
+
         result_dict = svg.train(
-            off_data,
-            pol, qf, targ_qf,
+            off_traj,
+            pol, targ_pol, qf, targ_qf,
             optim_pol,optim_qf, step, args.batch_size,
             args.tau, args.gamma, args.sampling,
         )
 
-    rewards = [np.sum(path['rews']) for path in paths]
+    rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_step,
                           rewards,
                           plot_title=args.env_name)
 
-    mean_rew = np.mean([np.sum(path['rews']) for path in paths])
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
         torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_max.pkl'))
@@ -156,8 +160,5 @@ while args.max_episodes > total_epi:
     torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_last.pkl'))
-
-
-
-
-
+    del on_traj
+del sampler

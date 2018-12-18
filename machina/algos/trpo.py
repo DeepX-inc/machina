@@ -23,8 +23,8 @@ import torch.nn as nn
 import numpy as np
 
 from machina import loss_functional as lf
-from machina.misc import logger
 from machina.utils import detach_tensor_dict
+from machina.misc import logger
 
 def conjugate_gradients(Avp, b, nsteps, residual_tol=1e-10):
     x = torch.zeros_like(b)

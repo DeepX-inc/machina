@@ -17,6 +17,8 @@
 import torch
 import torch.nn as nn
 
+from machina.utils import detach_tensor_dict
+
 
 def pg_clip(pol, batch, clip_param, ent_beta):
     obs = batch['obs']
@@ -116,7 +118,7 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
             next_q, _ = targ_qf(next_obs, param['mean'])
         else:
             next_q = 0
-            _, _, pd_params = pol(next_obs)
+            _, _, pd_params = targ_pol(next_obs)
             next_means, next_log_stds = pd_params['mean'], pd_params['log_std']
             for _ in range(sampling):
                 next_acs = next_means + torch.randn_like(next_means) * torch.exp(next_log_stds)
@@ -203,7 +205,7 @@ def svg(pol, qf, batch, sampling, kl_coeff=0):
 
     _, _, pd_params = pol(obs)
     kl = pol.pd.kl_pq(
-        {k:d.detach() for k, d in pd_params.items()},
+        detach_tensor_dict(pd_params),
         pd_params
     )
     mean_kl = torch.mean(kl)

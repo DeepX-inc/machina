@@ -37,7 +37,7 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.step()
     return vf_loss.detach().cpu().numpy()
 
-def train(data, pol, vf,
+def train(traj, pol, vf,
         optim_pol, optim_vf,
         epoch, batch_size,# optimization hypers
         gamma, lam, # advantage estimation
@@ -48,14 +48,14 @@ def train(data, pol, vf,
     vf_losses = []
     logger.log("Optimizing...")
     if large_batch:
-        for batch in data.full_batch(epoch):
+        for batch in traj.full_batch(epoch):
             pol_loss = update_pol(pol, optim_pol, batch)
             vf_loss = update_vf(vf, optim_vf, batch)
 
             pol_losses.append(pol_loss)
             vf_losses.append(vf_loss)
     else:
-        for batch in data.iterate(batch_size, epoch):
+        for batch in traj.iterate(batch_size, epoch):
             pol_loss = update_pol(pol, optim_pol, batch)
             vf_loss = update_vf(vf, optim_vf, batch)
 
