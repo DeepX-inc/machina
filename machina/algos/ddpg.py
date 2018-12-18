@@ -2,29 +2,9 @@
 
 import torch
 import torch.nn as nn
+
+from machina import loss_functional as lf
 from machina.misc import logger
-
-
-def make_pol_loss(pol, qf, batch):
-    obs = batch['obs']
-    _, _, param = pol(obs)
-    q, _ = qf(obs, param['mean'])
-    pol_loss = -torch.mean(q)
-    return pol_loss
-
-
-def make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma):
-    obs = batch['obs']
-    acs = batch['acs']
-    rews = batch['rews']
-    next_obs = batch['next_obs']
-    dones = batch['dones']
-    _, _, param = targ_pol(next_obs)
-    next_q, _ = targ_qf(next_obs, param['mean'])
-    targ = rews + gamma * next_q * (1 - dones)
-    targ = targ.detach()
-    q, _ = qf(obs, acs)
-    return 0.5 * torch.mean((q - targ)**2)
 
 
 def train(traj,
@@ -38,12 +18,12 @@ def train(traj,
     qf_losses = []
     logger.log("Optimizing...")
     for batch in traj.random_batch(batch_size, epoch):
-        qf_bellman_loss = make_bellman_loss(qf, targ_qf, targ_pol, batch, gamma)
+        qf_bellman_loss = lf.bellman(qf, targ_qf, targ_pol, batch, gamma)
         optim_qf.zero_grad()
         qf_bellman_loss.backward()
         optim_qf.step()
 
-        pol_loss = make_pol_loss(pol, qf, batch)
+        pol_loss = lf.dpg(pol, qf, batch)
         optim_pol.zero_grad()
         pol_loss.backward()
         optim_pol.step()
