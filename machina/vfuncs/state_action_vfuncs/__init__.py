@@ -13,10 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-import torch.nn as nn
-class BaseQfunc(nn.Module):
-    def __init__(self, ob_space, ac_space):
-        nn.Module.__init__(self)
-        self.ob_space = ob_space
-        self.ac_space = ac_space
 
+from machina.vfuncs.state_action_vfuncs.base import BaseSAVfunc
+from machina.vfuncs.state_action_vfuncs.deterministic_state_action_vfunc import DeterministicSAVfunc

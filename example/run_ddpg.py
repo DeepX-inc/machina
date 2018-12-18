@@ -30,7 +30,7 @@ from machina.pols import DeterministicActionNoisePol
 from machina.noise import OUActionNoise
 from machina.algos import ddpg
 from machina.prepro import BasePrePro
-from machina.qfuncs import DeterministicQfunc
+from machina.vfuncs import DeterministicSAVfunc
 from machina.envs import GymEnv
 from machina.data import Data, add_next_obs
 from machina.samplers import EpiSampler
@@ -99,9 +99,9 @@ targ_noise = OUActionNoise(ac_space.shape)
 targ_pol = DeterministicActionNoisePol(ob_space, ac_space, targ_pol_net, targ_noise)
 
 qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
-qf = DeterministicQfunc(ob_space, ac_space, qf_net)
+qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
 targ_qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
-targ_qf = DeterministicQfunc(ob_space, ac_space, targ_qf_net)
+targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
 
 if args.use_prepro:
     prepro = BasePrePro(ob_space)

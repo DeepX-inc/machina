@@ -13,10 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
-from machina.noise.base import BaseActionNoise
+
 import numpy as np
 import torch
+
 from machina.utils import get_device
+from machina.noise.base import BaseActionNoise
 
 class OUActionNoise(BaseActionNoise):
     def __init__(self, ac_space, sigma=0.2, theta=.15, dt=1e-2, x0=None):
@@ -28,10 +30,10 @@ class OUActionNoise(BaseActionNoise):
         self.x0 = x0
         self.reset()
 
-    def __call__(self):
+    def __call__(self, device='cpu'):
         x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
         self.x_prev = x
-        return torch.tensor(x, dtype=torch.float, device=get_device())
+        return torch.tensor(x, dtype=torch.float, device=device)
 
     def reset(self):
         if self.x0 is not None:

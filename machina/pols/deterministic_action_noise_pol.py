@@ -29,17 +29,15 @@ class DeterministicActionNoisePol(BasePol):
         super(DeterministicActionNoisePol, self).reset()
         if self.noise is not None:
             self.noise.reset()
-        else:
-            pass
 
-    def forward(self, obs):
+    def forward(self, obs, no_noise=False):
         mean = self.net(obs)
         ac = mean
-        if self.noise is not None:
-            action_noise = self.noise()
+
+        if self.noise is not None and not no_noise:
+            action_noise = self.noise(device=ac.device)
             ac = ac + action_noise
-        else:
-            pass
+
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(mean=mean)
 
@@ -49,4 +47,4 @@ class DeterministicActionNoisePol(BasePol):
         """
         mean = self.net(obs)
         mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
-        return mean_real
+        return mean_real, mean, dict(mean=mean)
