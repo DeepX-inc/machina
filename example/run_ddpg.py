@@ -32,7 +32,8 @@ from machina.algos import ddpg
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicSAVfunc
 from machina.envs import GymEnv
-from machina.data import Data, add_next_obs
+from machina.traj import Traj
+from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import set_device, measure
@@ -112,7 +113,7 @@ sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, se
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
-off_data = Data()
+off_traj = Traj()
 
 total_epi = 0
 total_step = 0
@@ -126,30 +127,33 @@ while args.max_episodes > total_epi:
             epis = sampler.sample(pol, args.max_episodes_per_iter, prepro.prepro_with_update)
         else:
             epis = sampler.sample(pol, args.max_episodes_per_iter)
-    off_data.add_epis(epis)
-    add_next_obs(off_data)
-    off_data.register_epis()
+    on_traj = Traj()
+    on_traj.add_epis(epis)
 
-    epi = len(epis)
-    total_epi += epi
-    step = sum([len(epi['rews']) for epi in epis])
+    on_traj = ef.add_next_obs(on_traj)
+    on_traj.register_epis()
+
+    off_traj.add_traj(on_traj)
+
+    total_epi += on_traj.num_epi
+    step = on_traj.num_step
     total_step += step
 
     with measure('train'):
         result_dict = ddpg.train(
-            off_data,
+            off_traj,
             pol, targ_pol, qf, targ_qf,
             optim_pol, optim_qf, step, args.batch_size,
             args.tau, args.gamma, args.lam
         )
 
     rewards = [np.sum(epi['rews']) for epi in epis]
+    mean_rew = np.mean(rewards)
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_step,
                           rewards,
                           plot_title=args.env_name)
 
-    mean_rew = np.mean([np.sum(epi['rews']) for epi in epis])
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
         torch.save(qf.state_dict(), os.path.join(args.log, 'models',  'qf_max.pkl'))
@@ -161,4 +165,5 @@ while args.max_episodes > total_epi:
     torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models',  'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models',  'optim_qf_last.pkl'))
+    del on_traj
 del sampler

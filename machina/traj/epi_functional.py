@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import numpy as np
 import torch
 
@@ -77,7 +78,7 @@ def add_next_obs(data):
 
     return data
 
-def add_h_masks(data):
+def compute_h_masks(data):
     epis = data.current_epis
     for epi in epis:
         h_masks = np.zeros_like(epi['rews'])

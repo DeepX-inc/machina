@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import functools
 
 import numpy as np
@@ -21,7 +22,8 @@ from torch.nn.utils.rnn import pad_sequence
 
 from machina.utils import get_device
 
-class Data(object):
+
+class Traj(object):
     def __init__(self):
         self.data_map = dict()
         self._next_id = 0
@@ -76,10 +78,10 @@ class Data(object):
 
         self.current_epis = None
 
-    def add_data(self, data):
-        self._concat_data_map(data.data_map)
+    def add_traj(self, traj):
+        self._concat_data_map(traj.data_map)
 
-        epis_index = data._epis_index
+        epis_index = traj._epis_index
         epis_index = epis_index + self._epis_index[-1]
         self._epis_index = np.concatenate([self._epis_index, epis_index[1:]])
 

@@ -30,7 +30,8 @@ from machina.algos import ppo_clip, ppo_kl
 from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv, C2DEnv
-from machina.data import Data, compute_vs, compute_rets, compute_advs, centerize_advs, add_h_masks
+from machina.traj import Traj
+from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
 from machina.misc import logger
 from machina.utils import measure, set_device
@@ -142,23 +143,25 @@ while args.max_episodes > total_epi:
         else:
             epis = sampler.sample(pol, args.max_episodes_per_iter)
     with measure('train'):
-        data = Data()
-        data.add_epis(epis)
-        data = compute_vs(data, vf)
-        data = compute_rets(data, args.gamma)
-        data = compute_advs(data, args.gamma, args.lam)
-        data = centerize_advs(data)
-        data = add_h_masks(data)
-        data.register_epis()
+        traj = Traj()
+        traj.add_epis(epis)
+
+        traj = ef.compute_vs(traj, vf)
+        traj = ef.compute_rets(traj, args.gamma)
+        traj = ef.compute_advs(traj, args.gamma, args.lam)
+        traj = ef.centerize_advs(traj)
+        traj = ef.compute_h_masks(traj)
+        traj.register_epis()
+
         if args.ppo_type == 'clip':
-            result_dict = ppo_clip.train(data=data, pol=pol, vf=vf, clip_param=args.clip_param,
+            result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=args.clip_param,
                                          optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
         else:
-            result_dict = ppo_kl.train(data=data, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
+            result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
                                        optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
-    total_epi += data.num_epi
-    step = sum([len(epi['rews']) for epi in epis])
+    total_epi += traj.num_epi
+    step = traj.num_step
     total_step += step
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
@@ -186,5 +189,5 @@ while args.max_episodes > total_epi:
         args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_vf.state_dict(), os.path.join(
         args.log, 'models', 'optim_vf_last.pkl'))
-    del data
+    del traj
 del sampler
