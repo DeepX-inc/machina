@@ -14,3 +14,4 @@
 # ==============================================================================
 
 from machina import misc  # NOQA
+from machina.traj import epi_functional

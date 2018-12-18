@@ -164,7 +164,7 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.step()
     return vf_loss.detach().cpu().numpy()
 
-def train(data, pol, vf,
+def train(traj, pol, vf,
         optim_vf,
         epoch=5, batch_size=64, num_epi_per_seq=1,# optimization hypers
         max_kl=0.01, num_cg=10, damping=0.1,
@@ -173,12 +173,12 @@ def train(data, pol, vf,
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    iterator = data.full_batch(1) if not pol.rnn else data.iterate_rnn(batch_size=data.num_epi)
+    iterator = traj.full_batch(1) if not pol.rnn else traj.iterate_rnn(batch_size=traj.num_epi)
     for batch in iterator:
         pol_loss = update_pol(pol, batch, max_kl=max_kl, num_cg=num_cg, damping=damping)
         pol_losses.append(pol_loss)
 
-    iterator = data.iterate(batch_size, epoch) if not pol.rnn else data.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+    iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
         vf_loss = update_vf(vf, optim_vf, batch)
         vf_losses.append(vf_loss)

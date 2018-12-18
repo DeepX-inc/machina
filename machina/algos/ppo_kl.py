@@ -92,7 +92,7 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.step()
     return vf_loss.detach().cpu().numpy()
 
-def train(data, pol, vf,
+def train(traj, pol, vf,
         kl_beta, kl_targ,
         optim_pol, optim_vf,
         epoch, batch_size, max_grad_norm,
@@ -102,7 +102,7 @@ def train(data, pol, vf,
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    iterator = data.iterate(batch_size, epoch) if not pol.rnn else data.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+    iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
         pol_loss = update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm)
         vf_loss = update_vf(vf, optim_vf, batch)
@@ -110,7 +110,7 @@ def train(data, pol, vf,
         pol_losses.append(pol_loss)
         vf_losses.append(vf_loss)
 
-    iterator = data.full_batch(1) if not pol.rnn else data.iterate_rnn(batch_size=data.num_epi)
+    iterator = traj.full_batch(1) if not pol.rnn else traj.iterate_rnn(batch_size=traj.num_epi)
     batch = next(iterator)
     with torch.no_grad():
         pol.reset()
