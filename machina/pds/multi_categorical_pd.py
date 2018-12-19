@@ -24,7 +24,7 @@ class MultiCategoricalPd(BasePd):
     def __init__(self, ob_space, ac_space):
         BasePd.__init__(self, ob_space, ac_space)
 
-    def sample(self, params):
+    def sample(self, params, sample_shape=torch.Size()):
         pis = params['pis']
         pis_sampled = []
         for pi in torch.chunk(pis, pis.size(-2), -2):
