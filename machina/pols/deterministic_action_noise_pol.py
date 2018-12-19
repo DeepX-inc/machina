@@ -13,15 +13,19 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import numpy as np
 import torch
+
 from machina.pols import BasePol
 from machina.utils import get_device
 
+
 class DeterministicActionNoisePol(BasePol):
-    def __init__(self, ob_space, ac_space, net, noise=None, normalize_ac=True):
-        BasePol.__init__(self, ob_space, ac_space, normalize_ac)
-        self.net = net
+    def __init__(self, ob_space, ac_space, net, rnn=False, noise=None, normalize_ac=True, data_parallel=False, parallel_dim=0):
+        if rnn:
+            raise ValueError('rnn with DeterministicActionNoisePol is not supported now')
+        BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac, data_parallel=data_parallel, parallel_dim=parallel_dim)
         self.noise = noise
         self.to(get_device())
 
@@ -31,7 +35,12 @@ class DeterministicActionNoisePol(BasePol):
             self.noise.reset()
 
     def forward(self, obs, no_noise=False):
-        mean = self.net(obs)
+        obs = self._check_obs_shape(obs)
+
+        if self.dp_run:
+            mean = self.dp_net(obs)
+        else:
+            mean = self.net(obs)
         ac = mean
 
         if self.noise is not None and not no_noise:

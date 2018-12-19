@@ -13,12 +13,15 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import numpy as np
 import torch
 import torch.nn as nn
+
 from machina.pols import BasePol
 from machina.pds.gaussian_pd import GaussianPd
 from machina.utils import get_device
+
 
 class GaussianPol(BasePol):
     def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
