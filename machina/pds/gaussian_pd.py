@@ -34,7 +34,7 @@ class GaussianPd(BasePd):
     def llh(self, x, params):
         mean, log_std = params['mean'], params['log_std']
         std = torch.exp(log_std)
-        return Normal(loc=mean, scale=std).log_prob(x)
+        return torch.sum(Normal(loc=mean, scale=std).log_prob(x), dim=-1)
 
     def kl_pq(self, p_params, q_params):
         p_mean, p_log_std = p_params['mean'], p_params['log_std']

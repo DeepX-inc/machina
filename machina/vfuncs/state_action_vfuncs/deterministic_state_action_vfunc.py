@@ -45,4 +45,4 @@ class DeterministicSAVfunc(BaseSAVfunc):
                 vs = self.dp_net(obs, acs)
             else:
                 vs = self.net(obs, acs)
-            return vs.reshape(-1), dict()
+            return vs.squeeze(-1), dict()
