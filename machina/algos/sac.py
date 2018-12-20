@@ -25,41 +25,40 @@ from machina.misc import logger
 
 
 def train(off_traj,
-        pol, qf, vf,
-        optim_pol, optim_qf, optim_vf,
+        pol, qf, targ_qf, log_alpha,
+        optim_pol, optim_qf, optim_alpha,
         epoch, batch_size,# optimization hypers
         gamma, sampling,
         ):
 
-    vf_losses = []
     qf_losses = []
     pol_losses = []
+    alpha_losses = []
     logger.log("Optimizing...")
     for batch in off_traj.random_batch(batch_size, epoch):
-        vf_loss = lf.sac_sv(pol, qf, vf, batch, sampling)
-        optim_vf.zero_grad()
-        vf_loss.backward()
-        optim_vf.step()
+        pol_loss, qf_loss, alpha_loss = lf.sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling)
 
-        qf_loss = lf.sac_sav(qf, vf, batch, gamma)
-        optim_qf.zero_grad()
-        qf_loss.backward()
-        optim_qf.step()
-
-        pol_loss = lf.sac(pol, qf, vf, batch, sampling)
         optim_pol.zero_grad()
         pol_loss.backward()
         optim_pol.step()
 
-        vf_losses.append(vf_loss.detach().cpu().numpy())
-        qf_losses.append(qf_loss.detach().cpu().numpy())
+        optim_qf.zero_grad()
+        qf_loss.backward()
+        optim_qf.step()
+
+        optim_alpha.zero_grad()
+        alpha_loss.backward()
+        optim_alpha.step()
+
         pol_losses.append(pol_loss.detach().cpu().numpy())
+        qf_losses.append(qf_loss.detach().cpu().numpy())
+        alpha_losses.append(alpha_loss.detach().cpu().numpy())
 
     logger.log("Optimization finished!")
 
     return dict(
-        VfLoss=vf_losses,
-        QfLoss=qf_losses,
         PolLoss=pol_losses,
+        QfLoss=qf_losses,
+        AlphaLoss=alpha_losses
     )
 

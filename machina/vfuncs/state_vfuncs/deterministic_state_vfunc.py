@@ -46,7 +46,7 @@ class DeterministicSVfunc(BaseSVfunc):
                 vs = self.dp_net(obs)
             else:
                 vs = self.net(obs)
-            return vs.reshape(-1), dict()
+            return vs.squeeze(-1), dict()
 
 class NormalizedDeterministicSVfunc(DeterministicSVfunc):
     def __init__(self, ob_space, net):

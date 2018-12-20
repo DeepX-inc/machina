@@ -14,6 +14,7 @@
 # ==============================================================================
 
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -133,58 +134,43 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
     else:
         raise NotImplementedError()
 
-def sac(pol, qf, vf, batch, sampling):
-    obs = batch['obs']
-
-    _, _, pd_params = pol(obs)
-    pd = pol.pd
-
-    acs = pd.sample(pd_params, torch.Size([sampling]))
-    llh = pd.llh(acs.detach(), pd_params)
-
-    obs = obs.expand([sampling] + list(obs.size()))
-    q, _ = qf(obs, acs)
-    q = q.detach()
-
-    v, _ = vf(obs)
-    v = v.detach()
-
-    pol_loss = torch.mean(llh * (llh.detach() - q + v), dim=0)
-
-    return torch.mean(pol_loss)
-
-def sac_sav(qf, vf, batch, gamma):
+def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
     obs = batch['obs']
     acs = batch['acs']
     rews = batch['rews']
     next_obs = batch['next_obs']
     dones = batch['dones']
 
-    v, _ = vf(next_obs)
+    alpha = torch.exp(log_alpha)
 
-    targ = rews + gamma * v * (1 - dones)
-    targ = targ.detach()
-
-    q, _ = qf(obs, acs)
-
-    return 0.5 * torch.mean((q - targ)**2)
-
-def sac_sv(pol, qf, vf, batch, sampling):
-    obs = batch['obs']
-
+    pol.reset()
     _, _, pd_params = pol(obs)
+    pol.reset()
+    _, _, next_pd_params = pol(next_obs)
     pd = pol.pd
 
-    acs = pd.sample(pd_params, torch.Size([sampling]))
-    llh = pd.llh(acs, pd_params)
+    sampled_acs = pd.sample(pd_params, torch.Size([sampling]))
+    sampled_next_acs = pd.sample(next_pd_params, torch.Size([sampling]))
 
-    q, _ = qf(obs.expand([sampling] + list(obs.size())), acs)
-    targ = q - llh
-    targ = torch.mean(targ, dim=0).detach()
+    sampled_llh = pd.llh(sampled_acs.detach(), pd_params)
+    sampled_next_llh = pd.llh(sampled_next_acs, next_pd_params)
 
-    v, _ = vf(obs)
+    q, _ = qf(obs, acs)
+    sampled_q, _ = qf(obs.expand([sampling] + list(obs.size())), sampled_acs)
+    sampled_next_targ_q, _ = targ_qf(next_obs.expand([sampling] + list(next_obs.size())), sampled_next_acs)
 
-    return 0.5 * torch.mean((v - targ)**2)
+    next_v = torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
+
+    q_targ = rews + gamma * next_v * (1 - dones)
+    q_targ = q_targ.detach()
+
+    qf_loss = 0.5 * torch.mean((q - q_targ)**2)
+
+    pol_loss = torch.mean(sampled_llh * (alpha * sampled_llh - sampled_q).detach())
+
+    alpha_loss = - torch.mean(log_alpha * (sampled_llh - np.prod(pol.ac_space.shape).item()).detach())
+
+    return pol_loss, qf_loss, alpha_loss
 
 def svg(pol, qf, batch, sampling, kl_coeff=0):
     obs = batch['obs']
