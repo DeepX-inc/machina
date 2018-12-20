@@ -72,7 +72,7 @@ def one_epi(env, pol, deterministic=False, prepro=None):
         e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32')) for key in e_is[0].keys()])
     )
 
-def mp_sample(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
+def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
 
     np.random.seed(seed + process_id)
     torch.manual_seed(seed + process_id)
@@ -80,9 +80,9 @@ def mp_sample(pol, env, max_samples, max_episodes, n_samples_global, n_episodes_
 
     while True:
         if exec_flags[process_id] > 0:
-            while max_samples > n_samples_global and max_episodes > n_episodes_global:
+            while max_steps > n_steps_global and max_episodes > n_episodes_global:
                 l, epi = one_epi(env, pol, deterministic_flag, prepro)
-                n_samples_global += l
+                n_steps_global += l
                 n_episodes_global += 1
                 epis.append(epi)
             exec_flags[process_id].zero_()
@@ -99,8 +99,8 @@ class EpiSampler(object):
         self.pol.eval()
         self.num_parallel = num_parallel
 
-        self.n_samples_global = torch.tensor(0, dtype=torch.long).share_memory_()
-        self.max_samples = torch.tensor(0, dtype=torch.long).share_memory_()
+        self.n_steps_global = torch.tensor(0, dtype=torch.long).share_memory_()
+        self.max_steps = torch.tensor(0, dtype=torch.long).share_memory_()
         self.n_episodes_global = torch.tensor(0, dtype=torch.long).share_memory_()
         self.max_episodes = torch.tensor(0, dtype=torch.long).share_memory_()
 
@@ -110,7 +110,7 @@ class EpiSampler(object):
         self.epis = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
-            p = mp.Process(target=mp_sample, args=(self.pol, env, self.max_samples, self.max_episodes, self.n_samples_global, self.n_episodes_global, self.epis, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
+            p = mp.Process(target=mp_sample, args=(self.pol, env, self.max_steps, self.max_episodes, self.n_steps_global, self.n_episodes_global, self.epis, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
             p.start()
             self.processes.append(p)
 
@@ -118,20 +118,20 @@ class EpiSampler(object):
         for p in self.processes:
             p.terminate()
 
-    def sample(self, pol, max_episodes=None, max_samples=None, deterministic=False):
+    def sample(self, pol, max_episodes=None, max_steps=None, deterministic=False):
         for sp, p in zip(self.pol.parameters(), pol.parameters()):
             sp.data.copy_(p.data.to('cpu'))
 
-        if max_episodes is None and max_samples is None:
-            raise ValueError('Either max_episodes or max_samples needs not to be None')
+        if max_episodes is None and max_steps is None:
+            raise ValueError('Either max_episodes or max_steps needs not to be None')
         max_episodes = max_episodes if max_episodes is not None else LARGE_NUMBER
-        max_samples = max_samples if max_samples is not None else LARGE_NUMBER
+        max_steps = max_steps if max_steps is not None else LARGE_NUMBER
 
-        self.n_samples_global.zero_()
+        self.n_steps_global.zero_()
         self.n_episodes_global.zero_()
 
-        self.max_samples.zero_()
-        self.max_samples += max_samples
+        self.max_steps.zero_()
+        self.max_steps += max_steps
         self.max_episodes.zero_()
         self.max_episodes += max_episodes
 
