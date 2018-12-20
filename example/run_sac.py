@@ -29,7 +29,6 @@ import gym
 import machina as mc
 from machina.pols import GaussianPol
 from machina.algos import sac
-from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
 from machina.envs import GymEnv
 from machina.traj import Traj
@@ -50,13 +49,12 @@ parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
 parser.add_argument('--cuda', type=int, default=-1)
 
-parser.add_argument('--max_episodes_per_iter', type=int, default=256)
+,parser.add_argument('--max_steps_per_iter', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--sampling', type=int, default=10)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=3e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
-parser.add_argument('--use_prepro', action='store_true', default=False)
 
 parser.add_argument('--ent_alpha', type=float, default=1)
 parser.add_argument('--gamma', type=float, default=0.99)
@@ -97,12 +95,7 @@ qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
 vf_net = VNet(ob_space)
 vf = DeterministicSVfunc(ob_space, vf_net)
 
-if args.use_prepro:
-    prepro = BasePrePro(ob_space)
-else:
-    prepro = None
-
-sampler = EpiSampler(env, pol, args.num_parallel, prepro=prepro, seed=args.seed)
+sampler = EpiSampler(env, pol, args.num_parallel, seed=args.seed)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
@@ -115,10 +108,7 @@ max_rew = -1e6
 
 while args.max_episodes > total_epi:
     with measure('sample'):
-        if args.use_prepro:
-            epis = sampler.sample(pol, args.max_episodes_per_iter, prepro.prepro_with_update)
-        else:
-            epis = sampler.sample(pol, args.max_episodes_per_iter)
+        epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
 
     with measure('train'):
         on_traj = Traj()

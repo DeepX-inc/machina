@@ -30,7 +30,6 @@ import machina as mc
 from machina.pols import DeterministicActionNoisePol
 from machina.noise import OUActionNoise
 from machina.algos import ddpg
-from machina.prepro import BasePrePro
 from machina.vfuncs import DeterministicSAVfunc
 from machina.envs import GymEnv
 from machina.traj import Traj
@@ -51,11 +50,10 @@ parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
 parser.add_argument('--cuda', type=int, default=-1)
 
-parser.add_argument('--max_episodes_per_iter', type=int, default=256)
+,parser.add_argument('--max_steps_per_iter', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=1e-3)
-parser.add_argument('--use_prepro', action='store_true', default=False)
 parser.add_argument('--h1', type=int, default=32)
 parser.add_argument('--h2', type=int, default=32)
 
@@ -106,12 +104,7 @@ targ_qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 targ_qf_net.load_state_dict(targ_qf_net.state_dict())
 targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
 
-if args.use_prepro:
-    prepro = BasePrePro(ob_space)
-else:
-    prepro = None
-
-sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, prepro=prepro, seed=args.seed)
+sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
@@ -124,10 +117,7 @@ max_rew = -1e6
 
 while args.max_episodes > total_epi:
     with measure('sample'):
-        if args.use_prepro:
-            epis = sampler.sample(pol, args.max_episodes_per_iter, prepro.prepro_with_update)
-        else:
-            epis = sampler.sample(pol, args.max_episodes_per_iter)
+        epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
     with measure('train'):
         on_traj = Traj()
         on_traj.add_epis(epis)
