@@ -149,20 +149,24 @@ def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
     _, _, next_pd_params = pol(next_obs)
     pd = pol.pd
 
+    sampled_obs = obs.expand([sampling] + list(obs.size()))
+    sampled_next_obs = next_obs.expand([sampling] + list(next_obs.size()))
+
     sampled_acs = pd.sample(pd_params, torch.Size([sampling]))
     sampled_next_acs = pd.sample(next_pd_params, torch.Size([sampling]))
 
     sampled_llh = pd.llh(sampled_acs.detach(), pd_params)
     sampled_next_llh = pd.llh(sampled_next_acs, next_pd_params)
 
-    q, _ = qf(obs, acs)
-    sampled_q, _ = qf(obs.expand([sampling] + list(obs.size())), sampled_acs)
-    sampled_next_targ_q, _ = targ_qf(next_obs.expand([sampling] + list(next_obs.size())), sampled_next_acs)
+    sampled_q, _ = qf(sampled_obs, sampled_acs)
+    sampled_next_targ_q, _ = targ_qf(sampled_next_obs, sampled_next_acs)
 
     next_v = torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
 
     q_targ = rews + gamma * next_v * (1 - dones)
     q_targ = q_targ.detach()
+
+    q, _ = qf(obs, acs)
 
     qf_loss = 0.5 * torch.mean((q - q_targ)**2)
 

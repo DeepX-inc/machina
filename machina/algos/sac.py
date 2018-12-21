@@ -28,7 +28,7 @@ def train(off_traj,
         pol, qf, targ_qf, log_alpha,
         optim_pol, optim_qf, optim_alpha,
         epoch, batch_size,# optimization hypers
-        gamma, sampling,
+        tau, gamma, sampling,
         ):
 
     qf_losses = []
@@ -49,6 +49,9 @@ def train(off_traj,
         optim_alpha.zero_grad()
         alpha_loss.backward()
         optim_alpha.step()
+
+        for q, targ_q in zip(qf.parameters(), targ_qf.parameters()):
+            targ_q.detach().copy_((1 - tau) * targ_q.detach() + tau * q.detach())
 
         pol_losses.append(pol_loss.detach().cpu().numpy())
         qf_losses.append(qf_loss.detach().cpu().numpy())

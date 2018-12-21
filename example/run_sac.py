@@ -57,6 +57,7 @@ parser.add_argument('--qf_lr', type=float, default=3e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 
 parser.add_argument('--ent_alpha', type=float, default=1)
+parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 args = parser.parse_args()
 
@@ -130,7 +131,7 @@ while args.max_episodes > total_epi:
             pol, qf, targ_qf, log_alpha,
             optim_pol,optim_qf, optim_alpha,
             step, args.batch_size,
-            args.gamma, args.sampling,
+            args.tau, args.gamma, args.sampling,
         )
 
     rewards = [np.sum(epi['rews']) for epi in epis]
