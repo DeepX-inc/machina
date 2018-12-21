@@ -23,7 +23,7 @@ from machina.utils import get_device
 class MultiCategoricalPol(BasePol):
     def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         BasePol.__init__(self, ob_space, ac_space, net, rnn,  normalize_ac, data_parallel, parallel_dim)
-        self.pd = MultiCategoricalPd(ob_space, ac_space)
+        self.pd = MultiCategoricalPd()
         self.to(get_device())
 
     def forward(self, obs, hs=None, h_masks=None):

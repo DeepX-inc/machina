@@ -99,6 +99,7 @@ targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
 log_alpha = nn.Parameter(torch.zeros(()))
 
 sampler = EpiSampler(env, pol, args.num_parallel, seed=args.seed)
+
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 optim_alpha = torch.optim.Adam([log_alpha], args.pol_lr)

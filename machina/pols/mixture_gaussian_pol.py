@@ -24,7 +24,7 @@ class MixtureGaussianPol(BasePol):
     def __init__(self, ob_space, ac_space, net, normalize_ac=True):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
         self.net = net
-        self.pd = MixtureGaussianPd(ob_space, ac_space)
+        self.pd = MixtureGaussianPd()
         self.to(get_device())
 
     def forward(self, obs):

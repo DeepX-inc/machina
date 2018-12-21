@@ -13,10 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
+
 import gym
 import numpy as np
 import torch
 import torch.nn as nn
+
 
 class BasePol(nn.Module):
     def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):

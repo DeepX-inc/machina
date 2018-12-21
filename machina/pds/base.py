@@ -15,6 +15,14 @@
 
 
 class BasePd(object):
-    def __init__(self, ob_space, ac_space):
-        self.ob_space = ob_space
-        self.ac_space = ac_space
+    def sample(self, params, sample_shape):
+        raise NotImplementedError
+
+    def llh(self, x, params):
+        raise NotImplementedError
+
+    def kl_pq(self, p_params, q_params):
+        raise NotImplementedError
+
+    def ent(self):
+        raise NotImplementedError

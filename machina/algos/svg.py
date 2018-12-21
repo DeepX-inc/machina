@@ -41,7 +41,7 @@ def train(off_traj,
         qf_bellman_loss.backward()
         optim_qf.step()
 
-        pol_loss = lf.svg(pol, qf, batch, sampling)
+        pol_loss = lf.ag(pol, qf, batch, sampling)
         optim_pol.zero_grad()
         pol_loss.backward()
         optim_pol.step()

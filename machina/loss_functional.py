@@ -30,6 +30,7 @@ def pg_clip(pol, batch, clip_param, ent_beta):
         h_masks = batch['h_masks']
         out_masks = batch['out_masks']
     else:
+        h_masks = None
         out_masks = torch.ones_like(advs)
 
     pd = pol.pd
@@ -40,10 +41,7 @@ def pg_clip(pol, batch, clip_param, ent_beta):
     )
 
     pol.reset()
-    if pol.rnn:
-        _, _, pd_params = pol(obs, h_masks=h_masks)
-    else:
-        _, _, pd_params = pol(obs)
+    _, _, pd_params = pol(obs, h_masks=h_masks)
 
     new_llh = pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
@@ -66,6 +64,7 @@ def pg_kl(pol, batch, kl_beta):
         h_masks = batch['h_masks']
         out_masks = batch['out_masks']
     else:
+        h_masks = None
         out_masks = torch.ones_like(advs)
 
     pd = pol.pd
@@ -76,10 +75,7 @@ def pg_kl(pol, batch, kl_beta):
     )
 
     pol.reset()
-    if pol.rnn:
-        _, _, pd_params = pol(obs, h_masks=h_masks)
-    else:
-        _, _, pd_params = pol(obs)
+    _, _, pd_params = pol(obs, h_masks=h_masks)
 
     new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
@@ -95,16 +91,6 @@ def pg_kl(pol, batch, kl_beta):
 
     return pol_loss
 
-def dpg(pol, qf, batch):
-    obs = batch['obs']
-
-    _, _, param = pol(obs)
-
-    q, _ = qf(obs, param['mean'])
-    pol_loss = -torch.mean(q)
-
-    return pol_loss
-
 def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=True, sampling=1):
     if continuous:
         obs = batch['obs']
@@ -114,17 +100,13 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
         dones = batch['dones']
 
         targ_pol.reset()
-        if deterministic:
-            _, _, param = targ_pol(next_obs, no_noise=True)
-            next_q, _ = targ_qf(next_obs, param['mean'])
-        else:
-            _, _, pd_params = targ_pol(next_obs)
-            pd = targ_pol.pd
+        _, _, pd_params = targ_pol(next_obs)
+        pd = targ_pol.pd
 
-            next_acs = pd.sample(pd_params, torch.Size([sampling]))
-            next_obs = next_obs.expand([sampling] + list(next_obs.size()))
-            targ_q, _ = targ_qf(next_obs, next_acs)
-            next_q = torch.mean(targ_q, dim=0)
+        next_acs = pd.sample(pd_params, torch.Size([sampling]))
+        next_obs = next_obs.expand([sampling] + list(next_obs.size()))
+        targ_q, _ = targ_qf(next_obs, next_acs)
+        next_q = torch.mean(targ_q, dim=0)
 
         targ = rews + gamma * next_q * (1 - dones)
         targ = targ.detach()
@@ -132,7 +114,7 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
 
         return 0.5 * torch.mean((q - targ)**2)
     else:
-        raise NotImplementedError()
+        raise NotImplementedError("Only Q function with continuous action space is supported now.")
 
 def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
     obs = batch['obs']
@@ -176,7 +158,10 @@ def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
 
     return pol_loss, qf_loss, alpha_loss
 
-def svg(pol, qf, batch, sampling, kl_coeff=0):
+def ag(pol, qf, batch, sampling=1):
+    """
+    DDPG style action gradient.
+    """
     obs = batch['obs']
 
     _, _, pd_params = pol(obs)
