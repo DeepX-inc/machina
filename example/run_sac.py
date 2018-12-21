@@ -96,7 +96,7 @@ targ_qf_net = QNet(ob_space, ac_space)
 targ_qf_net.load_state_dict(qf_net.state_dict())
 targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
 
-log_alpha = nn.Parameter(torch.zeros(()))
+log_alpha = nn.Parameter(torch.zeros((), divice=device))
 
 sampler = EpiSampler(env, pol, args.num_parallel, seed=args.seed)
 

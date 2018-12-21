@@ -25,7 +25,7 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
 from machina.pols import DeterministicActionNoisePol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
@@ -326,14 +326,49 @@ class TestDDPG(unittest.TestCase):
 
         del sampler
 
+class TestSAC(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+        pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
+
+        qf_net = QNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
+
+        targ_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        targ_qf_net.load_state_dict(targ_qf_net.state_dict())
+        targ_qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net)
+
+        log_alpha = nn.Parameter(torch.zeros(()))
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_pol = torch.optim.Adam(pol_net.parameters(), 3e-4)
+        optim_qf = torch.optim.Adam(qf_net.parameters(), 3e-4)
+        optim_alpha = torch.optim.Adam([log_alpha], 3e-4)
+
+        epis = sampler.sample(pol, max_steps=32)
+
+        traj = Traj()
+        traj.add_epis(epis)
+
+        traj = ef.add_next_obs(traj)
+        traj.register_epis()
+
+        result_dict = sac.train(
+            traj,
+            pol, qf, targ_qf, log_alpha,
+            optim_pol,optim_qf, optim_alpha,
+            2, 32,
+            0.01, 0.99, 2,
+        )
+
+        del sampler
+
 if __name__ == '__main__':
-    ppo_continuous = TestPPOContinuous()
-    ppo_continuous.setUp()
-    ppo_continuous.test_learning()
-    ppo_continuous.test_learning_rnn()
-    ppo_continuous.tearDown()
-    ppo_discrete = TestPPODiscrete()
-    ppo_discrete.setUp()
-    ppo_discrete.test_learning()
-    ppo_discrete.test_learning_rnn()
-    ppo_discrete.tearDown()
+    t = TestDDPG()
+    t.setUp()
+    t.test_learning()
+    t.tearDown()
