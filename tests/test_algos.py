@@ -25,7 +25,7 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
 from machina.pols import DeterministicActionNoisePol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
@@ -323,6 +323,42 @@ class TestDDPG(unittest.TestCase):
         traj.register_epis()
 
         result_dict = ddpg.train(traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9, 1)
+
+        del sampler
+
+class TestSVG(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+        pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
+
+        targ_pol_net = PolNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        targ_pol_net.load_state_dict(pol_net.state_dict())
+        targ_pol = GaussianPol(self.env.ob_space, self.env.ac_space, targ_pol_net)
+
+        qf_net = QNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
+
+        targ_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        targ_qf_net.load_state_dict(targ_qf_net.state_dict())
+        targ_qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net)
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_pol = torch.optim.Adam(pol_net.parameters(), 3e-4)
+        optim_qf = torch.optim.Adam(qf_net.parameters(), 3e-4)
+
+        epis = sampler.sample(pol, max_steps=32)
+
+        traj = Traj()
+        traj.add_epis(epis)
+
+        traj = ef.add_next_obs(traj)
+        traj.register_epis()
+
+        result_dict = svg.train(traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9, 1)
 
         del sampler
 
