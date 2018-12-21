@@ -47,7 +47,7 @@ parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
 
-,parser.add_argument('--max_steps_per_iter', type=int, default=10000)
+parser.add_argument('--max_steps_per_iter', type=int, default=10000)
 parser.add_argument('--epoch_per_iter', type=int, default=50)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
