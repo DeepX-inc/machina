@@ -28,9 +28,11 @@ def train(traj,
         pol_loss.backward()
         optim_pol.step()
 
-        for q, targ_q, p, targ_p in zip(qf.parameters(), targ_qf.parameters(), pol.parameters(), targ_pol.parameters()):
+        for p, targ_p in zip(pol.parameters(), targ_pol.parameters()):
             targ_p.detach().copy_((1 - tau) * targ_p.detach() + tau * p.detach())
+        for q, targ_q in zip(qf.parameters(), targ_qf.parameters()):
             targ_q.detach().copy_((1 - tau) * targ_q.detach() + tau * q.detach())
+
         qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
         pol_losses.append(pol_loss.detach().cpu().numpy())
     logger.log("Optimization finished!")
