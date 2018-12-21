@@ -20,13 +20,11 @@ from torch.distributions import Categorical, kl_divergence
 
 from machina.pds.base import BasePd
 
-class CategoricalPd(BasePd):
-    def __init__(self, ob_space, ac_space):
-        BasePd.__init__(self, ob_space, ac_space)
 
-    def sample(self, params):
+class CategoricalPd(BasePd):
+    def sample(self, params, sample_shape=torch.Size()):
         pi = params['pi']
-        pi_sampled = Categorical(probs=pi).sample()
+        pi_sampled = Categorical(probs=pi).sample(sample_shape)
         return pi_sampled
 
     def llh(self, x, params):

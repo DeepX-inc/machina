@@ -57,6 +57,7 @@ parser.add_argument('--qf_lr', type=float, default=3e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 
 parser.add_argument('--ent_alpha', type=float, default=1)
+parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
 args = parser.parse_args()
 
@@ -91,14 +92,17 @@ pol = GaussianPol(ob_space, ac_space, pol_net)
 
 qf_net = QNet(ob_space, ac_space)
 qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
+targ_qf_net = QNet(ob_space, ac_space)
+targ_qf_net.load_state_dict(qf_net.state_dict())
+targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
 
-vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net)
+log_alpha = nn.Parameter(torch.zeros(()))
 
 sampler = EpiSampler(env, pol, args.num_parallel, seed=args.seed)
+
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
-optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
+optim_alpha = torch.optim.Adam([log_alpha], args.pol_lr)
 
 off_traj = Traj()
 
@@ -125,10 +129,10 @@ while args.max_episodes > total_epi:
 
         result_dict = sac.train(
             off_traj,
-            pol, qf, vf,
-            optim_pol,optim_qf, optim_vf,
+            pol, qf, targ_qf, log_alpha,
+            optim_pol,optim_qf, optim_alpha,
             step, args.batch_size,
-            args.gamma, args.sampling,
+            args.tau, args.gamma, args.sampling,
         )
 
     rewards = [np.sum(epi['rews']) for epi in epis]

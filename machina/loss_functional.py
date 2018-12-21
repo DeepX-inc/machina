@@ -14,6 +14,7 @@
 # ==============================================================================
 
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -29,6 +30,7 @@ def pg_clip(pol, batch, clip_param, ent_beta):
         h_masks = batch['h_masks']
         out_masks = batch['out_masks']
     else:
+        h_masks = None
         out_masks = torch.ones_like(advs)
 
     pd = pol.pd
@@ -39,10 +41,7 @@ def pg_clip(pol, batch, clip_param, ent_beta):
     )
 
     pol.reset()
-    if pol.rnn:
-        _, _, pd_params = pol(obs, h_masks=h_masks)
-    else:
-        _, _, pd_params = pol(obs)
+    _, _, pd_params = pol(obs, h_masks=h_masks)
 
     new_llh = pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
@@ -65,6 +64,7 @@ def pg_kl(pol, batch, kl_beta):
         h_masks = batch['h_masks']
         out_masks = batch['out_masks']
     else:
+        h_masks = None
         out_masks = torch.ones_like(advs)
 
     pd = pol.pd
@@ -75,10 +75,7 @@ def pg_kl(pol, batch, kl_beta):
     )
 
     pol.reset()
-    if pol.rnn:
-        _, _, pd_params = pol(obs, h_masks=h_masks)
-    else:
-        _, _, pd_params = pol(obs)
+    _, _, pd_params = pol(obs, h_masks=h_masks)
 
     new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
@@ -94,16 +91,6 @@ def pg_kl(pol, batch, kl_beta):
 
     return pol_loss
 
-def dpg(pol, qf, batch):
-    obs = batch['obs']
-
-    _, _, param = pol(obs)
-
-    q, _ = qf(obs, param['mean'])
-    pol_loss = -torch.mean(q)
-
-    return pol_loss
-
 def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=True, sampling=1):
     if continuous:
         obs = batch['obs']
@@ -112,19 +99,14 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
         next_obs = batch['next_obs']
         dones = batch['dones']
 
-        # TODO
-        if deterministic:
-            _, _, param = targ_pol(next_obs)
-            next_q, _ = targ_qf(next_obs, param['mean'])
-        else:
-            next_q = 0
-            _, _, pd_params = targ_pol(next_obs)
-            next_means, next_log_stds = pd_params['mean'], pd_params['log_std']
-            for _ in range(sampling):
-                next_acs = next_means + torch.randn_like(next_means) * torch.exp(next_log_stds)
-                _next_q, _ = targ_qf(next_obs, next_acs)
-                next_q += _next_q
-            next_q /= sampling
+        targ_pol.reset()
+        _, _, pd_params = targ_pol(next_obs)
+        pd = targ_pol.pd
+
+        next_acs = pd.sample(pd_params, torch.Size([sampling]))
+        next_obs = next_obs.expand([sampling] + list(next_obs.size()))
+        targ_q, _ = targ_qf(next_obs, next_acs)
+        next_q = torch.mean(targ_q, dim=0)
 
         targ = rews + gamma * next_q * (1 - dones)
         targ = targ.detach()
@@ -132,85 +114,66 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
 
         return 0.5 * torch.mean((q - targ)**2)
     else:
-        raise NotImplementedError()
+        raise NotImplementedError("Only Q function with continuous action space is supported now.")
 
-def sac(pol, qf, vf, batch, sampling):
-    obs = batch['obs']
-
-    pol_loss = 0
-    _, _, pd_params = pol(obs)
-    # TODO: fast sampling
-    for _ in range(sampling):
-        acs = pol.pd.sample(pd_params)
-        llh = pol.pd.llh(acs.detach(), pd_params)
-
-        q, _ = qf(obs, acs)
-        q = q.detach()
-
-        v, _ = vf(obs)
-        v = v.detach()
-
-        pol_loss += llh * (llh.detach() - q + v)
-    pol_loss /= sampling
-
-    return torch.mean(pol_loss)
-
-def sac_sav(qf, vf, batch, gamma):
+def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
     obs = batch['obs']
     acs = batch['acs']
     rews = batch['rews']
     next_obs = batch['next_obs']
     dones = batch['dones']
 
-    v, _ = vf(next_obs)
+    alpha = torch.exp(log_alpha)
 
-    targ = rews + gamma * v * (1 - dones)
-    targ = targ.detach()
+    pol.reset()
+    _, _, pd_params = pol(obs)
+    pol.reset()
+    _, _, next_pd_params = pol(next_obs)
+    pd = pol.pd
+
+    sampled_obs = obs.expand([sampling] + list(obs.size()))
+    sampled_next_obs = next_obs.expand([sampling] + list(next_obs.size()))
+
+    sampled_acs = pd.sample(pd_params, torch.Size([sampling]))
+    sampled_next_acs = pd.sample(next_pd_params, torch.Size([sampling]))
+
+    sampled_llh = pd.llh(sampled_acs.detach(), pd_params)
+    sampled_next_llh = pd.llh(sampled_next_acs, next_pd_params)
+
+    sampled_q, _ = qf(sampled_obs, sampled_acs)
+    sampled_next_targ_q, _ = targ_qf(sampled_next_obs, sampled_next_acs)
+
+    next_v = torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
+
+    q_targ = rews + gamma * next_v * (1 - dones)
+    q_targ = q_targ.detach()
 
     q, _ = qf(obs, acs)
 
-    return 0.5 * torch.mean((q - targ)**2)
+    qf_loss = 0.5 * torch.mean((q - q_targ)**2)
 
-def sac_sv(pol, qf, vf, batch, sampling):
+    pol_loss = torch.mean(sampled_llh * (alpha * sampled_llh - sampled_q).detach())
+
+    alpha_loss = - torch.mean(log_alpha * (sampled_llh - np.prod(pol.ac_space.shape).item()).detach())
+
+    return pol_loss, qf_loss, alpha_loss
+
+def ag(pol, qf, batch, sampling=1):
+    """
+    DDPG style action gradient.
+    """
     obs = batch['obs']
 
-    targ = 0
     _, _, pd_params = pol(obs)
-    # TODO: fast sampling
-    for _ in range(sampling):
-        acs = pol.pd.sample(pd_params)
-        llh = pol.pd.llh(acs, pd_params)
-        q, _ = qf(obs, acs)
-        targ += q - llh
-    targ /= sampling
-    targ = targ.detach()
+    pd = pol.pd
 
-    v, _ = vf(obs)
-
-    return 0.5 * torch.mean((v - targ)**2)
-
-def svg(pol, qf, batch, sampling, kl_coeff=0):
-    obs = batch['obs']
-
-    q = 0
-    _, _, pd_params = pol(obs)
-    # TODO: fast sampling
-    for _ in range(sampling):
-        acs = pol.pd.sample(pd_params)
-        _q, _ = qf(obs, acs)
-        q += _q
-    q /= sampling
+    acs = pd.sample(pd_params, torch.Size([sampling]))
+    q, _ = qf(obs.expand([sampling] + list(obs.size())), acs)
+    q = torch.mean(q, dim=0)
 
     pol_loss = - torch.mean(q)
 
-    _, _, pd_params = pol(obs)
-    kl = pol.pd.kl_pq(
-        detach_tensor_dict(pd_params),
-        pd_params
-    )
-    mean_kl = torch.mean(kl)
-
-    return pol_loss + mean_kl * kl_coeff
+    return pol_loss
 
 def pg(pol, batch, volatile=False):
     obs = batch['obs']

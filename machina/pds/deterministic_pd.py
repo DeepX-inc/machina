@@ -21,27 +21,21 @@ from torch.distributions import Normal, kl_divergence
 from machina.pds.base import BasePd
 
 
-class GaussianPd(BasePd):
+class DeterministicPd(BasePd):
     def sample(self, params, sample_shape=torch.Size()):
-        mean, log_std = params['mean'], params['log_std']
-        std = torch.exp(log_std)
-        ac = Normal(loc=mean, scale=std).rsample(sample_shape)
+        mean = params['mean']
+        ac = Normal(loc=mean, scale=torch.zeros_like(mean)).rsample(sample_shape)
         return ac
 
     def llh(self, x, params):
-        mean, log_std = params['mean'], params['log_std']
-        std = torch.exp(log_std)
-        return torch.sum(Normal(loc=mean, scale=std).log_prob(x), dim=-1)
+        mean = params['mean']
+        return torch.sum(Normal(loc=mean, scale=torch.zeros_like(mean)).log_prob(x), dim=-1)
 
     def kl_pq(self, p_params, q_params):
-        p_mean, p_log_std = p_params['mean'], p_params['log_std']
-        q_mean, q_log_std = q_params['mean'], q_params['log_std']
-        p_std = torch.exp(p_log_std)
-        q_std = torch.exp(q_log_std)
-        return torch.sum(kl_divergence(Normal(loc=p_mean, scale=p_std), Normal(loc=q_mean, scale=q_std)), dim=-1)
+        p_mean = p_params['mean']
+        q_mean = q_params['mean']
+        return torch.sum(kl_divergence(Normal(loc=p_mean, scale=torch.zeros_like(p_mean)), Normal(loc=q_mean, scale=torch.zeros_like(q_mean))), dim=-1)
 
     def ent(self, params):
         mean = params['mean']
-        log_std = params['log_std']
-        std = torch.exp(log_std)
-        return torch.sum(Normal(loc=mean, scale=std).entropy(), dim=-1)
+        return torch.sum(Normal(loc=mean, scale=torch.zeros_like(mean)).entropy(), dim=-1)

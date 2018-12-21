@@ -87,7 +87,7 @@ class QNet(nn.Module):
 
     def forward(self, ob, ac):
         h = F.relu(self.fc1(ob))
-        h = torch.cat([h, ac], dim=1)
+        h = torch.cat([h, ac], dim=-1)
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
 

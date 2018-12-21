@@ -13,6 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
+
+from machina.pds import DeterministicPd
 from machina.vfuncs.state_action_vfuncs.base import BaseSAVfunc
 from machina.utils import get_device
 
@@ -20,6 +22,7 @@ from machina.utils import get_device
 class DeterministicSAVfunc(BaseSAVfunc):
     def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0):
         super().__init__(ob_space, ac_space, net, rnn, data_parallel, parallel_dim)
+        self.pd = DeterministicPd()
         self.to(get_device())
 
     def forward(self, obs, acs, hs=None, h_masks=None):
@@ -28,21 +31,24 @@ class DeterministicSAVfunc(BaseSAVfunc):
 
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
+
             if hs is None:
                 if self.hs is None:
                     self.hs = self.net.init_hs(batch_size)
                 hs = self.hs
+
             if h_masks is None:
                 h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
             h_masks = h_masks.reshape(time_seq, batch_size, 1)
+
             if self.dp_run:
                 vs, hs = self.dp_net(obs, acs, hs, h_masks)
             else:
                 vs, hs = self.net(obs, acs, hs, h_masks)
-            return vs.squeeze(), dict(hs=hs)
+            self.hs = hs
         else:
             if self.dp_run:
                 vs = self.dp_net(obs, acs)
             else:
                 vs = self.net(obs, acs)
-            return vs.reshape(-1), dict()
+        return vs.squeeze(-1), dict(mean=vs.squeeze(-1), hs=hs)
