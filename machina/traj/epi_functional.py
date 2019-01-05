@@ -18,6 +18,7 @@ import numpy as np
 import torch
 
 from machina.utils import get_device
+from machina import loss_functional as lf
 
 
 def compute_vs(data, vf):
@@ -32,6 +33,22 @@ def compute_vs(data, vf):
             epi['vs'] = vf(obs)[0].detach().cpu().numpy()
 
     return data
+
+def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, deterministic=True, sampling=1, alpha=0.6, epsilon=1e-6):
+    if continuous:
+        epis = data.current_epis
+        for epi in epis:
+            data_map = dict()
+            keys = ['obs', 'acs', 'rews', 'next_obs', 'dones']
+            for key in keys:
+                data_map[key] = torch.tensor(epi[key], device=get_device())
+            with torch.no_grad():
+                td_loss = lf.bellman(qf, targ_qf, targ_pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
+                pris = (torch.abs(td_loss) + epsilon) ** alpha
+                epi['pris'] = pris.cpu().numpy()
+        return data
+    else:
+        raise NotImplementedError("Only Q function with continuous action space is supported now.")
 
 def compute_rets(data, gamma):
     epis = data.current_epis
