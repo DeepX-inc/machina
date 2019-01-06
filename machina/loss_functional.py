@@ -112,9 +112,8 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
         targ = targ.detach()
         q, _ = qf(obs, acs)
 
-        ret = q - targ
+        ret = 0.5 * (q - targ)**2
         if reduction != 'none':
-            ret = 0.5 * (q - targ)**2
             ret = torch.mean(ret) if reduction == 'elementwise_mean' else torch.sum(ret)
         return ret
     else:

@@ -43,7 +43,8 @@ def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, determinis
             for key in keys:
                 data_map[key] = torch.tensor(epi[key], device=get_device())
             with torch.no_grad():
-                td_loss = lf.bellman(qf, targ_qf, targ_pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
+                bellman_loss = lf.bellman(qf, targ_qf, targ_pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
+                td_loss = torch.sqrt(bellman_loss*2)
                 pris = (torch.abs(td_loss) + epsilon) ** alpha
                 epi['pris'] = pris.cpu().numpy()
         return data
