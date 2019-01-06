@@ -139,7 +139,7 @@ class Traj(object):
         else:
             return data_map
 
-    def prioritized_random_batch_once(self, batch_size, return_indices=False, init_beta=0.4, beta_step=0.00025/4):
+    def prioritized_random_batch_once(self, batch_size, return_indices=False, mode='rank_based', alpha=0.6, init_beta=0.4, beta_step=0.00025/4):
         if hasattr(self, 'pri_beta') == False:
             self.pri_beta = init_beta
         elif self.pri_beta >= 1.0:
@@ -148,6 +148,12 @@ class Traj(object):
             self.pri_beta += beta_step
 
         pris = self.data_map['pris'].detach().cpu().numpy()
+
+        if mode == 'rank_based':
+            index = np.argsort(-pris)
+            pris = (index.astype(np.float32)+1) ** -1
+            pris = pris ** alpha
+
         is_weights = (len(pris) * (pris/pris.sum())) ** -self.pri_beta
         is_weights /= np.max(is_weights)
         pris *= is_weights
