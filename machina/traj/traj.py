@@ -139,8 +139,20 @@ class Traj(object):
         else:
             return data_map
 
-    def prioritized_random_batch_once(self, batch_size, return_indices=False):
-        indices = torch.utils.data.sampler.WeightedRandomSampler(self.data_map['pris'], batch_size, replacement=True)
+    def prioritized_random_batch_once(self, batch_size, return_indices=False, init_beta=0.4, beta_step=0.00025/4):
+        if hasattr(self, 'pri_beta') == False:
+            self.pri_beta = init_beta
+        elif self.pri_beta >= 1.0:
+            self.pri_beta = 1.0
+        else:
+            self.pri_beta += beta_step
+
+        pris = self.data_map['pris'].detach().cpu().numpy()
+        is_weights = (len(pris) * (pris/pris.sum())) ** -self.pri_beta
+        is_weights /= np.max(is_weights)
+        pris *= is_weights
+        pris = torch.tensor(pris)
+        indices = torch.utils.data.sampler.WeightedRandomSampler(pris, batch_size, replacement=True)
         indices = [index for index in indices]
 
         data_map = dict()
