@@ -147,7 +147,7 @@ class Traj(object):
         else:
             self.pri_beta += beta_step
 
-        pris = self.data_map['pris'].detach().cpu().numpy()
+        pris = self.data_map['pris'].cpu().numpy()
 
         if mode == 'rank_based':
             index = np.argsort(-pris)
