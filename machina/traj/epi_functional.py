@@ -34,6 +34,13 @@ def compute_vs(data, vf):
 
     return data
 
+def set_all_pris(data, pri):
+    epis = data.current_epis
+    for epi in epis:
+        pris = pri.repeat(len(epi['obs']))
+        epi['pris'] = pris.cpu().numpy()
+    return data
+
 def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, deterministic=True, sampling=1, alpha=0.6, epsilon=1e-6):
     if continuous:
         epis = data.current_epis

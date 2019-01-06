@@ -122,7 +122,8 @@ while args.max_episodes > total_epi:
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
-        on_traj = ef.compute_pris(on_traj, qf, targ_qf, targ_pol, args.gamma)
+        max_pri = on_traj.get_max_pri()
+        on_traj = ef.set_all_pris(on_traj, max_pri)
         on_traj.register_epis()
 
         off_traj.add_traj(on_traj)

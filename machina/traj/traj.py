@@ -43,6 +43,12 @@ class Traj(object):
     def num_epi(self):
         return len(self._epis_index) - 1
 
+    def get_max_pri(self):
+        if 'pris' in self.data_map:
+            return torch.max(self.data_map['pris']).cpu()
+        else:
+            return torch.tensor(1)
+
     def add_epis(self, epis):
         self.current_epis = epis
 
