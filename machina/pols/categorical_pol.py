@@ -55,17 +55,24 @@ class CategoricalPol(BasePol):
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(pi=pi, hs=hs)
 
-    def deterministic_ac_real(self, obs, hs=None, mask=None):
+    def deterministic_ac_real(self, obs, hs=None, h_masks=None):
         """
         action for deployment
         """
+        obs = self._check_obs_shape(obs)
+
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
             if hs is None:
                 if self.hs is None:
-                    self.hs = self.init_hs(batch_size)
+                    self.hs = self.net.init_hs(batch_size)
                 hs = self.hs
-            pi, hs = self.net(obs, hs, mask)
+
+            if h_masks is None:
+                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            h_masks = h_masks.reshape(time_seq, batch_size, 1)
+
+            pi, hs = self.net(obs, hs, h_masks)
             self.hs = hs
         else:
             pi = self.net(obs)

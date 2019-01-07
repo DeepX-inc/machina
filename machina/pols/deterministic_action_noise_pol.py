@@ -56,6 +56,8 @@ class DeterministicActionNoisePol(BasePol):
         """
         action for deployment
         """
+        obs = self._check_obs_shape(obs)
+
         mean = self.net(obs)
         mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
         return mean_real, mean, dict(mean=mean)
