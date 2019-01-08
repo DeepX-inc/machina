@@ -1,31 +1,31 @@
-#The MIT License (MIT)
+# The MIT License (MIT)
 #
-#Copyright (c) 2016 rllab contributors
+# Copyright (c) 2016 rllab contributors
 #
-#rllab uses a shared copyright model: each contributor holds copyright over
-#their contributions to rllab. The project versioning records all such
-#contribution and copyright details.
-#By contributing to the rllab repository through pull-request, comment,
-#or otherwise, the contributor releases their content to the license and
-#copyright terms herein.
+# rllab uses a shared copyright model: each contributor holds copyright over
+# their contributions to rllab. The project versioning records all such
+# contribution and copyright details.
+# By contributing to the rllab repository through pull-request, comment,
+# or otherwise, the contributor releases their content to the license and
+# copyright terms herein.
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 # ==============================================================================
 # This code is taken from rllab
 
@@ -982,6 +982,7 @@ def plot_scores(filename, key, x_key, label=None, title=None,
     plt.close()
     return fig_fname
 
+
 def csv2table(filename, save_dir=None, output_filename='scores-table.txt'):
     with open(filename, newline='') as f:
         data = list(csv.reader(f))
@@ -1004,6 +1005,7 @@ def csv2table(filename, save_dir=None, output_filename='scores-table.txt'):
         save_dir = os.path.dirname(filename)
     with open(os.path.join(save_dir, output_filename), 'w') as f:
         f.write(output)
+
 
 color2num = dict(
     gray=30,
@@ -1078,7 +1080,8 @@ class Message(object):
         global MESSAGE_DEPTH  # pylint: disable=W0603
         MESSAGE_DEPTH -= 1
         maybe_exc = "" if etype is None else " (with exception)"
-        print(colorize('\t' * MESSAGE_DEPTH + "done%s in %.3f seconds" % (maybe_exc, time.time() - self.tstart), 'magenta'))
+        print(colorize('\t' * MESSAGE_DEPTH + "done%s in %.3f seconds" %
+                       (maybe_exc, time.time() - self.tstart), 'magenta'))
 
 
 def prefix_log(prefix, logger=log):
@@ -1167,7 +1170,8 @@ def tweakfun(fun, alt=None):
         if k.startswith(cmd_prefix):
             stripped = k[len(cmd_prefix):].replace('-', '_')
             if stripped in meta:
-                log('replacing %s in %s with %s' % (stripped, str(fun), str(v)))
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
                 replaced_kwargs[stripped] = meta[stripped](v)
             elif stripped not in argspec.args:
                 raise ValueError(
@@ -1179,7 +1183,8 @@ def tweakfun(fun, alt=None):
                 raise ValueError(
                     'Cannot infer type of %s in method %s from None value' % (stripped, str(fun)))
             else:
-                log('replacing %s in %s with %s' % (stripped, str(fun), str(v)))
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
                 # TODO more proper conversions
                 replaced_kwargs[stripped] = type(defaults[stripped])(v)
 
@@ -1301,12 +1306,15 @@ def set_snapshot_mode(mode):
     global _snapshot_mode
     _snapshot_mode = mode
 
+
 def get_snapshot_gap():
     return _snapshot_gap
+
 
 def set_snapshot_gap(gap):
     global _snapshot_gap
     _snapshot_gap = gap
+
 
 def set_log_tabular_only(log_tabular_only):
     global _log_tabular_only
@@ -1405,7 +1413,8 @@ def dump_tabular(*args, **kwargs):
         # Also write to the csv files
         # This assumes that the keys in each iteration won't change!
         for tabular_fd in list(_tabular_fds.values()):
-            writer = csv.DictWriter(tabular_fd, fieldnames=list(tabular_dict.keys()))
+            writer = csv.DictWriter(
+                tabular_fd, fieldnames=list(tabular_dict.keys()))
             if wh or (wh is None and tabular_fd not in _tabular_header_written):
                 writer.writeheader()
                 _tabular_header_written.add(tabular_fd)
@@ -1452,7 +1461,8 @@ def log_parameters(log_file, args, classes):
             log_params[name] = params
         else:
             log_params[name] = getattr(cls, "__kwargs", dict())
-            log_params[name]["_name"] = cls.__module__ + "." + cls.__class__.__name__
+            log_params[name]["_name"] = cls.__module__ + \
+                "." + cls.__class__.__name__
     mkdir_p(os.path.dirname(log_file))
     with open(log_file, "w") as f:
         json.dump(log_params, f, indent=2, sort_keys=True)
@@ -1465,7 +1475,8 @@ def stub_to_json(stub_sth):
         data = dict()
         for k, v in stub_sth.kwargs.items():
             data[k] = stub_to_json(v)
-        data["_name"] = stub_sth.proxy_class.__module__ + "." + stub_sth.proxy_class.__name__
+        data["_name"] = stub_sth.proxy_class.__module__ + \
+            "." + stub_sth.proxy_class.__name__
         return data
     elif isinstance(stub_sth, instrument.StubAttr):
         return dict(
@@ -1509,7 +1520,7 @@ def log_parameters_lite(log_file, args):
     log_params = {}
     for param_name, param_value in args.__dict__.items():
         log_params[param_name] = param_value
-    #if args.args_data is not None:
+    # if args.args_data is not None:
     #    stub_method = pickle.loads(base64.b64decode(args.args_data))
     #    method_args = stub_method.kwargs
     #    log_params["json_args"] = dict()
