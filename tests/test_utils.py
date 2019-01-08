@@ -20,5 +20,3 @@ import torch
 
 class TestGPU(unittest.TestCase):
     pass
-
-

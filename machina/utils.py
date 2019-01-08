@@ -22,6 +22,7 @@ from machina.misc import logger
 
 _DEVICE = torch.device('cpu')
 
+
 def set_device(device):
     global _DEVICE
     _DEVICE = device
@@ -48,6 +49,7 @@ def measure(name):
     e = time.time()
     logger.log("{}: {:.4f}sec".format(name, e-s))
 
+
 def detach_tensor_dict(d):
     _d = dict()
     for key in d.keys():
@@ -58,4 +60,3 @@ def detach_tensor_dict(d):
             continue
         _d[key] = d[key].detach()
     return _d
-

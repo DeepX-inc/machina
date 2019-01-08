@@ -81,7 +81,8 @@ set_device(device)
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env = GymEnv(args.env_name, log_dir=os.path.join(
+    args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 
 ob_space = env.observation_space
@@ -130,7 +131,7 @@ while args.max_episodes > total_epi:
         result_dict = sac.train(
             off_traj,
             pol, qf, targ_qf, log_alpha,
-            optim_pol,optim_qf, optim_alpha,
+            optim_pol, optim_qf, optim_alpha,
             step, args.batch_size,
             args.tau, args.gamma, args.sampling,
         )
@@ -143,15 +144,23 @@ while args.max_episodes > total_epi:
                           plot_title=args.env_name)
 
     if mean_rew > max_rew:
-        torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
-        torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_max.pkl'))
-        torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_max.pkl'))
+        torch.save(pol.state_dict(), os.path.join(
+            args.log, 'models', 'pol_max.pkl'))
+        torch.save(qf.state_dict(), os.path.join(
+            args.log, 'models', 'qf_max.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(
+            args.log, 'models', 'optim_pol_max.pkl'))
+        torch.save(optim_qf.state_dict(), os.path.join(
+            args.log, 'models', 'optim_qf_max.pkl'))
         max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_last.pkl'))
-    torch.save(qf.state_dict(), os.path.join(args.log, 'models', 'qf_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
-    torch.save(optim_qf.state_dict(), os.path.join(args.log, 'models', 'optim_qf_last.pkl'))
+    torch.save(pol.state_dict(), os.path.join(
+        args.log, 'models', 'pol_last.pkl'))
+    torch.save(qf.state_dict(), os.path.join(
+        args.log, 'models', 'qf_last.pkl'))
+    torch.save(optim_pol.state_dict(), os.path.join(
+        args.log, 'models', 'optim_pol_last.pkl'))
+    torch.save(optim_qf.state_dict(), os.path.join(
+        args.log, 'models', 'optim_qf_last.pkl'))
     del on_traj
 del sampler

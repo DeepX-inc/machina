@@ -54,6 +54,7 @@ class DeterministicSVfunc(BaseSVfunc):
                 vs = self.net(obs)
         return vs.squeeze(-1), dict(mean=vs.squeeze(-1), hs=hs)
 
+
 class NormalizedDeterministicSVfunc(DeterministicSVfunc):
     def __init__(self, ob_space, net):
         super().__init__(self, ob_space, net)

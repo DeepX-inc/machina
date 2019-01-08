@@ -47,7 +47,8 @@ class Traj(object):
     def _concat_data_map(self, data_map):
         if self.data_map:
             for key in data_map:
-                self.data_map[key] = torch.cat([self.data_map[key], data_map[key]], dim=0)
+                self.data_map[key] = torch.cat(
+                    [self.data_map[key], data_map[key]], dim=0)
         else:
             self.data_map = data_map
 
@@ -142,7 +143,7 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
@@ -176,9 +177,12 @@ class Traj(object):
 
                 lengths = [list(b.values())[0].size(0) for b in batch]
                 max_length = max(lengths)
-                out_masks = torch.ones((max_length, cur_batch_size), dtype=torch.float, device=get_device())
-                time_slice = list(functools.reduce(lambda x,y: x+y, [list(range(l, max_length)) for l in lengths]))
-                batch_idx = list(functools.reduce(lambda x,y: x+y, [(max_length - l) * [i] for i, l in enumerate(lengths)]))
+                out_masks = torch.ones(
+                    (max_length, cur_batch_size), dtype=torch.float, device=get_device())
+                time_slice = list(functools.reduce(
+                    lambda x, y: x+y, [list(range(l, max_length)) for l in lengths]))
+                batch_idx = list(functools.reduce(
+                    lambda x, y: x+y, [(max_length - l) * [i] for i, l in enumerate(lengths)]))
                 out_masks[time_slice, batch_idx] = 0
 
                 _batch = dict()

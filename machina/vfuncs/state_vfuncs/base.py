@@ -16,6 +16,7 @@
 
 import torch.nn as nn
 
+
 class BaseSVfunc(nn.Module):
     def __init__(self, ob_space, net, rnn=False, data_parallel=False, parallel_dim=0):
         nn.Module.__init__(self)

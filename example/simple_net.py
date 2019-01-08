@@ -4,15 +4,18 @@ from torch.nn.init import kaiming_uniform_, uniform_
 import torch.nn.functional as F
 import gym
 
+
 def mini_weight_init(m):
     if m.__class__.__name__ == 'Linear':
         m.weight.data.copy_(uniform_(m.weight.data, -3e-3, 3e-3))
         m.bias.data.fill_(0)
 
+
 def weight_init(m):
     if m.__class__.__name__ == 'Linear':
         m.weight.data.copy_(kaiming_uniform_(m.weight.data))
         m.bias.data.fill_(0)
+
 
 class PolNet(nn.Module):
     def __init__(self, ob_space, ac_space, h1=200, h2=100, deterministic=False):
@@ -37,11 +40,13 @@ class PolNet(nn.Module):
         if not self.discrete:
             self.mean_layer = nn.Linear(h2, ac_space.shape[0])
             if not self.deterministic:
-                self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
+                self.log_std_param = nn.Parameter(
+                    torch.randn(ac_space.shape[0])*1e-10 - 1)
             self.mean_layer.apply(mini_weight_init)
         else:
             if self.multi:
-                self.output_layers = nn.ModuleList([nn.Linear(h2, vec) for vec in ac_space.nvec])
+                self.output_layers = nn.ModuleList(
+                    [nn.Linear(h2, vec) for vec in ac_space.nvec])
                 map(lambda x: x.apply(mini_weight_init), self.output_layers)
             else:
                 self.output_layer = nn.Linear(h2, ac_space.n)
@@ -62,6 +67,7 @@ class PolNet(nn.Module):
             else:
                 return torch.softmax(self.output_layer(h), dim=-1)
 
+
 class VNet(nn.Module):
     def __init__(self, ob_space, h1=200, h2=100):
         super(VNet, self).__init__()
@@ -74,6 +80,7 @@ class VNet(nn.Module):
         h = F.relu(self.fc1(ob))
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
+
 
 class QNet(nn.Module):
     def __init__(self, ob_space, ac_space, h1=300, h2=400):
@@ -90,6 +97,7 @@ class QNet(nn.Module):
         h = torch.cat([h, ac], dim=-1)
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
+
 
 class PolNetLSTM(nn.Module):
     def __init__(self, ob_space, ac_space, h_size=1024, cell_size=512):
@@ -111,25 +119,29 @@ class PolNetLSTM(nn.Module):
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
         if not self.discrete:
             self.mean_layer = nn.Linear(self.cell_size, ac_space.shape[0])
-            self.log_std_param = nn.Parameter(torch.randn(ac_space.shape[0])*1e-10 - 1)
+            self.log_std_param = nn.Parameter(
+                torch.randn(ac_space.shape[0])*1e-10 - 1)
 
             self.mean_layer.apply(mini_weight_init)
         else:
             if self.multi:
-                self.output_layers = [nn.Linear(self.cell_size, vec) for vec in ac_space.nvec]
+                self.output_layers = [
+                    nn.Linear(self.cell_size, vec) for vec in ac_space.nvec]
                 map(lambda x: x.apply(mini_weight_init), self.output_layers)
             else:
                 self.output_layer = nn.Linear(self.cell_size, ac_space.n)
                 self.output_layer.apply(mini_weight_init)
 
     def init_hs(self, batch_size=1):
-        new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
+        new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(
+            self.parameters()).new(batch_size, self.cell_size).zero_())
         return new_hs
 
     def forward(self, xs, hs, h_masks):
         time_seq, batch_size, *_ = xs.shape
 
-        hs = (hs[0].reshape(batch_size, self.cell_size), hs[1].reshape(batch_size, self.cell_size))
+        hs = (hs[0].reshape(batch_size, self.cell_size),
+              hs[1].reshape(batch_size, self.cell_size))
 
         xs = torch.relu(self.input_layer(xs))
 
@@ -150,6 +162,7 @@ class PolNetLSTM(nn.Module):
             else:
                 return torch.softmax(self.output_layer(hiddens), dim=-1), hs
 
+
 class VNetLSTM(nn.Module):
     def __init__(self, ob_space, h_size=1024, cell_size=512):
         super(VNetLSTM, self).__init__()
@@ -164,13 +177,15 @@ class VNetLSTM(nn.Module):
         self.output_layer.apply(mini_weight_init)
 
     def init_hs(self, batch_size=1):
-        new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(self.parameters()).new(batch_size, self.cell_size).zero_())
+        new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(
+            self.parameters()).new(batch_size, self.cell_size).zero_())
         return new_hs
 
     def forward(self, xs, hs, h_masks):
         time_seq, batch_size, *_ = xs.shape
 
-        hs = (hs[0].reshape(batch_size, self.cell_size), hs[1].reshape(batch_size, self.cell_size))
+        hs = (hs[0].reshape(batch_size, self.cell_size),
+              hs[1].reshape(batch_size, self.cell_size))
 
         xs = torch.relu(self.input_layer(xs))
 
@@ -183,4 +198,3 @@ class VNetLSTM(nn.Module):
         outs = self.output_layer(hiddens)
 
         return outs, hs
-

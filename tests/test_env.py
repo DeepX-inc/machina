@@ -31,5 +31,6 @@ def test_continuous2discrete():
     discrete_env.reset()
     out = discrete_env.step([3, 10])
 
+
 if __name__ == '__main__':
     test_continuous2discrete()

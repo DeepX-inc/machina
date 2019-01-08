@@ -17,13 +17,15 @@
 import gym
 import numpy as np
 
+
 class C2DEnv(object):
     def __init__(self, env, n_bins=30):
         assert isinstance(env.ac_space, gym.spaces.Box)
         assert len(env.ac_space.shape) == 1
         self.env = env
         self.n_bins = n_bins
-        self.ac_space = gym.spaces.MultiDiscrete(env.ac_space.shape[0] * [n_bins])
+        self.ac_space = gym.spaces.MultiDiscrete(
+            env.ac_space.shape[0] * [n_bins])
 
     @property
     def observation_space(self):

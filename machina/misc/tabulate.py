@@ -19,7 +19,6 @@
 """Pretty-print tabular data."""
 
 
-
 from collections import namedtuple
 from platform import python_version_tuple
 import re
@@ -107,15 +106,16 @@ def _pipe_segment_with_colons(align, colwidth):
 def _pipe_line_with_colons(colwidths, colaligns):
     """Return a horizontal line with optional colons to indicate column's
     alignment (as in `pipe` output format)."""
-    segments = [_pipe_segment_with_colons(a, w) for a, w in zip(colaligns, colwidths)]
+    segments = [_pipe_segment_with_colons(a, w)
+                for a, w in zip(colaligns, colwidths)]
     return "|" + "|".join(segments) + "|"
 
 
 def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
-    alignment = { "left":    '',
-                  "right":   'align="right"| ',
-                  "center":  'align="center"| ',
-                  "decimal": 'align="right"| ' }
+    alignment = {"left":    '',
+                 "right":   'align="right"| ',
+                 "center":  'align="center"| ',
+                 "decimal": 'align="right"| '}
     # hard-coded padding _around_ align attribute and value together
     # rather than padding parameter which affects only the value
     values_with_attrs = [' ' + alignment.get(a, '') + c + ' '
@@ -125,7 +125,7 @@ def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
 
 
 def _latex_line_begin_tabular(colwidths, colaligns):
-    alignment = { "left": "l", "right": "r", "center": "c", "decimal": "r" }
+    alignment = {"left": "l", "right": "r", "center": "c", "decimal": "r"}
     tabular_columns_fmt = "".join([alignment.get(a, "l") for a in colaligns])
     return "\\begin{tabular}{" + tabular_columns_fmt + "}\n\hline"
 
@@ -184,14 +184,16 @@ _table_formats = {"simple":
                               linebelowheader=Line("|-", "", "", ""),
                               linebetweenrows=Line("|-", "", "", ""),
                               linebelow=Line("|}", "", "", ""),
-                              headerrow=partial(_mediawiki_row_with_attrs, "!"),
+                              headerrow=partial(
+                                  _mediawiki_row_with_attrs, "!"),
                               datarow=partial(_mediawiki_row_with_attrs, "|"),
                               padding=0, with_header_hide=None),
                   "latex":
                   TableFormat(lineabove=_latex_line_begin_tabular,
                               linebelowheader=Line("\\hline", "", "", ""),
                               linebetweenrows=None,
-                              linebelow=Line("\\hline\n\\end{tabular}", "", "", ""),
+                              linebelow=Line(
+                                  "\\hline\n\\end{tabular}", "", "", ""),
                               headerrow=DataRow("", "&", "\\\\"),
                               datarow=DataRow("", "&", "\\\\"),
                               padding=1, with_header_hide=None),
@@ -252,8 +254,8 @@ def _isint(string):
     False
     """
     return type(string) is int or \
-           (isinstance(string, _binary_type) or isinstance(string, _text_type)) and \
-           _isconvertible(int, string)
+        (isinstance(string, _binary_type) or isinstance(string, _text_type)) and \
+        _isconvertible(int, string)
 
 
 def _type(string, has_invisible=True):
@@ -324,7 +326,8 @@ def _padleft(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:>%ds}" % iwidth
     return fmt.format(s)
 
@@ -336,7 +339,8 @@ def _padright(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:<%ds}" % iwidth
     return fmt.format(s)
 
@@ -348,7 +352,8 @@ def _padboth(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:^%ds}" % iwidth
     return fmt.format(s)
 
@@ -413,8 +418,9 @@ def _align_column(strings, alignment, minwidth=0, has_invisible=True):
 
 
 def _more_generic(type1, type2):
-    types = { _none_type: 0, int: 1, float: 2, _binary_type: 3, _text_type: 4 }
-    invtypes = { 4: _text_type, 3: _binary_type, 2: float, 1: int, 0: _none_type }
+    types = {_none_type: 0, int: 1, float: 2, _binary_type: 3, _text_type: 4}
+    invtypes = {4: _text_type, 3: _binary_type,
+                2: float, 1: int, 0: _none_type}
     moregeneric = max(types.get(type1, 4), types.get(type2, 4))
     return invtypes[moregeneric]
 
@@ -439,7 +445,7 @@ def _column_type(strings, has_invisible=True):
     True
 
     """
-    types = [_type(s, has_invisible) for s in strings ]
+    types = [_type(s, has_invisible) for s in strings]
     return reduce(_more_generic, types, int)
 
 
@@ -506,49 +512,51 @@ def _normalize_tabular_data(tabular_data, headers):
         if hasattr(tabular_data.values, "__call__"):
             # likely a conventional dict
             keys = list(tabular_data.keys())
-            rows = list(zip_longest(*list(tabular_data.values())))  # columns have to be transposed
+            # columns have to be transposed
+            rows = list(zip_longest(*list(tabular_data.values())))
         elif hasattr(tabular_data, "index"):
             # values is a property, has .index => it's likely a pandas.DataFrame (pandas 0.11.0)
             keys = list(tabular_data.keys())
             vals = tabular_data.values  # values matrix doesn't need to be transposed
             names = tabular_data.index
-            rows = [[v]+list(row) for v,row in zip(names, vals)]
+            rows = [[v]+list(row) for v, row in zip(names, vals)]
         else:
-            raise ValueError("tabular data doesn't appear to be a dict or a DataFrame")
+            raise ValueError(
+                "tabular data doesn't appear to be a dict or a DataFrame")
 
         if headers == "keys":
-            headers = list(map(_text_type,keys))  # headers should be strings
+            headers = list(map(_text_type, keys))  # headers should be strings
 
     else:  # it's a usual an iterable of iterables, or a NumPy array
         rows = list(tabular_data)
 
         if (headers == "keys" and
             hasattr(tabular_data, "dtype") and
-            getattr(tabular_data.dtype, "names")):
+                getattr(tabular_data.dtype, "names")):
             # numpy record array
             headers = tabular_data.dtype.names
         elif (headers == "keys"
               and len(rows) > 0
               and isinstance(rows[0], tuple)
-              and hasattr(rows[0], "_fields")): # namedtuple
+              and hasattr(rows[0], "_fields")):  # namedtuple
             headers = list(map(_text_type, rows[0]._fields))
         elif headers == "keys" and len(rows) > 0:  # keys are column indices
             headers = list(map(_text_type, list(range(len(rows[0])))))
 
     # take headers from the first row if necessary
     if headers == "firstrow" and len(rows) > 0:
-        headers = list(map(_text_type, rows[0])) # headers should be strings
+        headers = list(map(_text_type, rows[0]))  # headers should be strings
         rows = rows[1:]
 
     headers = list(headers)
-    rows = list(map(list,rows))
+    rows = list(map(list, rows))
 
     # pad with empty headers for initial columns if necessary
     if headers and len(rows) > 0:
-       nhs = len(headers)
-       ncols = len(rows[0])
-       if nhs < ncols:
-           headers = [""]*(ncols - nhs) + headers
+        nhs = len(headers)
+        ncols = len(rows[0])
+        if nhs < ncols:
+            headers = [""]*(ncols - nhs) + headers
 
     return rows, headers
 
@@ -756,8 +764,8 @@ def tabulate(tabular_data, headers=[], tablefmt="simple",
 
     # optimization: look for ANSI control codes once,
     # enable smart width functions only if a control code is found
-    plain_text = '\n'.join(['\t'.join(map(_text_type, headers))] + \
-                            ['\t'.join(map(_text_type, row)) for row in list_of_lists])
+    plain_text = '\n'.join(['\t'.join(map(_text_type, headers))] +
+                           ['\t'.join(map(_text_type, row)) for row in list_of_lists])
     has_invisible = re.search(_invisible_codes, plain_text)
     if has_invisible:
         width_fn = _visible_width
@@ -768,17 +776,18 @@ def tabulate(tabular_data, headers=[], tablefmt="simple",
     cols = list(zip(*list_of_lists))
     coltypes = list(map(_column_type, cols))
     cols = [[_format(v, ct, floatfmt, missingval) for v in c]
-             for c,ct in zip(cols, coltypes)]
+            for c, ct in zip(cols, coltypes)]
 
     # align columns
-    aligns = [numalign if ct in [int,float] else stralign for ct in coltypes]
+    aligns = [numalign if ct in [int, float] else stralign for ct in coltypes]
     minwidths = [width_fn(h)+2 for h in headers] if headers else [0]*len(cols)
     cols = [_align_column(c, a, minw, has_invisible)
             for c, a, minw in zip(cols, aligns, minwidths)]
 
     if headers:
         # align headers and add headers
-        minwidths = [max(minw, width_fn(c[0])) for minw, c in zip(minwidths, cols)]
+        minwidths = [max(minw, width_fn(c[0]))
+                     for minw, c in zip(minwidths, cols)]
         headers = [_align_header(h, a, minw)
                    for h, a, minw in zip(headers, aligns, minwidths)]
         rows = list(zip(*cols))
@@ -844,23 +853,28 @@ def _format_table(fmt, headers, rows, colwidths, colaligns):
         lines.append(_build_line(padded_widths, colaligns, fmt.lineabove))
 
     if padded_headers:
-        lines.append(_build_row(padded_headers, padded_widths, colaligns, headerrow))
+        lines.append(_build_row(padded_headers,
+                                padded_widths, colaligns, headerrow))
         if fmt.linebelowheader and "linebelowheader" not in hidden:
-            lines.append(_build_line(padded_widths, colaligns, fmt.linebelowheader))
+            lines.append(_build_line(
+                padded_widths, colaligns, fmt.linebelowheader))
 
     if padded_rows and fmt.linebetweenrows and "linebetweenrows" not in hidden:
         # initial rows with a line below
         for row in padded_rows[:-1]:
-            lines.append(_build_row(row, padded_widths, colaligns, fmt.datarow))
-            lines.append(_build_line(padded_widths, colaligns, fmt.linebetweenrows))
+            lines.append(_build_row(
+                row, padded_widths, colaligns, fmt.datarow))
+            lines.append(_build_line(
+                padded_widths, colaligns, fmt.linebetweenrows))
         # the last row without a line below
-        lines.append(_build_row(padded_rows[-1], padded_widths, colaligns, fmt.datarow))
+        lines.append(_build_row(
+            padded_rows[-1], padded_widths, colaligns, fmt.datarow))
     else:
         for row in padded_rows:
-            lines.append(_build_row(row, padded_widths, colaligns, fmt.datarow))
+            lines.append(_build_row(
+                row, padded_widths, colaligns, fmt.datarow))
 
     if fmt.linebelow and "linebelow" not in hidden:
         lines.append(_build_line(padded_widths, colaligns, fmt.linebelow))
 
     return "\n".join(lines)
-

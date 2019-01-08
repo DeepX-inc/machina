@@ -96,7 +96,8 @@ class Message(object):
         global MESSAGE_DEPTH  # pylint: disable=W0603
         MESSAGE_DEPTH -= 1
         maybe_exc = "" if etype is None else " (with exception)"
-        print(colorize('\t' * MESSAGE_DEPTH + "done%s in %.3f seconds" % (maybe_exc, time.time() - self.tstart), 'magenta'))
+        print(colorize('\t' * MESSAGE_DEPTH + "done%s in %.3f seconds" %
+                       (maybe_exc, time.time() - self.tstart), 'magenta'))
 
 
 def prefix_log(prefix, logger=log):
@@ -185,7 +186,8 @@ def tweakfun(fun, alt=None):
         if k.startswith(cmd_prefix):
             stripped = k[len(cmd_prefix):].replace('-', '_')
             if stripped in meta:
-                log('replacing %s in %s with %s' % (stripped, str(fun), str(v)))
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
                 replaced_kwargs[stripped] = meta[stripped](v)
             elif stripped not in argspec.args:
                 raise ValueError(
@@ -197,7 +199,8 @@ def tweakfun(fun, alt=None):
                 raise ValueError(
                     'Cannot infer type of %s in method %s from None value' % (stripped, str(fun)))
             else:
-                log('replacing %s in %s with %s' % (stripped, str(fun), str(v)))
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
                 # TODO more proper conversions
                 replaced_kwargs[stripped] = type(defaults[stripped])(v)
 
@@ -239,4 +242,3 @@ def query_yes_no(question, default="yes"):
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
-

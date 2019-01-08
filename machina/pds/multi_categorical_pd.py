@@ -20,6 +20,7 @@ from torch.distributions import Categorical, kl_divergence
 
 from machina.pds.base import BasePd
 
+
 class MultiCategoricalPd(BasePd):
     def sample(self, params, sample_shape=torch.Size()):
         pis = params['pis']
