@@ -22,6 +22,21 @@ from machina.utils import detach_tensor_dict
 
 
 def pg_clip(pol, batch, clip_param, ent_beta):
+    """
+    Policy Gradient with clipping.
+
+    Parameters
+    ----------
+    pol : Pol
+    batch : dict of torch.Tensor
+    clip_param : float
+    ent_beta : float
+        entropy coefficient
+
+    Returns
+    -------
+    pol_loss : torch.Tensor
+    """
     obs = batch['obs']
     acs = batch['acs']
     advs = batch['advs']
@@ -57,6 +72,20 @@ def pg_clip(pol, batch, clip_param, ent_beta):
 
 
 def pg_kl(pol, batch, kl_beta):
+    """
+    Policy Gradient with KL divergence restriction.
+
+    Parameters
+    ----------
+    pol : Pol
+    batch : dict of torch.Tensor
+    kl_beta : float
+        KL divergence coefficient
+
+    Returns
+    -------
+    pol_loss : torch.Tensor
+    """
     obs = batch['obs']
     acs = batch['acs']
     advs = batch['advs']
@@ -93,7 +122,27 @@ def pg_kl(pol, batch, kl_beta):
     return pol_loss
 
 
-def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=True, sampling=1):
+def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, sampling=1):
+    """
+    Bellman loss.
+    Mean Squared Error of left hand side and right hand side of Bellman Equation.
+
+    Parameters
+    ----------
+    qf : SAVfunction
+    targ_qf : SAVfunction
+    targ_pol : Pol
+    batch : dict of torch.Tensor
+    gamma : float
+    continuous : bool
+        action space is continuous or not
+    sampling : int
+        Number of samping in calculating expectation.
+
+    Returns
+    -------
+    bellman_loss : torch.Tensor
+    """
     if continuous:
         obs = batch['obs']
         acs = batch['acs']
@@ -121,6 +170,24 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
 
 
 def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
+    """
+    Loss for soft actor critic.
+
+    Parameters
+    ----------
+    pol : Pol
+    qf : SAVfunction
+    targ_qf : SAVfunction
+    log_alpha : torch.Tensor
+    batch : dict of torch.Tensor
+    gamma : float
+    sampling : int
+        Number of samping in calculating expectation.
+
+    Returns
+    -------
+    pol_loss, qf_loss, alpha_loss : torch.Tensor, torch.Tensor, torch.Tensor
+    """
     obs = batch['obs']
     acs = batch['acs']
     rews = batch['rews']
@@ -168,6 +235,18 @@ def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
 def ag(pol, qf, batch, sampling=1):
     """
     DDPG style action gradient.
+
+    Parameters
+    ----------
+    pol : Pol
+    qf : SAVfunction
+    batch : dict of torch.Tensor
+    sampling : int
+        Number of samping in calculating expectation.
+
+    Returns
+    -------
+    pol_loss : torch.Tensor
     """
     obs = batch['obs']
 
@@ -183,7 +262,19 @@ def ag(pol, qf, batch, sampling=1):
     return pol_loss
 
 
-def pg(pol, batch, volatile=False):
+def pg(pol, batch):
+    """
+    Policy Gradient.
+
+    Parameters
+    ----------
+    pol : Pol
+    batch : dict of torch.Tensor
+
+    Returns
+    -------
+    pol_loss : torch.Tensor
+    """
     obs = batch['obs']
     acs = batch['acs']
     advs = batch['advs']
@@ -204,6 +295,20 @@ def pg(pol, batch, volatile=False):
 
 
 def monte_carlo(vf, batch, clip_param=0.2, clip=False):
+    """
+    Montecarlo loss for V function.
+
+    Parameters
+    ----------
+    vf : SVfunction
+    batch : dict of torch.Tensor
+    clip_param : float
+    clip : bool
+
+    Returns
+    -------
+
+    """
     obs = batch['obs']
     rets = batch['rets']
 
