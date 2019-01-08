@@ -1,31 +1,31 @@
-#The MIT License (MIT)
+# The MIT License (MIT)
 #
-#Copyright (c) 2016 rllab contributors
+# Copyright (c) 2016 rllab contributors
 #
-#rllab uses a shared copyright model: each contributor holds copyright over
-#their contributions to rllab. The project versioning records all such
-#contribution and copyright details.
-#By contributing to the rllab repository through pull-request, comment,
-#or otherwise, the contributor releases their content to the license and
-#copyright terms herein.
+# rllab uses a shared copyright model: each contributor holds copyright over
+# their contributions to rllab. The project versioning records all such
+# contribution and copyright details.
+# By contributing to the rllab repository through pull-request, comment,
+# or otherwise, the contributor releases their content to the license and
+# copyright terms herein.
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 # ==============================================================================
 # This code is taken from rllab
 
@@ -141,15 +141,16 @@ def _pipe_segment_with_colons(align, colwidth):
 def _pipe_line_with_colons(colwidths, colaligns):
     """Return a horizontal line with optional colons to indicate column's
     alignment (as in `pipe` output format)."""
-    segments = [_pipe_segment_with_colons(a, w) for a, w in zip(colaligns, colwidths)]
+    segments = [_pipe_segment_with_colons(a, w)
+                for a, w in zip(colaligns, colwidths)]
     return "|" + "|".join(segments) + "|"
 
 
 def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
-    alignment = { "left":    '',
-                  "right":   'align="right"| ',
-                  "center":  'align="center"| ',
-                  "decimal": 'align="right"| ' }
+    alignment = {"left":    '',
+                 "right":   'align="right"| ',
+                 "center":  'align="center"| ',
+                 "decimal": 'align="right"| '}
     # hard-coded padding _around_ align attribute and value together
     # rather than padding parameter which affects only the value
     values_with_attrs = [' ' + alignment.get(a, '') + c + ' '
@@ -159,7 +160,7 @@ def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
 
 
 def _latex_line_begin_tabular(colwidths, colaligns):
-    alignment = { "left": "l", "right": "r", "center": "c", "decimal": "r" }
+    alignment = {"left": "l", "right": "r", "center": "c", "decimal": "r"}
     tabular_columns_fmt = "".join([alignment.get(a, "l") for a in colaligns])
     return "\\begin{tabular}{" + tabular_columns_fmt + "}\n\hline"
 
@@ -218,14 +219,16 @@ _table_formats = {"simple":
                               linebelowheader=Line("|-", "", "", ""),
                               linebetweenrows=Line("|-", "", "", ""),
                               linebelow=Line("|}", "", "", ""),
-                              headerrow=partial(_mediawiki_row_with_attrs, "!"),
+                              headerrow=partial(
+                                  _mediawiki_row_with_attrs, "!"),
                               datarow=partial(_mediawiki_row_with_attrs, "|"),
                               padding=0, with_header_hide=None),
                   "latex":
                   TableFormat(lineabove=_latex_line_begin_tabular,
                               linebelowheader=Line("\\hline", "", "", ""),
                               linebetweenrows=None,
-                              linebelow=Line("\\hline\n\\end{tabular}", "", "", ""),
+                              linebelow=Line(
+                                  "\\hline\n\\end{tabular}", "", "", ""),
                               headerrow=DataRow("", "&", "\\\\"),
                               datarow=DataRow("", "&", "\\\\"),
                               padding=1, with_header_hide=None),
@@ -286,8 +289,8 @@ def _isint(string):
     False
     """
     return type(string) is int or \
-           (isinstance(string, _binary_type) or isinstance(string, _text_type)) and \
-           _isconvertible(int, string)
+        (isinstance(string, _binary_type) or isinstance(string, _text_type)) and \
+        _isconvertible(int, string)
 
 
 def _type(string, has_invisible=True):
@@ -358,7 +361,8 @@ def _padleft(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:>%ds}" % iwidth
     return fmt.format(s)
 
@@ -370,7 +374,8 @@ def _padright(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:<%ds}" % iwidth
     return fmt.format(s)
 
@@ -382,7 +387,8 @@ def _padboth(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:^%ds}" % iwidth
     return fmt.format(s)
 
@@ -447,8 +453,9 @@ def _align_column(strings, alignment, minwidth=0, has_invisible=True):
 
 
 def _more_generic(type1, type2):
-    types = { _none_type: 0, int: 1, float: 2, _binary_type: 3, _text_type: 4 }
-    invtypes = { 4: _text_type, 3: _binary_type, 2: float, 1: int, 0: _none_type }
+    types = {_none_type: 0, int: 1, float: 2, _binary_type: 3, _text_type: 4}
+    invtypes = {4: _text_type, 3: _binary_type,
+                2: float, 1: int, 0: _none_type}
     moregeneric = max(types.get(type1, 4), types.get(type2, 4))
     return invtypes[moregeneric]
 
@@ -473,7 +480,7 @@ def _column_type(strings, has_invisible=True):
     True
 
     """
-    types = [_type(s, has_invisible) for s in strings ]
+    types = [_type(s, has_invisible) for s in strings]
     return reduce(_more_generic, types, int)
 
 
@@ -540,49 +547,51 @@ def _normalize_tabular_data(tabular_data, headers):
         if hasattr(tabular_data.values, "__call__"):
             # likely a conventional dict
             keys = list(tabular_data.keys())
-            rows = list(zip_longest(*list(tabular_data.values())))  # columns have to be transposed
+            # columns have to be transposed
+            rows = list(zip_longest(*list(tabular_data.values())))
         elif hasattr(tabular_data, "index"):
             # values is a property, has .index => it's likely a pandas.DataFrame (pandas 0.11.0)
             keys = list(tabular_data.keys())
             vals = tabular_data.values  # values matrix doesn't need to be transposed
             names = tabular_data.index
-            rows = [[v]+list(row) for v,row in zip(names, vals)]
+            rows = [[v]+list(row) for v, row in zip(names, vals)]
         else:
-            raise ValueError("tabular data doesn't appear to be a dict or a DataFrame")
+            raise ValueError(
+                "tabular data doesn't appear to be a dict or a DataFrame")
 
         if headers == "keys":
-            headers = list(map(_text_type,keys))  # headers should be strings
+            headers = list(map(_text_type, keys))  # headers should be strings
 
     else:  # it's a usual an iterable of iterables, or a NumPy array
         rows = list(tabular_data)
 
         if (headers == "keys" and
             hasattr(tabular_data, "dtype") and
-            getattr(tabular_data.dtype, "names")):
+                getattr(tabular_data.dtype, "names")):
             # numpy record array
             headers = tabular_data.dtype.names
         elif (headers == "keys"
               and len(rows) > 0
               and isinstance(rows[0], tuple)
-              and hasattr(rows[0], "_fields")): # namedtuple
+              and hasattr(rows[0], "_fields")):  # namedtuple
             headers = list(map(_text_type, rows[0]._fields))
         elif headers == "keys" and len(rows) > 0:  # keys are column indices
             headers = list(map(_text_type, list(range(len(rows[0])))))
 
     # take headers from the first row if necessary
     if headers == "firstrow" and len(rows) > 0:
-        headers = list(map(_text_type, rows[0])) # headers should be strings
+        headers = list(map(_text_type, rows[0]))  # headers should be strings
         rows = rows[1:]
 
     headers = list(headers)
-    rows = list(map(list,rows))
+    rows = list(map(list, rows))
 
     # pad with empty headers for initial columns if necessary
     if headers and len(rows) > 0:
-       nhs = len(headers)
-       ncols = len(rows[0])
-       if nhs < ncols:
-           headers = [""]*(ncols - nhs) + headers
+        nhs = len(headers)
+        ncols = len(rows[0])
+        if nhs < ncols:
+            headers = [""]*(ncols - nhs) + headers
 
     return rows, headers
 
@@ -790,8 +799,8 @@ def tabulate(tabular_data, headers=[], tablefmt="simple",
 
     # optimization: look for ANSI control codes once,
     # enable smart width functions only if a control code is found
-    plain_text = '\n'.join(['\t'.join(map(_text_type, headers))] + \
-                            ['\t'.join(map(_text_type, row)) for row in list_of_lists])
+    plain_text = '\n'.join(['\t'.join(map(_text_type, headers))] +
+                           ['\t'.join(map(_text_type, row)) for row in list_of_lists])
     has_invisible = re.search(_invisible_codes, plain_text)
     if has_invisible:
         width_fn = _visible_width
@@ -802,17 +811,18 @@ def tabulate(tabular_data, headers=[], tablefmt="simple",
     cols = list(zip(*list_of_lists))
     coltypes = list(map(_column_type, cols))
     cols = [[_format(v, ct, floatfmt, missingval) for v in c]
-             for c,ct in zip(cols, coltypes)]
+            for c, ct in zip(cols, coltypes)]
 
     # align columns
-    aligns = [numalign if ct in [int,float] else stralign for ct in coltypes]
+    aligns = [numalign if ct in [int, float] else stralign for ct in coltypes]
     minwidths = [width_fn(h)+2 for h in headers] if headers else [0]*len(cols)
     cols = [_align_column(c, a, minw, has_invisible)
             for c, a, minw in zip(cols, aligns, minwidths)]
 
     if headers:
         # align headers and add headers
-        minwidths = [max(minw, width_fn(c[0])) for minw, c in zip(minwidths, cols)]
+        minwidths = [max(minw, width_fn(c[0]))
+                     for minw, c in zip(minwidths, cols)]
         headers = [_align_header(h, a, minw)
                    for h, a, minw in zip(headers, aligns, minwidths)]
         rows = list(zip(*cols))
@@ -878,20 +888,26 @@ def _format_table(fmt, headers, rows, colwidths, colaligns):
         lines.append(_build_line(padded_widths, colaligns, fmt.lineabove))
 
     if padded_headers:
-        lines.append(_build_row(padded_headers, padded_widths, colaligns, headerrow))
+        lines.append(_build_row(padded_headers,
+                                padded_widths, colaligns, headerrow))
         if fmt.linebelowheader and "linebelowheader" not in hidden:
-            lines.append(_build_line(padded_widths, colaligns, fmt.linebelowheader))
+            lines.append(_build_line(
+                padded_widths, colaligns, fmt.linebelowheader))
 
     if padded_rows and fmt.linebetweenrows and "linebetweenrows" not in hidden:
         # initial rows with a line below
         for row in padded_rows[:-1]:
-            lines.append(_build_row(row, padded_widths, colaligns, fmt.datarow))
-            lines.append(_build_line(padded_widths, colaligns, fmt.linebetweenrows))
+            lines.append(_build_row(
+                row, padded_widths, colaligns, fmt.datarow))
+            lines.append(_build_line(
+                padded_widths, colaligns, fmt.linebetweenrows))
         # the last row without a line below
-        lines.append(_build_row(padded_rows[-1], padded_widths, colaligns, fmt.datarow))
+        lines.append(_build_row(
+            padded_rows[-1], padded_widths, colaligns, fmt.datarow))
     else:
         for row in padded_rows:
-            lines.append(_build_row(row, padded_widths, colaligns, fmt.datarow))
+            lines.append(_build_row(
+                row, padded_widths, colaligns, fmt.datarow))
 
     if fmt.linebelow and "linebelow" not in hidden:
         lines.append(_build_line(padded_widths, colaligns, fmt.linebelow))
@@ -966,6 +982,7 @@ def plot_scores(filename, key, x_key, label=None, title=None,
     plt.close()
     return fig_fname
 
+
 def csv2table(filename, save_dir=None, output_filename='scores-table.txt'):
     with open(filename, newline='') as f:
         data = list(csv.reader(f))
@@ -988,6 +1005,7 @@ def csv2table(filename, save_dir=None, output_filename='scores-table.txt'):
         save_dir = os.path.dirname(filename)
     with open(os.path.join(save_dir, output_filename), 'w') as f:
         f.write(output)
+
 
 color2num = dict(
     gray=30,
@@ -1062,7 +1080,8 @@ class Message(object):
         global MESSAGE_DEPTH  # pylint: disable=W0603
         MESSAGE_DEPTH -= 1
         maybe_exc = "" if etype is None else " (with exception)"
-        print(colorize('\t' * MESSAGE_DEPTH + "done%s in %.3f seconds" % (maybe_exc, time.time() - self.tstart), 'magenta'))
+        print(colorize('\t' * MESSAGE_DEPTH + "done%s in %.3f seconds" %
+                       (maybe_exc, time.time() - self.tstart), 'magenta'))
 
 
 def prefix_log(prefix, logger=log):
@@ -1151,7 +1170,8 @@ def tweakfun(fun, alt=None):
         if k.startswith(cmd_prefix):
             stripped = k[len(cmd_prefix):].replace('-', '_')
             if stripped in meta:
-                log('replacing %s in %s with %s' % (stripped, str(fun), str(v)))
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
                 replaced_kwargs[stripped] = meta[stripped](v)
             elif stripped not in argspec.args:
                 raise ValueError(
@@ -1163,7 +1183,8 @@ def tweakfun(fun, alt=None):
                 raise ValueError(
                     'Cannot infer type of %s in method %s from None value' % (stripped, str(fun)))
             else:
-                log('replacing %s in %s with %s' % (stripped, str(fun), str(v)))
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
                 # TODO more proper conversions
                 replaced_kwargs[stripped] = type(defaults[stripped])(v)
 
@@ -1285,12 +1306,15 @@ def set_snapshot_mode(mode):
     global _snapshot_mode
     _snapshot_mode = mode
 
+
 def get_snapshot_gap():
     return _snapshot_gap
+
 
 def set_snapshot_gap(gap):
     global _snapshot_gap
     _snapshot_gap = gap
+
 
 def set_log_tabular_only(log_tabular_only):
     global _log_tabular_only
@@ -1389,7 +1413,8 @@ def dump_tabular(*args, **kwargs):
         # Also write to the csv files
         # This assumes that the keys in each iteration won't change!
         for tabular_fd in list(_tabular_fds.values()):
-            writer = csv.DictWriter(tabular_fd, fieldnames=list(tabular_dict.keys()))
+            writer = csv.DictWriter(
+                tabular_fd, fieldnames=list(tabular_dict.keys()))
             if wh or (wh is None and tabular_fd not in _tabular_header_written):
                 writer.writeheader()
                 _tabular_header_written.add(tabular_fd)
@@ -1436,7 +1461,8 @@ def log_parameters(log_file, args, classes):
             log_params[name] = params
         else:
             log_params[name] = getattr(cls, "__kwargs", dict())
-            log_params[name]["_name"] = cls.__module__ + "." + cls.__class__.__name__
+            log_params[name]["_name"] = cls.__module__ + \
+                "." + cls.__class__.__name__
     mkdir_p(os.path.dirname(log_file))
     with open(log_file, "w") as f:
         json.dump(log_params, f, indent=2, sort_keys=True)
@@ -1449,7 +1475,8 @@ def stub_to_json(stub_sth):
         data = dict()
         for k, v in stub_sth.kwargs.items():
             data[k] = stub_to_json(v)
-        data["_name"] = stub_sth.proxy_class.__module__ + "." + stub_sth.proxy_class.__name__
+        data["_name"] = stub_sth.proxy_class.__module__ + \
+            "." + stub_sth.proxy_class.__name__
         return data
     elif isinstance(stub_sth, instrument.StubAttr):
         return dict(
@@ -1493,7 +1520,7 @@ def log_parameters_lite(log_file, args):
     log_params = {}
     for param_name, param_value in args.__dict__.items():
         log_params[param_name] = param_value
-    #if args.args_data is not None:
+    # if args.args_data is not None:
     #    stub_method = pickle.loads(base64.b64decode(args.args_data))
     #    method_args = stub_method.kwargs
     #    log_params["json_args"] = dict()

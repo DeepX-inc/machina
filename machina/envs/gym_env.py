@@ -17,6 +17,7 @@
 import gym
 from machina import logger
 
+
 class CappedCubicVideoSchedule(object):
     # Copied from gym, since this method is frequently moved around
     def __call__(self, count):
@@ -36,7 +37,8 @@ class GymEnv(object):
                  force_reset=False):
         if log_dir is None:
             if logger.get_snapshot_dir() is None:
-                logger.log("Warning: skipping Gym environment monitoring since snapshot_dir not configured.")
+                logger.log(
+                    "Warning: skipping Gym environment monitoring since snapshot_dir not configured.")
             else:
                 log_dir = os.path.join(logger.get_snapshot_dir(), "gym_log")
 
@@ -54,7 +56,8 @@ class GymEnv(object):
             else:
                 if video_schedule is None:
                     video_schedule = CappedCubicVideoSchedule()
-            self.env = gym.wrappers.Monitor(self.env, log_dir, video_callable=video_schedule, force=True)
+            self.env = gym.wrappers.Monitor(
+                self.env, log_dir, video_callable=video_schedule, force=True)
             self.monitoring = True
 
         self.ob_space = env.observation_space

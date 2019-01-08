@@ -30,6 +30,7 @@ def update_pol(pol, optim_pol, batch):
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
+
 def update_vf(vf, optim_vf, batch):
     vf_loss = lf.monte_carlo(vf, batch)
     optim_vf.zero_grad()
@@ -37,12 +38,13 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.step()
     return vf_loss.detach().cpu().numpy()
 
+
 def train(traj, pol, vf,
-        optim_pol, optim_vf,
-        epoch, batch_size,# optimization hypers
-        gamma, lam, # advantage estimation
-        large_batch,
-        ):
+          optim_pol, optim_vf,
+          epoch, batch_size,  # optimization hypers
+          gamma, lam,  # advantage estimation
+          large_batch,
+          ):
 
     pol_losses = []
     vf_losses = []

@@ -16,6 +16,7 @@
 import numpy as np
 import torch
 
+
 class BasePrePro(object):
     def __init__(self, ob_space, normalize_ob=True):
         self.ob_space = ob_space
@@ -27,7 +28,8 @@ class BasePrePro(object):
 
     def update_ob_rms(self, ob):
         self.ob_rm = self.ob_rm * (1-self.alpha) + self.alpha * ob
-        self.ob_rv = self.ob_rv * (1-self.alpha) + self.alpha * np.square(ob-self.ob_rm)
+        self.ob_rv = self.ob_rv * (1-self.alpha) + \
+            self.alpha * np.square(ob-self.ob_rm)
 
     def prepro(self, ob):
         if self.normalize_ob:
@@ -41,5 +43,3 @@ class BasePrePro(object):
             ob = (ob - self.ob_rm) / (np.sqrt(self.ob_rv) + 1e-8)
             ob = np.clip(ob, -5, 5)
         return ob
-
-

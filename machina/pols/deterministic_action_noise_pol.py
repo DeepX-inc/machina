@@ -25,8 +25,10 @@ from machina.utils import get_device
 class DeterministicActionNoisePol(BasePol):
     def __init__(self, ob_space, ac_space, net, noise=None, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         if rnn:
-            raise ValueError('rnn with DeterministicActionNoisePol is not supported now')
-        BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac, data_parallel=data_parallel, parallel_dim=parallel_dim)
+            raise ValueError(
+                'rnn with DeterministicActionNoisePol is not supported now')
+        BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac,
+                         data_parallel=data_parallel, parallel_dim=parallel_dim)
         self.noise = noise
         self.pd = DeterministicPd()
         self.to(get_device())

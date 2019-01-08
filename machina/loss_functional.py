@@ -55,6 +55,7 @@ def pg_clip(pol, batch, clip_param, ent_beta):
 
     return pol_loss
 
+
 def pg_kl(pol, batch, kl_beta):
     obs = batch['obs']
     acs = batch['acs']
@@ -91,6 +92,7 @@ def pg_kl(pol, batch, kl_beta):
 
     return pol_loss
 
+
 def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=True, sampling=1):
     if continuous:
         obs = batch['obs']
@@ -114,7 +116,9 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
 
         return 0.5 * torch.mean((q - targ)**2)
     else:
-        raise NotImplementedError("Only Q function with continuous action space is supported now.")
+        raise NotImplementedError(
+            "Only Q function with continuous action space is supported now.")
+
 
 def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
     obs = batch['obs']
@@ -152,11 +156,14 @@ def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
 
     qf_loss = 0.5 * torch.mean((q - q_targ)**2)
 
-    pol_loss = torch.mean(sampled_llh * (alpha * sampled_llh - sampled_q).detach())
+    pol_loss = torch.mean(
+        sampled_llh * (alpha * sampled_llh - sampled_q).detach())
 
-    alpha_loss = - torch.mean(log_alpha * (sampled_llh - np.prod(pol.ac_space.shape).item()).detach())
+    alpha_loss = - torch.mean(log_alpha * (sampled_llh -
+                                           np.prod(pol.ac_space.shape).item()).detach())
 
     return pol_loss, qf_loss, alpha_loss
+
 
 def ag(pol, qf, batch, sampling=1):
     """
@@ -174,6 +181,7 @@ def ag(pol, qf, batch, sampling=1):
     pol_loss = - torch.mean(q)
 
     return pol_loss
+
 
 def pg(pol, batch, volatile=False):
     obs = batch['obs']
@@ -194,6 +202,7 @@ def pg(pol, batch, volatile=False):
     pol_loss = - torch.mean(llh * advs * out_masks)
     return pol_loss
 
+
 def monte_carlo(vf, batch, clip_param=0.2, clip=False):
     obs = batch['obs']
     rets = batch['rets']
@@ -210,7 +219,8 @@ def monte_carlo(vf, batch, clip_param=0.2, clip=False):
     vfloss1 = (vs - rets)**2
     if clip:
         old_vs = batch['vs']
-        vpredclipped = old_vs + torch.clamp(vs - old_vs, -clip_param, clip_param)
+        vpredclipped = old_vs + \
+            torch.clamp(vs - old_vs, -clip_param, clip_param)
         vfloss2 = (vpredclipped - rets)**2
         vf_loss = 0.5 * torch.mean(torch.max(vfloss1, vfloss2) * out_masks)
     else:

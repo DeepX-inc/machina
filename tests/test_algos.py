@@ -66,15 +66,17 @@ class TestPPOContinuous(unittest.TestCase):
         traj.register_epis()
 
         result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=0.2,
-                                        optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32)
+                                     optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32)
         result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=0.1, kl_targ=0.2,
-                                    optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32, max_grad_norm=10)
+                                   optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32, max_grad_norm=10)
 
         del sampler
 
     def test_learning_rnn(self):
-        pol_net = PolNetLSTM(self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
-        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net, rnn=True)
+        pol_net = PolNetLSTM(
+            self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
+        pol = GaussianPol(self.env.ob_space,
+                          self.env.ac_space, pol_net, rnn=True)
 
         vf_net = VNetLSTM(self.env.ob_space, h_size=32, cell_size=32)
         vf = DeterministicSVfunc(self.env.ob_space, vf_net, rnn=True)
@@ -97,11 +99,12 @@ class TestPPOContinuous(unittest.TestCase):
         traj.register_epis()
 
         result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=0.2,
-                                        optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=2)
+                                     optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=2)
         result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=0.1, kl_targ=0.2,
-                                    optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=2, max_grad_norm=20)
+                                   optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=2, max_grad_norm=20)
 
         del sampler
+
 
 class TestPPODiscrete(unittest.TestCase):
     def setUp(self):
@@ -132,13 +135,13 @@ class TestPPODiscrete(unittest.TestCase):
         traj.register_epis()
 
         result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=0.2,
-                                        optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32)
+                                     optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32)
         result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=0.1, kl_targ=0.2,
-                                    optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32, max_grad_norm=10)
+                                   optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32, max_grad_norm=10)
 
         del sampler
 
-    #def test_learning_rnn(self):
+    # def test_learning_rnn(self):
     #    pol_net = PolNetLSTM(self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
     #    pol = CategoricalPol(self.env.ob_space, self.env.ac_space, pol_net, rnn=True)
 
@@ -168,6 +171,7 @@ class TestPPODiscrete(unittest.TestCase):
     #                                optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=2, max_grad_norm=20)
 
     #    del sampler
+
 
 class TestTRPOContinuous(unittest.TestCase):
     def setUp(self):
@@ -201,8 +205,10 @@ class TestTRPOContinuous(unittest.TestCase):
         del sampler
 
     def test_learning_rnn(self):
-        pol_net = PolNetLSTM(self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
-        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net, rnn=True)
+        pol_net = PolNetLSTM(
+            self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
+        pol = GaussianPol(self.env.ob_space,
+                          self.env.ac_space, pol_net, rnn=True)
 
         vf_net = VNetLSTM(self.env.ob_space, h_size=32, cell_size=32)
         vf = DeterministicSVfunc(self.env.ob_space, vf_net, rnn=True)
@@ -227,7 +233,6 @@ class TestTRPOContinuous(unittest.TestCase):
         result_dict = trpo.train(traj, pol, vf, optim_vf, 1, 2)
 
         del sampler
-
 
 
 class TestTRPODiscrete(unittest.TestCase):
@@ -262,8 +267,10 @@ class TestTRPODiscrete(unittest.TestCase):
         del sampler
 
     def test_learning_rnn(self):
-        pol_net = PolNetLSTM(self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
-        pol = CategoricalPol(self.env.ob_space, self.env.ac_space, pol_net, rnn=True)
+        pol_net = PolNetLSTM(
+            self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
+        pol = CategoricalPol(
+            self.env.ob_space, self.env.ac_space, pol_net, rnn=True)
 
         vf_net = VNetLSTM(self.env.ob_space, h_size=32, cell_size=32)
         vf = DeterministicSVfunc(self.env.ob_space, vf_net, rnn=True)
@@ -288,26 +295,32 @@ class TestTRPODiscrete(unittest.TestCase):
 
         del sampler
 
+
 class TestDDPG(unittest.TestCase):
     def setUp(self):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32, deterministic=True)
+        pol_net = PolNet(self.env.ob_space, self.env.ac_space,
+                         h1=32, h2=32, deterministic=True)
         noise = OUActionNoise(self.env.ac_space.shape)
-        pol = DeterministicActionNoisePol(self.env.ob_space, self.env.ac_space, pol_net, noise)
+        pol = DeterministicActionNoisePol(
+            self.env.ob_space, self.env.ac_space, pol_net, noise)
 
-        targ_pol_net = PolNet(self.env.ob_space, self.env.ac_space, 32, 32, deterministic=True)
+        targ_pol_net = PolNet(
+            self.env.ob_space, self.env.ac_space, 32, 32, deterministic=True)
         targ_pol_net.load_state_dict(pol_net.state_dict())
         targ_noise = OUActionNoise(self.env.ac_space.shape)
-        targ_pol = DeterministicActionNoisePol(self.env.ob_space, self.env.ac_space, targ_pol_net, targ_noise)
+        targ_pol = DeterministicActionNoisePol(
+            self.env.ob_space, self.env.ac_space, targ_pol_net, targ_noise)
 
         qf_net = QNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
         qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
 
         targ_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
         targ_qf_net.load_state_dict(targ_qf_net.state_dict())
-        targ_qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net)
+        targ_qf = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf_net)
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
@@ -322,9 +335,11 @@ class TestDDPG(unittest.TestCase):
         traj = ef.add_next_obs(traj)
         traj.register_epis()
 
-        result_dict = ddpg.train(traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9, 1)
+        result_dict = ddpg.train(
+            traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9, 1)
 
         del sampler
+
 
 class TestSVG(unittest.TestCase):
     def setUp(self):
@@ -336,14 +351,16 @@ class TestSVG(unittest.TestCase):
 
         targ_pol_net = PolNet(self.env.ob_space, self.env.ac_space, 32, 32)
         targ_pol_net.load_state_dict(pol_net.state_dict())
-        targ_pol = GaussianPol(self.env.ob_space, self.env.ac_space, targ_pol_net)
+        targ_pol = GaussianPol(
+            self.env.ob_space, self.env.ac_space, targ_pol_net)
 
         qf_net = QNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
         qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
 
         targ_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
         targ_qf_net.load_state_dict(targ_qf_net.state_dict())
-        targ_qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net)
+        targ_qf = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf_net)
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
@@ -358,9 +375,11 @@ class TestSVG(unittest.TestCase):
         traj = ef.add_next_obs(traj)
         traj.register_epis()
 
-        result_dict = svg.train(traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9, 1)
+        result_dict = svg.train(
+            traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9, 1)
 
         del sampler
+
 
 class TestSAC(unittest.TestCase):
     def setUp(self):
@@ -375,7 +394,8 @@ class TestSAC(unittest.TestCase):
 
         targ_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
         targ_qf_net.load_state_dict(targ_qf_net.state_dict())
-        targ_qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net)
+        targ_qf = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf_net)
 
         log_alpha = nn.Parameter(torch.zeros(()))
 
@@ -396,12 +416,13 @@ class TestSAC(unittest.TestCase):
         result_dict = sac.train(
             traj,
             pol, qf, targ_qf, log_alpha,
-            optim_pol,optim_qf, optim_alpha,
+            optim_pol, optim_qf, optim_alpha,
             2, 32,
             0.01, 0.99, 2,
         )
 
         del sampler
+
 
 if __name__ == '__main__':
     t = TestDDPG()

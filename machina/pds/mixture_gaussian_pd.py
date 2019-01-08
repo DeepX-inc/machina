@@ -20,6 +20,7 @@ import numpy as np
 from machina.pds.base import BasePd
 from machina.pds.gaussian_pd import GaussianPd
 
+
 class MixtureGaussianPd(BasePd):
     def __init__(self, ob_space, ac_space):
         BasePd.__init__(self, ob_space, ac_space)
@@ -28,7 +29,8 @@ class MixtureGaussianPd(BasePd):
     def sample(self, params):
         pi, mean, log_std = params['pi'], params['mean'], params['log_std']
         pi_onehot = OneHotCategorical(pi).sample()
-        ac = torch.sum((mean + torch.randn_like(mean) * torch.exp(log_std)) * pi_onehot.unsqueeze(-1), 1)
+        ac = torch.sum((mean + torch.randn_like(mean) *
+                        torch.exp(log_std)) * pi_onehot.unsqueeze(-1), 1)
         return ac
 
     def llh(self, x, params):
@@ -40,7 +42,9 @@ class MixtureGaussianPd(BasePd):
             pi = pis[:, i]
             mean = means[:, i, :]
             log_std = log_stds[:, i, :]
-            llh = llh + pi * torch.exp(self.gaussian_pd.llh(x, dict(mean=mean, log_std=log_std)))
+            llh = llh + pi * \
+                torch.exp(self.gaussian_pd.llh(
+                    x, dict(mean=mean, log_std=log_std)))
         return torch.log(llh)
 
     def kl_pq(self, p_params, q_params):
@@ -63,7 +67,8 @@ class MixtureGaussianPd(BasePd):
                 numerator = numerator + p_pis[:, ii] * torch.exp(
                     -self.gaussian_pd.kl_pq(
                         dict(mean=p_mean, log_std=p_log_std),
-                        dict(mean=p_means[:, ii, :], log_std=p_log_stds[:, ii, :])
+                        dict(mean=p_means[:, ii, :],
+                             log_std=p_log_stds[:, ii, :])
                     )
                 )
             denominator = 0
@@ -71,10 +76,9 @@ class MixtureGaussianPd(BasePd):
                 denominator = denominator + p_pis[:, ii] * torch.exp(
                     -self.gaussian_pd.kl_pq(
                         dict(mean=p_mean, log_std=p_log_std),
-                        dict(mean=q_means[:, ii, :], log_std=q_log_stds[:, ii, :])
+                        dict(mean=q_means[:, ii, :],
+                             log_std=q_log_stds[:, ii, :])
                     )
                 )
             kl = kl + p_pi * torch.log(numerator / denominator)
         return kl
-
-
