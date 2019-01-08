@@ -21,6 +21,25 @@ import torch.nn as nn
 
 
 class BasePol(nn.Module):
+    """
+    Base class of Policy.
+
+    Parameters
+    ----------
+    ob_space : gym.Space
+        observation's space
+    ac_space : gym.Space
+        action's space
+    net : torch.nn.Module
+    rnn : bool
+    normalize_ac : bool
+        If True, the output of network is spreaded for ac_space.
+        In this situation the output of network is expected to be in -1~1.
+    data_parallel : bool
+        If True, network computation is executed in parallel.
+    parallel_dim : int
+        Splitted dimension in data parallel.
+    """
     def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         nn.Module.__init__(self)
         self.ob_space = ob_space
@@ -51,6 +70,9 @@ class BasePol(nn.Module):
                 self.pd_shape = (ac_space.n, )
 
     def convert_ac_for_real(self, x):
+        """
+        Converting action which is output of network for real world value.
+        """
         if not self.discrete:
             lb, ub = self.ac_space.low, self.ac_space.high
             if self.normalize_ac:
@@ -61,10 +83,16 @@ class BasePol(nn.Module):
         return x
 
     def reset(self):
+        """
+        reset for rnn's hidden state.
+        """
         if self.rnn:
             self.hs = None
 
     def _check_obs_shape(self, obs):
+        """
+        Reshape input appropriately.
+        """
         if self.rnn:
             additional_shape = 2
         else:

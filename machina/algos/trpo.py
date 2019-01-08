@@ -28,6 +28,9 @@ from machina import logger
 
 
 def conjugate_gradients(Avp, b, nsteps, residual_tol=1e-10):
+    """
+    Calculating conjugate gradient
+    """
     x = torch.zeros_like(b)
     r = b.clone()
     p = b.clone()
@@ -142,6 +145,37 @@ def train(traj, pol, vf,
           epoch=5, batch_size=64, num_epi_per_seq=1,  # optimization hypers
           max_kl=0.01, num_cg=10, damping=0.1,
           ):
+    """
+    Train function for trust region policy optimization.
+
+    Parameters
+    ----------
+    traj : Traj
+        On policy trajectory.
+    pol : Pol
+        Policy.
+    vf : SVfunction
+        V function.
+    optim_vf : torch.optim.Optimizer
+        Optimizer for V function.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    num_epi_per_seq : int
+        Number of episodes in one sequence for rnn.
+    max_kl : float
+        Limit of KL divergence.
+    num_cg : int
+        Number of iteration in conjugate gradient computation.
+    damping : float
+        Damping parameter for Hessian Vector Product.
+
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
 
     pol_losses = []
     vf_losses = []

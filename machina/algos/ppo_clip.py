@@ -27,6 +27,29 @@ from machina import logger
 
 
 def update_pol(pol, optim_pol, batch, clip_param, ent_beta, max_grad_norm):
+    """
+    Update function for Policy.
+
+    Parameters
+    ----------
+    pol : Pol
+        Policy.
+    optim_pol : torch.optim.Optimizer
+        Optimizer for Policy.
+    batch : dict
+        Batch of trajectory
+    clip_param : float
+        Clipping ratio of objective function.
+    ent_beta : float
+        Entropy coefficient.
+    max_grad_norm : float
+        Maximum gradient norm.
+
+    Returns
+    -------
+    pol_loss : ndarray
+        Value of loss function.
+    """
     pol_loss = lf.pg_clip(pol, batch, clip_param, ent_beta)
     optim_pol.zero_grad()
     pol_loss.backward()
@@ -36,6 +59,29 @@ def update_pol(pol, optim_pol, batch, clip_param, ent_beta, max_grad_norm):
 
 
 def update_vf(vf, optim_vf, batch, clip_param, clip, max_grad_norm):
+    """
+    Update function for V function.
+
+    Parameters
+    ----------
+    vf : SVfunction
+        V function.
+    optim_vf : torch.optim.Optimizer
+        Optimizer for V function.
+    batch : dict
+        Batch of trajectory
+    clip_param : float
+        Clipping ratio of objective function.
+    clip: bool
+        If True, vfunc is also updated by clipped objective function.
+    max_grad_norm : float
+        Maximum gradient norm.
+
+    Returns
+    -------
+    vf_loss : ndarray
+        Value of loss function.
+    """
     vf_loss = lf.monte_carlo(vf, batch, clip_param, clip)
     optim_vf.zero_grad()
     vf_loss.backward()
@@ -51,6 +97,41 @@ def train(traj, pol, vf,
           max_grad_norm=0.5,
           clip_vfunc=False
           ):
+    """
+    Train function for proximal policy optimization (clip).
+
+    Parameters
+    ----------
+    traj : Traj
+        On policy trajectory.
+    pol : Pol
+        Policy.
+    vf : SVfunction
+        V function.
+    optim_pol : torch.optim.Optimizer
+        Optimizer for Policy.
+    optim_vf : torch.optim.Optimizer
+        Optimizer for V function.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    num_epi_per_seq : int
+        Number of episodes in one sequence for rnn.
+    clip_param : float
+        Clipping ratio of objective function.
+    ent_beta : float
+        Entropy coefficient.
+    max_grad_norm : float
+        Maximum gradient norm.
+    clip_vfunc: bool
+        If True, vfunc is also updated by clipped objective function.
+
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
 
     pol_losses = []
     vf_losses = []

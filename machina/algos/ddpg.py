@@ -11,8 +11,41 @@ def train(traj,
           pol, targ_pol, qf, targ_qf,
           optim_pol, optim_qf,
           epoch, batch_size,  # optimization hypers
-          tau, gamma, lam  # advantage estimation
+          tau, gamma  # advantage estimation
           ):
+    """
+    Train function for deep deterministic policy gradient
+
+    Parameters
+    ----------
+    traj : Traj
+        Off policy trajectory.
+    pol : Pol
+        Policy.
+    targ_pol : Pol
+        Target Policy.
+    qf : SAVfunction
+        Q function.
+    targ_qf : SAVfunction
+        Target Q function.
+    optim_pol : torch.optim.Optimizer
+        Optimizer for Policy.
+    optim_qf : torch.optim.Optimizer
+        Optimizer for Q function.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    tau : float
+        Target updating rate.
+    gamma : float
+        Discounting rate.
+
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
 
     pol_losses = []
     qf_losses = []

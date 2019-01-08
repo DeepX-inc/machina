@@ -49,6 +49,39 @@ def train(traj, pol, vf,
           epoch, batch_size, max_grad_norm,
           num_epi_per_seq=1  # optimization hypers
           ):
+    """
+    Train function for proximal policy optimization (kl).
+
+    Parameters
+    ----------
+    traj : Traj
+        On policy trajectory.
+    pol : Pol
+        Policy.
+    vf : SVfunction
+        V function.
+    kl_beta : float
+        KL divergence coefficient.
+    kl_targ : float
+        Target of KL divergence.
+    optim_pol : torch.optim.Optimizer
+        Optimizer for Policy.
+    optim_vf : torch.optim.Optimizer
+        Optimizer for V function.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    max_grad_norm : float
+        Maximum gradient norm.
+    num_epi_per_seq : int
+        Number of episodes in one sequence for rnn.
+
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
 
     pol_losses = []
     vf_losses = []

@@ -42,10 +42,35 @@ def update_vf(vf, optim_vf, batch):
 def train(traj, pol, vf,
           optim_pol, optim_vf,
           epoch, batch_size,  # optimization hypers
-          gamma, lam,  # advantage estimation
           large_batch,
           ):
+    """
+    Train function for vanila policy gradient.
 
+    Parameters
+    ----------
+    traj : Traj
+        On policy trajectory.
+    pol : Pol
+        Policy.
+    vf : SVfunction
+        V function.
+    optim_pol : torch.optim.Optimizer
+        Optimizer for Policy.
+    optim_vf : torch.optim.Optimizer
+        Optimizer for V function.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    larget_batch : bool
+        If True, batch is provided as whole trajectory.
+
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
