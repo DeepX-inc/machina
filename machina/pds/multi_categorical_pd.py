@@ -22,6 +22,9 @@ from machina.pds.base import BasePd
 
 
 class MultiCategoricalPd(BasePd):
+    """
+    Multi Categorical probablistic distribution
+    """
     def sample(self, params, sample_shape=torch.Size()):
         pis = params['pis']
         pis_sampled = []

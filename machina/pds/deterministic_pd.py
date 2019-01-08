@@ -22,6 +22,9 @@ from machina.pds.base import BasePd
 
 
 class DeterministicPd(BasePd):
+    """
+    Deterministic probablistic distribution.
+    """
     def sample(self, params, sample_shape=torch.Size()):
         mean = params['mean']
         ac = Normal(loc=mean, scale=torch.zeros_like(

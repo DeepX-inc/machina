@@ -22,6 +22,9 @@ from machina.pds.base import BasePd
 
 
 class CategoricalPd(BasePd):
+    """
+    Categorical probablistic distribution.
+    """
     def sample(self, params, sample_shape=torch.Size()):
         pi = params['pi']
         pi_sampled = Categorical(probs=pi).sample(sample_shape)
