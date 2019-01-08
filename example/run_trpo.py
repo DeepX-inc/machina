@@ -33,7 +33,7 @@ from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
-from machina.misc import logger
+from machina import logger
 from machina.utils import measure
 
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
@@ -74,7 +74,8 @@ torch.manual_seed(args.seed)
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env = GymEnv(args.env_name, log_dir=os.path.join(
+    args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
@@ -121,7 +122,8 @@ while args.max_episodes > total_epi:
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
 
-        result_dict = trpo.train(traj, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
+        result_dict = trpo.train(
+            traj, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
 
     total_epi += traj.num_epi
     step = traj.num_step
@@ -134,13 +136,19 @@ while args.max_episodes > total_epi:
                           plot_title=args.env_name)
 
     if mean_rew > max_rew:
-        torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
-        torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_max.pkl'))
-        torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_max.pkl'))
+        torch.save(pol.state_dict(), os.path.join(
+            args.log, 'models', 'pol_max.pkl'))
+        torch.save(vf.state_dict(), os.path.join(
+            args.log, 'models', 'vf_max.pkl'))
+        torch.save(optim_vf.state_dict(), os.path.join(
+            args.log, 'models', 'optim_vf_max.pkl'))
         max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_last.pkl'))
-    torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_last.pkl'))
-    torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_last.pkl'))
+    torch.save(pol.state_dict(), os.path.join(
+        args.log, 'models', 'pol_last.pkl'))
+    torch.save(vf.state_dict(), os.path.join(
+        args.log, 'models', 'vf_last.pkl'))
+    torch.save(optim_vf.state_dict(), os.path.join(
+        args.log, 'models', 'optim_vf_last.pkl'))
     del traj
 del sampler

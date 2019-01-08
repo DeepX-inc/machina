@@ -1,28 +1,62 @@
-# Copyright 2018 DeepX Inc. All Rights Reserved.
+# The MIT License (MIT)
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Copyright (c) 2016 rllab contributors
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# rllab uses a shared copyright model: each contributor holds copyright over
+# their contributions to rllab. The project versioning records all such
+# contribution and copyright details.
+# By contributing to the rllab repository through pull-request, comment,
+# or otherwise, the contributor releases their content to the license and
+# copyright terms herein.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 # ==============================================================================
-
-# -*- coding: utf-8 -*-
-# Taken from John's code
-
-"""Pretty-print tabular data."""
+# This code is taken from rllab
 
 
-
+import collections
 from collections import namedtuple
+from contextlib import contextmanager
+import csv
+import datetime
+from enum import Enum
+import errno
+import inspect
+import os
+import os.path as osp
 from platform import python_version_tuple
+import pydoc
 import re
+import shlex
+import sys
+import time
+import warnings
+
+import base64
+from cached_property import cached_property
+import dateutil.tz
+import joblib
+import json
+import numpy as np
+import pandas as pd
+import pickle
+import terminaltables
 
 
 if python_version_tuple()[0] < "3":
@@ -107,15 +141,16 @@ def _pipe_segment_with_colons(align, colwidth):
 def _pipe_line_with_colons(colwidths, colaligns):
     """Return a horizontal line with optional colons to indicate column's
     alignment (as in `pipe` output format)."""
-    segments = [_pipe_segment_with_colons(a, w) for a, w in zip(colaligns, colwidths)]
+    segments = [_pipe_segment_with_colons(a, w)
+                for a, w in zip(colaligns, colwidths)]
     return "|" + "|".join(segments) + "|"
 
 
 def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
-    alignment = { "left":    '',
-                  "right":   'align="right"| ',
-                  "center":  'align="center"| ',
-                  "decimal": 'align="right"| ' }
+    alignment = {"left":    '',
+                 "right":   'align="right"| ',
+                 "center":  'align="center"| ',
+                 "decimal": 'align="right"| '}
     # hard-coded padding _around_ align attribute and value together
     # rather than padding parameter which affects only the value
     values_with_attrs = [' ' + alignment.get(a, '') + c + ' '
@@ -125,7 +160,7 @@ def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
 
 
 def _latex_line_begin_tabular(colwidths, colaligns):
-    alignment = { "left": "l", "right": "r", "center": "c", "decimal": "r" }
+    alignment = {"left": "l", "right": "r", "center": "c", "decimal": "r"}
     tabular_columns_fmt = "".join([alignment.get(a, "l") for a in colaligns])
     return "\\begin{tabular}{" + tabular_columns_fmt + "}\n\hline"
 
@@ -184,14 +219,16 @@ _table_formats = {"simple":
                               linebelowheader=Line("|-", "", "", ""),
                               linebetweenrows=Line("|-", "", "", ""),
                               linebelow=Line("|}", "", "", ""),
-                              headerrow=partial(_mediawiki_row_with_attrs, "!"),
+                              headerrow=partial(
+                                  _mediawiki_row_with_attrs, "!"),
                               datarow=partial(_mediawiki_row_with_attrs, "|"),
                               padding=0, with_header_hide=None),
                   "latex":
                   TableFormat(lineabove=_latex_line_begin_tabular,
                               linebelowheader=Line("\\hline", "", "", ""),
                               linebetweenrows=None,
-                              linebelow=Line("\\hline\n\\end{tabular}", "", "", ""),
+                              linebelow=Line(
+                                  "\\hline\n\\end{tabular}", "", "", ""),
                               headerrow=DataRow("", "&", "\\\\"),
                               datarow=DataRow("", "&", "\\\\"),
                               padding=1, with_header_hide=None),
@@ -252,8 +289,8 @@ def _isint(string):
     False
     """
     return type(string) is int or \
-           (isinstance(string, _binary_type) or isinstance(string, _text_type)) and \
-           _isconvertible(int, string)
+        (isinstance(string, _binary_type) or isinstance(string, _text_type)) and \
+        _isconvertible(int, string)
 
 
 def _type(string, has_invisible=True):
@@ -324,7 +361,8 @@ def _padleft(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:>%ds}" % iwidth
     return fmt.format(s)
 
@@ -336,7 +374,8 @@ def _padright(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:<%ds}" % iwidth
     return fmt.format(s)
 
@@ -348,7 +387,8 @@ def _padboth(width, s, has_invisible=True):
     True
 
     """
-    iwidth = width + len(s) - len(_strip_invisible(s)) if has_invisible else width
+    iwidth = width + len(s) - len(_strip_invisible(s)
+                                  ) if has_invisible else width
     fmt = "{0:^%ds}" % iwidth
     return fmt.format(s)
 
@@ -413,8 +453,9 @@ def _align_column(strings, alignment, minwidth=0, has_invisible=True):
 
 
 def _more_generic(type1, type2):
-    types = { _none_type: 0, int: 1, float: 2, _binary_type: 3, _text_type: 4 }
-    invtypes = { 4: _text_type, 3: _binary_type, 2: float, 1: int, 0: _none_type }
+    types = {_none_type: 0, int: 1, float: 2, _binary_type: 3, _text_type: 4}
+    invtypes = {4: _text_type, 3: _binary_type,
+                2: float, 1: int, 0: _none_type}
     moregeneric = max(types.get(type1, 4), types.get(type2, 4))
     return invtypes[moregeneric]
 
@@ -439,7 +480,7 @@ def _column_type(strings, has_invisible=True):
     True
 
     """
-    types = [_type(s, has_invisible) for s in strings ]
+    types = [_type(s, has_invisible) for s in strings]
     return reduce(_more_generic, types, int)
 
 
@@ -506,49 +547,51 @@ def _normalize_tabular_data(tabular_data, headers):
         if hasattr(tabular_data.values, "__call__"):
             # likely a conventional dict
             keys = list(tabular_data.keys())
-            rows = list(zip_longest(*list(tabular_data.values())))  # columns have to be transposed
+            # columns have to be transposed
+            rows = list(zip_longest(*list(tabular_data.values())))
         elif hasattr(tabular_data, "index"):
             # values is a property, has .index => it's likely a pandas.DataFrame (pandas 0.11.0)
             keys = list(tabular_data.keys())
             vals = tabular_data.values  # values matrix doesn't need to be transposed
             names = tabular_data.index
-            rows = [[v]+list(row) for v,row in zip(names, vals)]
+            rows = [[v]+list(row) for v, row in zip(names, vals)]
         else:
-            raise ValueError("tabular data doesn't appear to be a dict or a DataFrame")
+            raise ValueError(
+                "tabular data doesn't appear to be a dict or a DataFrame")
 
         if headers == "keys":
-            headers = list(map(_text_type,keys))  # headers should be strings
+            headers = list(map(_text_type, keys))  # headers should be strings
 
     else:  # it's a usual an iterable of iterables, or a NumPy array
         rows = list(tabular_data)
 
         if (headers == "keys" and
             hasattr(tabular_data, "dtype") and
-            getattr(tabular_data.dtype, "names")):
+                getattr(tabular_data.dtype, "names")):
             # numpy record array
             headers = tabular_data.dtype.names
         elif (headers == "keys"
               and len(rows) > 0
               and isinstance(rows[0], tuple)
-              and hasattr(rows[0], "_fields")): # namedtuple
+              and hasattr(rows[0], "_fields")):  # namedtuple
             headers = list(map(_text_type, rows[0]._fields))
         elif headers == "keys" and len(rows) > 0:  # keys are column indices
             headers = list(map(_text_type, list(range(len(rows[0])))))
 
     # take headers from the first row if necessary
     if headers == "firstrow" and len(rows) > 0:
-        headers = list(map(_text_type, rows[0])) # headers should be strings
+        headers = list(map(_text_type, rows[0]))  # headers should be strings
         rows = rows[1:]
 
     headers = list(headers)
-    rows = list(map(list,rows))
+    rows = list(map(list, rows))
 
     # pad with empty headers for initial columns if necessary
     if headers and len(rows) > 0:
-       nhs = len(headers)
-       ncols = len(rows[0])
-       if nhs < ncols:
-           headers = [""]*(ncols - nhs) + headers
+        nhs = len(headers)
+        ncols = len(rows[0])
+        if nhs < ncols:
+            headers = [""]*(ncols - nhs) + headers
 
     return rows, headers
 
@@ -756,8 +799,8 @@ def tabulate(tabular_data, headers=[], tablefmt="simple",
 
     # optimization: look for ANSI control codes once,
     # enable smart width functions only if a control code is found
-    plain_text = '\n'.join(['\t'.join(map(_text_type, headers))] + \
-                            ['\t'.join(map(_text_type, row)) for row in list_of_lists])
+    plain_text = '\n'.join(['\t'.join(map(_text_type, headers))] +
+                           ['\t'.join(map(_text_type, row)) for row in list_of_lists])
     has_invisible = re.search(_invisible_codes, plain_text)
     if has_invisible:
         width_fn = _visible_width
@@ -768,17 +811,18 @@ def tabulate(tabular_data, headers=[], tablefmt="simple",
     cols = list(zip(*list_of_lists))
     coltypes = list(map(_column_type, cols))
     cols = [[_format(v, ct, floatfmt, missingval) for v in c]
-             for c,ct in zip(cols, coltypes)]
+            for c, ct in zip(cols, coltypes)]
 
     # align columns
-    aligns = [numalign if ct in [int,float] else stralign for ct in coltypes]
+    aligns = [numalign if ct in [int, float] else stralign for ct in coltypes]
     minwidths = [width_fn(h)+2 for h in headers] if headers else [0]*len(cols)
     cols = [_align_column(c, a, minw, has_invisible)
             for c, a, minw in zip(cols, aligns, minwidths)]
 
     if headers:
         # align headers and add headers
-        minwidths = [max(minw, width_fn(c[0])) for minw, c in zip(minwidths, cols)]
+        minwidths = [max(minw, width_fn(c[0]))
+                     for minw, c in zip(minwidths, cols)]
         headers = [_align_header(h, a, minw)
                    for h, a, minw in zip(headers, aligns, minwidths)]
         rows = list(zip(*cols))
@@ -844,23 +888,699 @@ def _format_table(fmt, headers, rows, colwidths, colaligns):
         lines.append(_build_line(padded_widths, colaligns, fmt.lineabove))
 
     if padded_headers:
-        lines.append(_build_row(padded_headers, padded_widths, colaligns, headerrow))
+        lines.append(_build_row(padded_headers,
+                                padded_widths, colaligns, headerrow))
         if fmt.linebelowheader and "linebelowheader" not in hidden:
-            lines.append(_build_line(padded_widths, colaligns, fmt.linebelowheader))
+            lines.append(_build_line(
+                padded_widths, colaligns, fmt.linebelowheader))
 
     if padded_rows and fmt.linebetweenrows and "linebetweenrows" not in hidden:
         # initial rows with a line below
         for row in padded_rows[:-1]:
-            lines.append(_build_row(row, padded_widths, colaligns, fmt.datarow))
-            lines.append(_build_line(padded_widths, colaligns, fmt.linebetweenrows))
+            lines.append(_build_row(
+                row, padded_widths, colaligns, fmt.datarow))
+            lines.append(_build_line(
+                padded_widths, colaligns, fmt.linebetweenrows))
         # the last row without a line below
-        lines.append(_build_row(padded_rows[-1], padded_widths, colaligns, fmt.datarow))
+        lines.append(_build_row(
+            padded_rows[-1], padded_widths, colaligns, fmt.datarow))
     else:
         for row in padded_rows:
-            lines.append(_build_row(row, padded_widths, colaligns, fmt.datarow))
+            lines.append(_build_row(
+                row, padded_widths, colaligns, fmt.datarow))
 
     if fmt.linebelow and "linebelow" not in hidden:
         lines.append(_build_line(padded_widths, colaligns, fmt.linebelow))
 
     return "\n".join(lines)
 
+
+try:
+    import matplotlib  # NOQA
+
+    matplotlib.use('Agg')
+    _available = True
+
+except (ImportError, TypeError):
+    _available = False
+
+
+@cached_property
+def _check_available():
+    if not _available:
+        warnings.warn('matplotlib is not installed on your environment, '
+                      'so nothing will be plotted at this time. '
+                      'Please install matplotlib to plot figures.\n\n'
+                      '  $ pip install matplotlib\n')
+    return _available
+
+
+def plot_scores(filename, key, x_key, label=None, title=None,
+                color=None, result_directory=None,
+                plot_legend=True, xlim=None, ylim=None,
+                y_label=None):
+    if _check_available:
+        import matplotlib.pyplot as plt
+    else:
+        return
+
+    if label is None:
+        label = key
+
+    f = plt.figure()
+    a = f.add_subplot(111)
+    scores = pd.read_csv(filename)
+    x = scores[x_key]
+    mean = scores[key + 'Average']
+    std = scores[key + 'Std']
+    a.plot(x, mean, label=label)
+    a.fill_between(x,
+                   mean - std,
+                   mean + std,
+                   color=color,
+                   alpha=0.2)
+
+    a.set_xlabel('steps')
+    if y_label is not None:
+        a.set_ylabel(y_label)
+    if plot_legend is True:
+        a.legend(loc='best')
+    if title is not None:
+        a.set_title(title)
+    if xlim is not None:
+        a.set_xlim(xlim)
+    if ylim is not None:
+        a.set_ylim(ylim)
+
+    if result_directory is not None:
+        fig_fname = os.path.join(result_directory,
+                                 "{}.png".format(label))
+    else:
+        fig_fname = os.path.join(os.path.dirname(filename),
+                                 "{}.png".format(label))
+    f.savefig(fig_fname)
+    plt.close()
+    return fig_fname
+
+
+def csv2table(filename, save_dir=None, output_filename='scores-table.txt'):
+    with open(filename, newline='') as f:
+        data = list(csv.reader(f))
+        table = terminaltables.AsciiTable(data)
+        table.inner_row_border = False
+        table.CHAR_H_INNER_HORIZONTAL = '-'
+        table.CHAR_OUTER_TOP_LEFT = ''
+        table.CHAR_OUTER_TOP_RIGHT = ''
+        table.CHAR_OUTER_TOP_HORIZONTAL = ''
+        table.CHAR_OUTER_TOP_INTERSECT = ''
+        table.CHAR_OUTER_BOTTOM_LEFT = '|'
+        table.CHAR_OUTER_BOTTOM_RIGHT = '|'
+        table.CHAR_OUTER_BOTTOM_HORIZONTAL = ' '
+        table.CHAR_OUTER_BOTTOM_INTERSECT = '|'
+        table.CHAR_H_OUTER_LEFT_INTERSECT = '|'
+        table.CHAR_H_OUTER_RIGHT_INTERSECT = '|'
+        output = table.table.lstrip().rstrip()
+
+    if save_dir is None:
+        save_dir = os.path.dirname(filename)
+    with open(os.path.join(save_dir, output_filename), 'w') as f:
+        f.write(output)
+
+
+color2num = dict(
+    gray=30,
+    red=31,
+    green=32,
+    yellow=33,
+    blue=34,
+    magenta=35,
+    cyan=36,
+    white=37,
+    crimson=38
+)
+
+
+def colorize(string, color, bold=False, highlight=False):
+    attr = []
+    num = color2num[color]
+    if highlight:
+        num += 10
+    attr.append(str(num))
+    if bold:
+        attr.append('1')
+    return '\x1b[%sm%s\x1b[0m' % (';'.join(attr), string)
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+
+def log(s):  # , send_telegram=False):
+    print(s)
+    sys.stdout.flush()
+
+
+class SimpleMessage(object):
+
+    def __init__(self, msg, logger=log):
+        self.msg = msg
+        self.logger = logger
+
+    def __enter__(self):
+        print(self.msg)
+        self.tstart = time.time()
+
+    def __exit__(self, etype, *args):
+        maybe_exc = "" if etype is None else " (with exception)"
+        self.logger("done%s in %.3f seconds" %
+                    (maybe_exc, time.time() - self.tstart))
+
+
+MESSAGE_DEPTH = 0
+
+
+class Message(object):
+
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __enter__(self):
+        global MESSAGE_DEPTH  # pylint: disable=W0603
+        print(colorize('\t' * MESSAGE_DEPTH + '=: ' + self.msg, 'magenta'))
+        self.tstart = time.time()
+        MESSAGE_DEPTH += 1
+
+    def __exit__(self, etype, *args):
+        global MESSAGE_DEPTH  # pylint: disable=W0603
+        MESSAGE_DEPTH -= 1
+        maybe_exc = "" if etype is None else " (with exception)"
+        print(colorize('\t' * MESSAGE_DEPTH + "done%s in %.3f seconds" %
+                       (maybe_exc, time.time() - self.tstart), 'magenta'))
+
+
+def prefix_log(prefix, logger=log):
+    return lambda s: logger(prefix + s)
+
+
+def tee_log(file_name):
+    f = open(file_name, 'w+')
+
+    def logger(s):
+        log(s)
+        f.write(s)
+        f.write('\n')
+        f.flush()
+    return logger
+
+
+def collect_args():
+    splitted = shlex.split(' '.join(sys.argv[1:]))
+    return {arg_name[2:]: arg_val
+            for arg_name, arg_val in zip(splitted[::2], splitted[1::2])}
+
+
+def type_hint(arg_name, arg_type):
+    def wrap(f):
+        meta = getattr(f, '__tweak_type_hint_meta__', None)
+        if meta is None:
+            f.__tweak_type_hint_meta__ = meta = {}
+        meta[arg_name] = arg_type
+        return f
+    return wrap
+
+
+def tweak(fun_or_val, identifier=None):
+    if isinstance(fun_or_val, collections.Callable):
+        return tweakfun(fun_or_val, identifier)
+    return tweakval(fun_or_val, identifier)
+
+
+def tweakval(val, identifier):
+    if not identifier:
+        raise ValueError('Must provide an identifier for tweakval to work')
+    args = collect_args()
+    for k, v in args.items():
+        stripped = k.replace('-', '_')
+        if stripped == identifier:
+            log('replacing %s in %s with %s' % (stripped, str(val), str(v)))
+            return type(val)(v)
+    return val
+
+
+def tweakfun(fun, alt=None):
+    """Make the arguments (or the function itself) tweakable from command line.
+    See tests/test_misc_console.py for examples.
+
+    NOTE: this only works for the initial launched process, since other processes
+    will get different argv. What this means is that tweak() calls wrapped in a function
+    to be invoked in a child process might not behave properly.
+    """
+    cls = getattr(fun, 'im_class', None)
+    method_name = fun.__name__
+    if alt:
+        cmd_prefix = alt
+    elif cls:
+        cmd_prefix = cls + '.' + method_name
+    else:
+        cmd_prefix = method_name
+    cmd_prefix = cmd_prefix.lower()
+    args = collect_args()
+    if cmd_prefix in args:
+        fun = pydoc.locate(args[cmd_prefix])
+    if type(fun) == type:
+        argspec = inspect.getargspec(fun.__init__)
+    else:
+        argspec = inspect.getargspec(fun)
+    # TODO handle list arguments
+    defaults = dict(
+        list(zip(argspec.args[-len(argspec.defaults or []):], argspec.defaults or [])))
+    replaced_kwargs = {}
+    cmd_prefix += '-'
+    if type(fun) == type:
+        meta = getattr(fun.__init__, '__tweak_type_hint_meta__', {})
+    else:
+        meta = getattr(fun, '__tweak_type_hint_meta__', {})
+    for k, v in args.items():
+        if k.startswith(cmd_prefix):
+            stripped = k[len(cmd_prefix):].replace('-', '_')
+            if stripped in meta:
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
+                replaced_kwargs[stripped] = meta[stripped](v)
+            elif stripped not in argspec.args:
+                raise ValueError(
+                    '%s is not an explicit parameter of %s' % (stripped, str(fun)))
+            elif stripped not in defaults:
+                raise ValueError(
+                    '%s does not have a default value in method %s' % (stripped, str(fun)))
+            elif defaults[stripped] is None:
+                raise ValueError(
+                    'Cannot infer type of %s in method %s from None value' % (stripped, str(fun)))
+            else:
+                log('replacing %s in %s with %s' %
+                    (stripped, str(fun), str(v)))
+                # TODO more proper conversions
+                replaced_kwargs[stripped] = type(defaults[stripped])(v)
+
+    def tweaked(*args, **kwargs):
+        all_kw = dict(list(zip(argspec[0], args)) +
+                      list(kwargs.items()) + list(replaced_kwargs.items()))
+        return fun(**all_kw)
+    return tweaked
+
+
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
+
+
+_prefixes = []
+_prefix_str = ''
+
+_tabular_prefixes = []
+_tabular_prefix_str = ''
+
+_tabular = []
+
+_text_outputs = []
+_tabular_outputs = []
+
+_text_fds = {}
+_tabular_fds = {}
+_tabular_header_written = set()
+
+_snapshot_dir = None
+_snapshot_mode = 'all'
+_snapshot_gap = 1
+
+_log_tabular_only = False
+_header_printed = False
+
+
+def _add_output(file_name, arr, fds, mode='a'):
+    if file_name not in arr:
+        mkdir_p(os.path.dirname(file_name))
+        arr.append(file_name)
+        fds[file_name] = open(file_name, mode)
+
+
+def _remove_output(file_name, arr, fds):
+    if file_name in arr:
+        fds[file_name].close()
+        del fds[file_name]
+        arr.remove(file_name)
+
+
+def push_prefix(prefix):
+    _prefixes.append(prefix)
+    global _prefix_str
+    _prefix_str = ''.join(_prefixes)
+
+
+def add_text_output(file_name):
+    _add_output(file_name, _text_outputs, _text_fds, mode='a')
+
+
+def remove_text_output(file_name):
+    _remove_output(file_name, _text_outputs, _text_fds)
+
+
+def add_tabular_output(file_name):
+    _add_output(file_name, _tabular_outputs, _tabular_fds, mode='w')
+
+
+def remove_tabular_output(file_name):
+    if _tabular_fds[file_name] in _tabular_header_written:
+        _tabular_header_written.remove(_tabular_fds[file_name])
+    _remove_output(file_name, _tabular_outputs, _tabular_fds)
+
+
+def set_snapshot_dir(dir_name):
+    global _snapshot_dir
+    _snapshot_dir = dir_name
+
+
+def get_snapshot_dir():
+    return _snapshot_dir
+
+
+def get_snapshot_mode():
+    return _snapshot_mode
+
+
+def set_snapshot_mode(mode):
+    global _snapshot_mode
+    _snapshot_mode = mode
+
+
+def get_snapshot_gap():
+    return _snapshot_gap
+
+
+def set_snapshot_gap(gap):
+    global _snapshot_gap
+    _snapshot_gap = gap
+
+
+def set_log_tabular_only(log_tabular_only):
+    global _log_tabular_only
+    _log_tabular_only = log_tabular_only
+
+
+def get_log_tabular_only():
+    return _log_tabular_only
+
+
+def log(s, with_prefix=True, with_timestamp=True, color=None):
+    out = s
+    if with_prefix:
+        out = _prefix_str + out
+    if with_timestamp:
+        now = datetime.datetime.now(dateutil.tz.tzlocal())
+        timestamp = now.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+        out = "%s | %s" % (timestamp, out)
+    if color is not None:
+        out = colorize(out, color)
+    if not _log_tabular_only:
+        # Also log to stdout
+        print(out)
+        for fd in list(_text_fds.values()):
+            fd.write(out + '\n')
+            fd.flush()
+        sys.stdout.flush()
+
+
+def record_tabular(key, val):
+    _tabular.append((_tabular_prefix_str + str(key), str(val)))
+
+
+def push_tabular_prefix(key):
+    _tabular_prefixes.append(key)
+    global _tabular_prefix_str
+    _tabular_prefix_str = ''.join(_tabular_prefixes)
+
+
+def pop_tabular_prefix():
+    del _tabular_prefixes[-1]
+    global _tabular_prefix_str
+    _tabular_prefix_str = ''.join(_tabular_prefixes)
+
+
+@contextmanager
+def prefix(key):
+    push_prefix(key)
+    try:
+        yield
+    finally:
+        pop_prefix()
+
+
+@contextmanager
+def tabular_prefix(key):
+    push_tabular_prefix(key)
+    yield
+    pop_tabular_prefix()
+
+
+class TerminalTablePrinter(object):
+    def __init__(self):
+        self.headers = None
+        self.tabulars = []
+
+    def print_tabular(self, new_tabular):
+        if self.headers is None:
+            self.headers = [x[0] for x in new_tabular]
+        else:
+            assert len(self.headers) == len(new_tabular)
+        self.tabulars.append([x[1] for x in new_tabular])
+        self.refresh()
+
+    def refresh(self):
+        import os
+        rows, columns = os.popen('stty size', 'r').read().split()
+        tabulars = self.tabulars[-(int(rows) - 3):]
+        sys.stdout.write("\x1b[2J\x1b[H")
+        sys.stdout.write(tabulate(tabulars, self.headers))
+        sys.stdout.write("\n")
+
+
+table_printer = TerminalTablePrinter()
+
+
+def dump_tabular(*args, **kwargs):
+    wh = kwargs.pop("write_header", None)
+    if len(_tabular) > 0:
+        if _log_tabular_only:
+            table_printer.print_tabular(_tabular)
+        else:
+            for line in tabulate(_tabular).split('\n'):
+                log(line, *args, **kwargs)
+        tabular_dict = dict(_tabular)
+        # Also write to the csv files
+        # This assumes that the keys in each iteration won't change!
+        for tabular_fd in list(_tabular_fds.values()):
+            writer = csv.DictWriter(
+                tabular_fd, fieldnames=list(tabular_dict.keys()))
+            if wh or (wh is None and tabular_fd not in _tabular_header_written):
+                writer.writeheader()
+                _tabular_header_written.add(tabular_fd)
+            writer.writerow(tabular_dict)
+            tabular_fd.flush()
+        del _tabular[:]
+
+
+def pop_prefix():
+    del _prefixes[-1]
+    global _prefix_str
+    _prefix_str = ''.join(_prefixes)
+
+
+def save_itr_params(itr, params):
+    if _snapshot_dir:
+        if _snapshot_mode == 'all':
+            file_name = osp.join(_snapshot_dir, 'itr_%d.pkl' % itr)
+            joblib.dump(params, file_name, compress=3)
+        elif _snapshot_mode == 'last':
+            # override previous params
+            file_name = osp.join(_snapshot_dir, 'params.pkl')
+            joblib.dump(params, file_name, compress=3)
+        elif _snapshot_mode == "gap":
+            if itr % _snapshot_gap == 0:
+                file_name = osp.join(_snapshot_dir, 'itr_%d.pkl' % itr)
+                joblib.dump(params, file_name, compress=3)
+        elif _snapshot_mode == 'none':
+            pass
+        else:
+            raise NotImplementedError
+
+
+def log_parameters(log_file, args, classes):
+    log_params = {}
+    for param_name, param_value in args.__dict__.items():
+        if any([param_name.startswith(x) for x in list(classes.keys())]):
+            continue
+        log_params[param_name] = param_value
+    for name, cls in classes.items():
+        if isinstance(cls, type):
+            params = get_all_parameters(cls, args)
+            params["_name"] = getattr(args, name)
+            log_params[name] = params
+        else:
+            log_params[name] = getattr(cls, "__kwargs", dict())
+            log_params[name]["_name"] = cls.__module__ + \
+                "." + cls.__class__.__name__
+    mkdir_p(os.path.dirname(log_file))
+    with open(log_file, "w") as f:
+        json.dump(log_params, f, indent=2, sort_keys=True)
+
+
+def stub_to_json(stub_sth):
+    from rllab.misc import instrument
+    if isinstance(stub_sth, instrument.StubObject):
+        assert len(stub_sth.args) == 0
+        data = dict()
+        for k, v in stub_sth.kwargs.items():
+            data[k] = stub_to_json(v)
+        data["_name"] = stub_sth.proxy_class.__module__ + \
+            "." + stub_sth.proxy_class.__name__
+        return data
+    elif isinstance(stub_sth, instrument.StubAttr):
+        return dict(
+            obj=stub_to_json(stub_sth.obj),
+            attr=stub_to_json(stub_sth.attr_name)
+        )
+    elif isinstance(stub_sth, instrument.StubMethodCall):
+        return dict(
+            obj=stub_to_json(stub_sth.obj),
+            method_name=stub_to_json(stub_sth.method_name),
+            args=stub_to_json(stub_sth.args),
+            kwargs=stub_to_json(stub_sth.kwargs),
+        )
+    elif isinstance(stub_sth, instrument.BinaryOp):
+        return "binary_op"
+    elif isinstance(stub_sth, instrument.StubClass):
+        return stub_sth.proxy_class.__module__ + "." + stub_sth.proxy_class.__name__
+    elif isinstance(stub_sth, dict):
+        return {stub_to_json(k): stub_to_json(v) for k, v in stub_sth.items()}
+    elif isinstance(stub_sth, (list, tuple)):
+        return list(map(stub_to_json, stub_sth))
+    elif type(stub_sth) == type(lambda: None):
+        if stub_sth.__module__ is not None:
+            return stub_sth.__module__ + "." + stub_sth.__name__
+        return stub_sth.__name__
+    elif "theano" in str(type(stub_sth)):
+        return repr(stub_sth)
+    return stub_sth
+
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, type):
+            return {'$class': o.__module__ + "." + o.__name__}
+        elif isinstance(o, Enum):
+            return {'$enum': o.__module__ + "." + o.__class__.__name__ + '.' + o.name}
+        return json.JSONEncoder.default(self, o)
+
+
+def log_parameters_lite(log_file, args):
+    log_params = {}
+    for param_name, param_value in args.__dict__.items():
+        log_params[param_name] = param_value
+    # if args.args_data is not None:
+    #    stub_method = pickle.loads(base64.b64decode(args.args_data))
+    #    method_args = stub_method.kwargs
+    #    log_params["json_args"] = dict()
+    #    for k, v in list(method_args.items()):
+    #        log_params["json_args"][k] = stub_to_json(v)
+    #    kwargs = stub_method.obj.kwargs
+    #    for k in ["baseline", "env", "policy"]:
+    #        if k in kwargs:
+    #            log_params["json_args"][k] = stub_to_json(kwargs.pop(k))
+    #    log_params["json_args"]["algo"] = stub_to_json(stub_method.obj)
+    mkdir_p(os.path.dirname(log_file))
+    with open(log_file, "w") as f:
+        json.dump(log_params, f, indent=2, sort_keys=True, cls=MyEncoder)
+
+
+def log_variant(log_file, variant_data):
+    mkdir_p(os.path.dirname(log_file))
+    if hasattr(variant_data, "dump"):
+        variant_data = variant_data.dump()
+    variant_json = stub_to_json(variant_data)
+    with open(log_file, "w") as f:
+        json.dump(variant_json, f, indent=2, sort_keys=True, cls=MyEncoder)
+
+
+def record_tabular_misc_stat(key, values):
+    record_tabular(key + "Average", np.average(values))
+    record_tabular(key + "Std", np.std(values))
+    record_tabular(key + "Median", np.median(values))
+    record_tabular(key + "Min", np.amin(values))
+    record_tabular(key + "Max", np.amax(values))
+
+
+def record_results(log_dir, result_dict, score_file,
+                   total_epi,
+                   step, total_step,
+                   rewards=None,
+                   plot_title=None, **plot_kwargs):
+    log("outdir {}".format(os.path.abspath(log_dir)))
+
+    for key, value in result_dict.items():
+        if not hasattr(value, '__len__'):
+            record_tabular(key, value)
+        elif len(value) >= 1:
+            record_tabular_misc_stat(key, value)
+    if rewards is not None:
+        record_tabular_misc_stat('Reward', rewards)
+        record_tabular('EpisodePerIter', len(rewards))
+    record_tabular('TotalEpisode', total_epi)
+    record_tabular('StepPerIter', step)
+    record_tabular('TotalStep', total_step)
+    dump_tabular()
+
+    csv2table(score_file)
+
+    for key, value in result_dict.items():
+        if hasattr(value, '__len__'):
+            fig_fname = plot_scores(score_file, key, 'TotalStep',
+                                    title=plot_title)
+            log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
+    if rewards is not None:
+        fig_fname = plot_scores(score_file, 'Reward', 'TotalStep',
+                                title=plot_title, **plot_kwargs)
+        log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))

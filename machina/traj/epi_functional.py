@@ -27,9 +27,11 @@ def compute_vs(data, vf):
     with torch.no_grad():
         for epi in epis:
             if vf.rnn:
-                obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device()).unsqueeze(1)
+                obs = torch.tensor(
+                    epi['obs'], dtype=torch.float, device=get_device()).unsqueeze(1)
             else:
-                obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
+                obs = torch.tensor(
+                    epi['obs'], dtype=torch.float, device=get_device())
             epi['vs'] = vf(obs)[0].detach().cpu().numpy()
 
     return data
@@ -70,6 +72,7 @@ def compute_rets(data, gamma):
 
     return data
 
+
 def compute_advs(data, gamma, lam):
     epis = data.current_epis
     for epi in epis:
@@ -85,6 +88,7 @@ def compute_advs(data, gamma, lam):
 
     return data
 
+
 def centerize_advs(data, eps=1e-6):
     epis = data.current_epis
     _advs = np.concatenate([epi['advs'] for epi in epis])
@@ -92,6 +96,7 @@ def centerize_advs(data, eps=1e-6):
         epi['advs'] = (epi['advs'] - np.mean(_advs)) / (np.std(_advs) + eps)
 
     return data
+
 
 def add_next_obs(data):
     epis = data.current_epis
@@ -102,6 +107,7 @@ def add_next_obs(data):
         epi['next_obs'] = next_obs
 
     return data
+
 
 def compute_h_masks(data):
     epis = data.current_epis

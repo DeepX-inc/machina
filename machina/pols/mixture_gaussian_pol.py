@@ -20,6 +20,7 @@ from machina.pols import BasePol
 from machina.pds.mixture_gaussian_pd import MixtureGaussianPd
 from machina.utils import get_device
 
+
 class MixtureGaussianPol(BasePol):
     def __init__(self, ob_space, ac_space, net, normalize_ac=True):
         BasePol.__init__(self, ob_space, ac_space, normalize_ac)
@@ -42,6 +43,6 @@ class MixtureGaussianPol(BasePol):
         _, i = torch.max(pi, 1)
         onehot = torch.zeros_like(mean)
         onehot = onehot.scatter_(-1, i.unsqueeze(-1), 1)
-        mean_real = self.convert_ac_for_real(torch.sum(mean * onehot.unsqueeze(-1), 1).detach().cpu().numpy())
+        mean_real = self.convert_ac_for_real(
+            torch.sum(mean * onehot.unsqueeze(-1), 1).detach().cpu().numpy())
         return mean_real
-

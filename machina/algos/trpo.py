@@ -24,7 +24,8 @@ import numpy as np
 
 from machina import loss_functional as lf
 from machina.utils import detach_tensor_dict
-from machina.misc import logger
+from machina import logger
+
 
 def conjugate_gradients(Avp, b, nsteps, residual_tol=1e-10):
     x = torch.zeros_like(b)
@@ -44,16 +45,17 @@ def conjugate_gradients(Avp, b, nsteps, residual_tol=1e-10):
             break
     return x
 
+
 def linesearch(
-        pol,
-        batch,
-        f,
-        x,
-        fullstep,
-        expected_improve_rate,
-        max_backtracks=10,
-        accept_ratio=.1
-    ):
+    pol,
+    batch,
+    f,
+    x,
+    fullstep,
+    expected_improve_rate,
+    max_backtracks=10,
+    accept_ratio=.1
+):
     fval = f(pol, batch, True).detach()
     for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):
         xnew = x + stepfrac * fullstep
@@ -66,6 +68,7 @@ def linesearch(
         if ratio.item() > accept_ratio and actual_improve.item() > 0:
             return True, xnew
     return False, x
+
 
 def make_kl(pol, batch):
     obs = batch['obs']
@@ -83,6 +86,7 @@ def make_kl(pol, batch):
         detach_tensor_dict(pd_params),
         pd_params
     )
+
 
 def update_pol(pol, batch, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10):
     pol_loss = lf.pg(pol, batch)
@@ -116,12 +120,14 @@ def update_pol(pol, batch, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10)
 
     neggdotstepdir = torch.sum(-flat_pol_loss_grad * stepdir, 0, keepdim=True)
 
-    prev_params = nn.utils.parameters_to_vector([p.contiguous() for p in pol.parameters()]).detach()
+    prev_params = nn.utils.parameters_to_vector(
+        [p.contiguous() for p in pol.parameters()]).detach()
     success, new_params = linesearch(pol, batch, lf.pg, prev_params, fullstep,
                                      neggdotstepdir / lm[0])
     nn.utils.vector_to_parameters(new_params, pol.parameters())
 
     return pol_loss.detach().cpu().numpy()
+
 
 def update_vf(vf, optim_vf, batch):
     vf_loss = lf.monte_carlo(vf, batch)
@@ -130,21 +136,25 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.step()
     return vf_loss.detach().cpu().numpy()
 
+
 def train(traj, pol, vf,
-        optim_vf,
-        epoch=5, batch_size=64, num_epi_per_seq=1,# optimization hypers
-        max_kl=0.01, num_cg=10, damping=0.1,
-        ):
+          optim_vf,
+          epoch=5, batch_size=64, num_epi_per_seq=1,  # optimization hypers
+          max_kl=0.01, num_cg=10, damping=0.1,
+          ):
 
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    iterator = traj.full_batch(1) if not pol.rnn else traj.iterate_rnn(batch_size=traj.num_epi)
+    iterator = traj.full_batch(1) if not pol.rnn else traj.iterate_rnn(
+        batch_size=traj.num_epi)
     for batch in iterator:
-        pol_loss = update_pol(pol, batch, max_kl=max_kl, num_cg=num_cg, damping=damping)
+        pol_loss = update_pol(pol, batch, max_kl=max_kl,
+                              num_cg=num_cg, damping=damping)
         pol_losses.append(pol_loss)
 
-    iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+    iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(
+        batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
         vf_loss = update_vf(vf, optim_vf, batch)
         vf_losses.append(vf_loss)
@@ -152,5 +162,3 @@ def train(traj, pol, vf,
     logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses, VfLoss=vf_losses)
-
-

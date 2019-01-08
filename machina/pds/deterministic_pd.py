@@ -24,7 +24,8 @@ from machina.pds.base import BasePd
 class DeterministicPd(BasePd):
     def sample(self, params, sample_shape=torch.Size()):
         mean = params['mean']
-        ac = Normal(loc=mean, scale=torch.zeros_like(mean)).rsample(sample_shape)
+        ac = Normal(loc=mean, scale=torch.zeros_like(
+            mean)).rsample(sample_shape)
         return ac
 
     def llh(self, x, params):

@@ -21,22 +21,23 @@ import torch
 import torch.nn as nn
 
 from machina import loss_functional as lf
-from machina.misc import logger
+from machina import logger
 
 
 def train(off_traj,
-        pol, qf, targ_qf, log_alpha,
-        optim_pol, optim_qf, optim_alpha,
-        epoch, batch_size,# optimization hypers
-        tau, gamma, sampling,
-        ):
+          pol, qf, targ_qf, log_alpha,
+          optim_pol, optim_qf, optim_alpha,
+          epoch, batch_size,  # optimization hypers
+          tau, gamma, sampling,
+          ):
 
     qf_losses = []
     pol_losses = []
     alpha_losses = []
     logger.log("Optimizing...")
     for batch in off_traj.random_batch(batch_size, epoch):
-        pol_loss, qf_loss, alpha_loss = lf.sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling)
+        pol_loss, qf_loss, alpha_loss = lf.sac(
+            pol, qf, targ_qf, log_alpha, batch, gamma, sampling)
 
         optim_pol.zero_grad()
         pol_loss.backward()
@@ -64,4 +65,3 @@ def train(off_traj,
         QfLoss=qf_losses,
         AlphaLoss=alpha_losses
     )
-

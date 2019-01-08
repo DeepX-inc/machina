@@ -78,7 +78,8 @@ class AdamW(Optimizer):
 
                 bias_correction1 = 1 - beta1 ** state['step']
                 bias_correction2 = 1 - beta2 ** state['step']
-                step_size = group['lr'] * math.sqrt(bias_correction2) / bias_correction1
+                step_size = group['lr'] * \
+                    math.sqrt(bias_correction2) / bias_correction1
 
                 if group['weight_decay'] != 0:
                     p.data.add_(-group['weight_decay'], p.data)
@@ -86,4 +87,3 @@ class AdamW(Optimizer):
                 p.data.addcdiv_(-step_size, exp_avg, denom)
 
         return loss
-

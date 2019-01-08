@@ -25,8 +25,10 @@ from machina.utils import get_device
 class DeterministicActionNoisePol(BasePol):
     def __init__(self, ob_space, ac_space, net, noise=None, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         if rnn:
-            raise ValueError('rnn with DeterministicActionNoisePol is not supported now')
-        BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac, data_parallel=data_parallel, parallel_dim=parallel_dim)
+            raise ValueError(
+                'rnn with DeterministicActionNoisePol is not supported now')
+        BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac,
+                         data_parallel=data_parallel, parallel_dim=parallel_dim)
         self.noise = noise
         self.pd = DeterministicPd()
         self.to(get_device())
@@ -56,6 +58,8 @@ class DeterministicActionNoisePol(BasePol):
         """
         action for deployment
         """
+        obs = self._check_obs_shape(obs)
+
         mean = self.net(obs)
         mean_real = self.convert_ac_for_real(mean.detach().cpu().numpy())
         return mean_real, mean, dict(mean=mean)

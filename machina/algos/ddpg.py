@@ -4,15 +4,15 @@ import torch
 import torch.nn as nn
 
 from machina import loss_functional as lf
-from machina.misc import logger
+from machina import logger
 
 
 def train(traj,
-        pol, targ_pol, qf, targ_qf,
-        optim_pol, optim_qf,
-        epoch, batch_size,# optimization hypers
-        tau, gamma, lam # advantage estimation
-        ):
+          pol, targ_pol, qf, targ_qf,
+          optim_pol, optim_qf,
+          epoch, batch_size,  # optimization hypers
+          tau, gamma, lam  # advantage estimation
+          ):
 
     pol_losses = []
     qf_losses = []

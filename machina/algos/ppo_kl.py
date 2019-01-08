@@ -16,14 +16,14 @@
 # This is an implementation of Proximal Policy Optimization
 # in which gradient is clipped by the KL divergence especially.
 # See https://arxiv.org/abs/1707.06347
-# 
+#
 
 
 import torch
 import torch.nn as nn
 
 from machina import loss_functional as lf
-from machina.misc import logger
+from machina import logger
 
 
 def update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm):
@@ -34,6 +34,7 @@ def update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm):
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
+
 def update_vf(vf, optim_vf, batch):
     vf_loss = lf.monte_carlo(vf, batch)
     optim_vf.zero_grad()
@@ -41,17 +42,19 @@ def update_vf(vf, optim_vf, batch):
     optim_vf.step()
     return vf_loss.detach().cpu().numpy()
 
+
 def train(traj, pol, vf,
-        kl_beta, kl_targ,
-        optim_pol, optim_vf,
-        epoch, batch_size, max_grad_norm,
-        num_epi_per_seq=1# optimization hypers
-        ):
+          kl_beta, kl_targ,
+          optim_pol, optim_vf,
+          epoch, batch_size, max_grad_norm,
+          num_epi_per_seq=1  # optimization hypers
+          ):
 
     pol_losses = []
     vf_losses = []
     logger.log("Optimizing...")
-    iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+    iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(
+        batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
         pol_loss = update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm)
         vf_loss = update_vf(vf, optim_vf, batch)
@@ -59,7 +62,8 @@ def train(traj, pol, vf,
         pol_losses.append(pol_loss)
         vf_losses.append(vf_loss)
 
-    iterator = traj.full_batch(1) if not pol.rnn else traj.iterate_rnn(batch_size=traj.num_epi)
+    iterator = traj.full_batch(1) if not pol.rnn else traj.iterate_rnn(
+        batch_size=traj.num_epi)
     batch = next(iterator)
     with torch.no_grad():
         pol.reset()
@@ -82,4 +86,3 @@ def train(traj, pol, vf,
     logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses, VfLoss=vf_losses, new_kl_beta=new_kl_beta, kl_mean=kl_mean)
-

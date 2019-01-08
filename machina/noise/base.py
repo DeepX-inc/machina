@@ -13,8 +13,10 @@
 # limitations under the License.
 # ==============================================================================
 
+
 class BaseActionNoise(object):
     def __init__(self, ac_space):
         self.ac_space = ac_space
+
     def reset(self):
         pass

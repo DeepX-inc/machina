@@ -21,22 +21,23 @@ import torch
 import torch.nn as nn
 
 from machina import loss_functional as lf
-from machina.misc import logger
+from machina import logger
 
 
 def train(off_traj,
-        pol, targ_pol, qf, targ_qf,
-        optim_pol, optim_qf,
-        epoch, batch_size,# optimization hypers
-        tau, gamma, # advantage estimation
-        sampling,
-        ):
+          pol, targ_pol, qf, targ_qf,
+          optim_pol, optim_qf,
+          epoch, batch_size,  # optimization hypers
+          tau, gamma,  # advantage estimation
+          sampling,
+          ):
 
     pol_losses = []
     qf_losses = []
     logger.log("Optimizing...")
     for batch in off_traj.iterate(batch_size, epoch):
-        qf_bellman_loss = lf.bellman(qf, targ_qf, targ_pol, batch, gamma, deterministic=False, sampling=sampling)
+        qf_bellman_loss = lf.bellman(
+            qf, targ_qf, targ_pol, batch, gamma, deterministic=False, sampling=sampling)
         optim_qf.zero_grad()
         qf_bellman_loss.backward()
         optim_qf.step()
@@ -55,6 +56,5 @@ def train(off_traj,
     logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses,
-        QfLoss=qf_losses,
-    )
-
+                QfLoss=qf_losses,
+                )
