@@ -23,7 +23,7 @@ import torch
 import torch.nn as nn
 
 from machina import loss_functional as lf
-from machina.misc import logger
+from machina import logger
 
 
 def update_pol(pol, optim_pol, batch, clip_param, ent_beta, max_grad_norm):
