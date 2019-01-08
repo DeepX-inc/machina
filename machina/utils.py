@@ -18,7 +18,7 @@ import contextlib
 import torch
 import torch.autograd as autograd
 
-from machina.misc import logger
+from machina import logger
 
 _DEVICE = torch.device('cpu')
 
