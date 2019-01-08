@@ -4,9 +4,13 @@ python:
   - "3.5"
 
 install:
+  - pip install --upgrade pip setuptools wheel
   - pip install --default-timeout=2000 -q -e .
+  - pip install autopep8
 
 script:
+  - autopep8 -r . --diff | tee check_autopep8
+  - test ! -s check_autopep8
   - nosetests -x tests --process-timeout 2000 --with-coverage --cover-package machina
 
 sudo: false
