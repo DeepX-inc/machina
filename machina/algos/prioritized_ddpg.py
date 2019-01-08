@@ -25,17 +25,18 @@ from machina.misc import logger
 
 
 def train(traj,
-        pol, targ_pol, qf, targ_qf,
-        optim_pol, optim_qf,
-        epoch, batch_size,# optimization hypers
-        tau, gamma, lam # advantage estimation
-        ):
+          pol, targ_pol, qf, targ_qf,
+          optim_pol, optim_qf,
+          epoch, batch_size,  # optimization hypers
+          tau, gamma, lam  # advantage estimation
+          ):
 
     pol_losses = []
     qf_losses = []
     logger.log("Optimizing...")
     for batch, indices in traj.prioritized_random_batch(batch_size, epoch, return_indices=True):
-        qf_bellman_loss = lf.bellman(qf, targ_qf, targ_pol, batch, gamma, reduction='none')
+        qf_bellman_loss = lf.bellman(
+            qf, targ_qf, targ_pol, batch, gamma, reduction='none')
         td_loss = torch.sqrt(qf_bellman_loss*2)
         qf_bellman_loss = torch.mean(qf_bellman_loss)
         optim_qf.zero_grad()

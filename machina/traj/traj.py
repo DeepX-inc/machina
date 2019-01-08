@@ -159,7 +159,8 @@ class Traj(object):
         is_weights /= np.max(is_weights)
         pris *= is_weights
         pris = torch.tensor(pris)
-        indices = torch.utils.data.sampler.WeightedRandomSampler(pris, batch_size, replacement=True)
+        indices = torch.utils.data.sampler.WeightedRandomSampler(
+            pris, batch_size, replacement=True)
         indices = [index for index in indices]
 
         data_map = dict()
@@ -173,21 +174,25 @@ class Traj(object):
     def random_batch(self, batch_size, epoch=1, indices=None, return_indices=False):
         for _ in range(epoch):
             if return_indices:
-                batch, indices = self.random_batch_once(batch_size, indices, return_indices)
+                batch, indices = self.random_batch_once(
+                    batch_size, indices, return_indices)
                 yield batch. indices
             else:
-                batch = self.random_batch_once(batch_size, indices, return_indices)
+                batch = self.random_batch_once(
+                    batch_size, indices, return_indices)
                 yield batch
 
     def prioritized_random_batch(self, batch_size, epoch=1, return_indices=False):
         for _ in range(epoch):
             if return_indices:
-                batch, indices = self.prioritized_random_batch_once(batch_size, return_indices)
+                batch, indices = self.prioritized_random_batch_once(
+                    batch_size, return_indices)
                 yield batch, indices
             else:
-                batch = self.prioritized_random_batch_once(batch_size, return_indices)
+                batch = self.prioritized_random_batch_once(
+                    batch_size, return_indices)
                 yield batch
-    
+
     def full_batch(self, epoch=1, return_indices=False):
         for _ in range(epoch):
             if return_indices:
@@ -200,7 +205,7 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))

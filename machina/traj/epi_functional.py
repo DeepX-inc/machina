@@ -36,12 +36,14 @@ def compute_vs(data, vf):
 
     return data
 
+
 def set_all_pris(data, pri):
     epis = data.current_epis
     for epi in epis:
         pris = pri.repeat(len(epi['obs']))
         epi['pris'] = pris.cpu().numpy()
     return data
+
 
 def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, deterministic=True, sampling=1, alpha=0.6, epsilon=1e-6):
     if continuous:
@@ -52,13 +54,16 @@ def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, determinis
             for key in keys:
                 data_map[key] = torch.tensor(epi[key], device=get_device())
             with torch.no_grad():
-                bellman_loss = lf.bellman(qf, targ_qf, targ_pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
+                bellman_loss = lf.bellman(
+                    qf, targ_qf, targ_pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
                 td_loss = torch.sqrt(bellman_loss*2)
                 pris = (torch.abs(td_loss) + epsilon) ** alpha
                 epi['pris'] = pris.cpu().numpy()
         return data
     else:
-        raise NotImplementedError("Only Q function with continuous action space is supported now.")
+        raise NotImplementedError(
+            "Only Q function with continuous action space is supported now.")
+
 
 def compute_rets(data, gamma):
     epis = data.current_epis
