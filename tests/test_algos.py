@@ -31,7 +31,7 @@ from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
-from machina.misc import logger
+from machina import logger
 from machina.utils import measure, set_device
 
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM, QNet

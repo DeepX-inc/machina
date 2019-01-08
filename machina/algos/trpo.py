@@ -24,7 +24,7 @@ import numpy as np
 
 from machina import loss_functional as lf
 from machina.utils import detach_tensor_dict
-from machina.misc import logger
+from machina import logger
 
 
 def conjugate_gradients(Avp, b, nsteps, residual_tol=1e-10):

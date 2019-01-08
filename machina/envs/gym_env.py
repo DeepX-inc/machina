@@ -15,7 +15,7 @@
 
 
 import gym
-from machina.misc import logger
+from machina import logger
 
 
 class CappedCubicVideoSchedule(object):
