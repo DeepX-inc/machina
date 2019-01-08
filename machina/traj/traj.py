@@ -19,7 +19,9 @@ import functools
 import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
+import torch.utils.data
 
+from machina import loss_functional as lf
 from machina.utils import get_device
 
 
@@ -40,6 +42,12 @@ class Traj(object):
     @property
     def num_epi(self):
         return len(self._epis_index) - 1
+
+    def get_max_pri(self):
+        if 'pris' in self.data_map:
+            return torch.max(self.data_map['pris']).cpu()
+        else:
+            return torch.tensor(1)
 
     def add_epis(self, epis):
         self.current_epis = epis
@@ -121,29 +129,83 @@ class Traj(object):
                 yield self._next_batch(batch_size, indices)
             self._next_id = 0
 
-    def random_batch_once(self, batch_size, indices=None):
+    def random_batch_once(self, batch_size, indices=None, return_indices=False):
         indices = self._get_indices(indices, shuffle=True)
 
         data_map = dict()
         for key in self.data_map:
             data_map[key] = self.data_map[key][indices[:batch_size]]
-        return data_map
+        if return_indices:
+            return data_map, indices
+        else:
+            return data_map
 
-    def random_batch(self, batch_size, epoch=1, indices=None):
-        for _ in range(epoch):
-            batch = self.random_batch_once(batch_size, indices)
-            yield batch
+    def prioritized_random_batch_once(self, batch_size, return_indices=False, mode='proportional', alpha=0.6, init_beta=0.4, beta_step=0.00025/4):
+        if hasattr(self, 'pri_beta') == False:
+            self.pri_beta = init_beta
+        elif self.pri_beta >= 1.0:
+            self.pri_beta = 1.0
+        else:
+            self.pri_beta += beta_step
 
-    def full_batch(self, epoch=1):
+        pris = self.data_map['pris'].cpu().numpy()
+
+        if mode == 'rank_based':
+            index = np.argsort(-pris)
+            pris = (index.astype(np.float32)+1) ** -1
+            pris = pris ** alpha
+
+        is_weights = (len(pris) * (pris/pris.sum())) ** -self.pri_beta
+        is_weights /= np.max(is_weights)
+        pris *= is_weights
+        pris = torch.tensor(pris)
+        indices = torch.utils.data.sampler.WeightedRandomSampler(
+            pris, batch_size, replacement=True)
+        indices = [index for index in indices]
+
+        data_map = dict()
+        for key in self.data_map:
+            data_map[key] = self.data_map[key][indices]
+        if return_indices:
+            return data_map, indices
+        else:
+            return data_map
+
+    def random_batch(self, batch_size, epoch=1, indices=None, return_indices=False):
         for _ in range(epoch):
-            yield self.data_map
+            if return_indices:
+                batch, indices = self.random_batch_once(
+                    batch_size, indices, return_indices)
+                yield batch. indices
+            else:
+                batch = self.random_batch_once(
+                    batch_size, indices, return_indices)
+                yield batch
+
+    def prioritized_random_batch(self, batch_size, epoch=1, return_indices=False):
+        for _ in range(epoch):
+            if return_indices:
+                batch, indices = self.prioritized_random_batch_once(
+                    batch_size, return_indices)
+                yield batch, indices
+            else:
+                batch = self.prioritized_random_batch_once(
+                    batch_size, return_indices)
+                yield batch
+
+    def full_batch(self, epoch=1, return_indices=False):
+        for _ in range(epoch):
+            if return_indices:
+                yield self.data_map, torch.arange(self.num_step, device=get_device())
+            else:
+                yield self.data_map
 
     def iterate_epi(self, shuffle=True):
         epis = []
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))

@@ -1,0 +1,62 @@
+# Copyright 2018 DeepX Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+#
+# This is an implementation of Prioritized Experience Replay.
+# See https://arxiv.org/abs/1511.05952
+
+import torch
+import torch.nn as nn
+
+from machina import loss_functional as lf
+from machina.traj import traj_functional as tf
+from machina.misc import logger
+
+
+def train(traj,
+          pol, targ_pol, qf, targ_qf,
+          optim_pol, optim_qf,
+          epoch, batch_size,  # optimization hypers
+          tau, gamma, lam  # advantage estimation
+          ):
+
+    pol_losses = []
+    qf_losses = []
+    logger.log("Optimizing...")
+    for batch, indices in traj.prioritized_random_batch(batch_size, epoch, return_indices=True):
+        qf_bellman_loss = lf.bellman(
+            qf, targ_qf, targ_pol, batch, gamma, reduction='none')
+        td_loss = torch.sqrt(qf_bellman_loss*2)
+        qf_bellman_loss = torch.mean(qf_bellman_loss)
+        optim_qf.zero_grad()
+        qf_bellman_loss.backward()
+        optim_qf.step()
+
+        pol_loss = lf.ag(pol, qf, batch)
+        optim_pol.zero_grad()
+        pol_loss.backward()
+        optim_pol.step()
+
+        for p, targ_p in zip(pol.parameters(), targ_pol.parameters()):
+            targ_p.detach().copy_((1 - tau) * targ_p.detach() + tau * p.detach())
+        for q, targ_q in zip(qf.parameters(), targ_qf.parameters()):
+            targ_q.detach().copy_((1 - tau) * targ_q.detach() + tau * q.detach())
+
+        qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
+        pol_losses.append(pol_loss.detach().cpu().numpy())
+
+        traj = tf.update_pris(traj, td_loss, indices)
+    logger.log("Optimization finished!")
+
+    return {'PolLoss': pol_losses, 'QfLoss': qf_losses}
