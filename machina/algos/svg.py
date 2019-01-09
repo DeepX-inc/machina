@@ -72,7 +72,7 @@ def train(traj,
     logger.log("Optimizing...")
     for batch in traj.iterate(batch_size, epoch):
         qf_bellman_loss = lf.bellman(
-            qf, targ_qf, targ_pol, batch, gamma, deterministic=False, sampling=sampling)
+            qf, targ_qf, targ_pol, batch, gamma, sampling=sampling)
         optim_qf.zero_grad()
         qf_bellman_loss.backward()
         optim_qf.step()

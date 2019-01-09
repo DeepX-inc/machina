@@ -59,11 +59,11 @@ def linesearch(
     max_backtracks=10,
     accept_ratio=.1
 ):
-    fval = f(pol, batch, True).detach()
+    fval = f(pol, batch).detach()
     for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):
         xnew = x + stepfrac * fullstep
         nn.utils.vector_to_parameters(xnew, pol.parameters())
-        newfval = f(pol, batch, True).detach()
+        newfval = f(pol, batch).detach()
         actual_improve = fval - newfval
         expected_improve = expected_improve_rate * stepfrac
         ratio = actual_improve / expected_improve
