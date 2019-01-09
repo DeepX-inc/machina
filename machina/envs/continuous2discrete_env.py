@@ -19,6 +19,17 @@ import numpy as np
 
 
 class C2DEnv(object):
+    """
+    Wrapper environment for converting continuous action space to multi discrete action space.
+
+    Parameters
+    ----------
+    env : gym.Env
+    n_bins : int
+        Number of bins for converting continuous to discrete.
+        e.g. continuous action space is 0 ~ 1 and n_bins=5,
+        action space is converted to [0, 0.25, 0.5, 0.75, 1]
+    """
     def __init__(self, env, n_bins=30):
         assert isinstance(env.ac_space, gym.spaces.Box)
         assert len(env.ac_space.shape) == 1
