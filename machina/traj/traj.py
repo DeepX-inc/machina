@@ -24,6 +24,13 @@ from machina.utils import get_device
 
 
 class Traj(object):
+    """
+    Trajectory class.
+    A Trajectory is a sequence of episodes.
+    An episode is a sequence of steps.
+
+    This class provides batch methods.
+    """
     def __init__(self):
         self.data_map = dict()
         self._next_id = 0
@@ -107,6 +114,21 @@ class Traj(object):
         return data_map
 
     def iterate_once(self, batch_size, indices=None, shuffle=True):
+        """
+        Iterate a full of trajectory once.
+
+        Parameters
+        ----------
+        batch_size : int
+        indices : ndarray or torch.Tensor or None
+            Selected indices for iteration.
+            If None, whole trajectory is selected.
+        shuffle : bool
+
+        Returns
+        -------
+        data_map : dict of torch.Tensor
+        """
         indices = self._get_indices(indices, shuffle)
 
         while self._next_id <= len(indices) - batch_size:
@@ -114,6 +136,22 @@ class Traj(object):
         self._next_id = 0
 
     def iterate(self, batch_size, epoch=1, indices=None, shuffle=True):
+        """
+        Iterate a full of trajectory epoch times.
+
+        Parameters
+        ----------
+        batch_size : int
+        epoch : int
+        indices : ndarray or torch.Tensor or None
+            Selected indices for iteration.
+            If None, whole trajectory is selected.
+        shuffle : bool
+
+        Returns
+        -------
+        data_map : dict of torch.Tensor
+        """
         indices = self._get_indices(indices, shuffle)
 
         for _ in range(epoch):
@@ -122,6 +160,20 @@ class Traj(object):
             self._next_id = 0
 
     def random_batch_once(self, batch_size, indices=None):
+        """
+        Providing a batch which is randomly sampled from trajectory.
+
+        Parameters
+        ----------
+        batch_size : int
+        indices : ndarray or torch.Tensor or None
+            Selected indices for iteration.
+            If None, whole trajectory is selected.
+
+        Returns
+        -------
+        data_map : dict of torch.Tensor
+        """
         indices = self._get_indices(indices, shuffle=True)
 
         data_map = dict()
@@ -130,20 +182,57 @@ class Traj(object):
         return data_map
 
     def random_batch(self, batch_size, epoch=1, indices=None):
+        """
+        Providing batches which is randomly sampled from trajectory.
+
+        Parameters
+        ----------
+        batch_size : int
+        epoch : int
+        indices : ndarray or torch.Tensor or None
+            Selected indices for iteration.
+            If None, whole trajectory is selected.
+
+        Returns
+        -------
+        data_map : dict of torch.Tensor
+        """
         for _ in range(epoch):
             batch = self.random_batch_once(batch_size, indices)
             yield batch
 
     def full_batch(self, epoch=1):
+        """
+        Providing whole trajectory as batch.
+
+        Parameters
+        ----------
+        epoch : int
+
+        Returns
+        -------
+        data_map : dict of torch.Tensor
+        """
         for _ in range(epoch):
             yield self.data_map
 
     def iterate_epi(self, shuffle=True):
+        """
+        Iterating episodes.
+
+        Parameters
+        ----------
+        shuffle : bool
+
+        Returns
+        -------
+        epis : dict of torch.Tensor
+        """
         epis = []
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
@@ -153,6 +242,21 @@ class Traj(object):
             yield epis[idx]
 
     def iterate_rnn(self, batch_size, num_epi_per_seq=1, epoch=1):
+        """
+        Iterating batches for rnn.
+        batch shape is (max_seq, batch_size, *)
+
+        Parameters
+        ----------
+        batch_size : int
+        num_epi_per_seq : int
+            Number of episodes in one sequence for rnn.
+        epoch : int
+
+        Returns
+        -------
+        batch : dict of torch.Tensor
+        """
         assert batch_size * num_epi_per_seq <= self.num_epi
         for _ in range(epoch):
             epi_count = 0
