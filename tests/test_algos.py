@@ -336,7 +336,7 @@ class TestDDPG(unittest.TestCase):
         traj.register_epis()
 
         result_dict = ddpg.train(
-            traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9, 1)
+            traj, pol, targ_pol, qf, targ_qf, optim_pol, optim_qf, 1, 32, 0.01, 0.9)
 
         del sampler
 

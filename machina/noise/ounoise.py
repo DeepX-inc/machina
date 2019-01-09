@@ -22,6 +22,10 @@ from machina.noise.base import BaseActionNoise
 
 
 class OUActionNoise(BaseActionNoise):
+    """
+    noise produced by Ornstein-Uhlenbeck process.
+    """
+
     def __init__(self, ac_space, sigma=0.2, theta=.15, dt=1e-2, x0=None):
         BaseActionNoise.__init__(self, ac_space)
         self.mu = np.zeros(self.ac_space[0])

@@ -23,6 +23,28 @@ from machina.utils import get_device
 
 
 class DeterministicActionNoisePol(BasePol):
+    """
+    Policy with deterministic distribution.
+
+    Parameters
+    ----------
+    ob_space : gym.Space
+        observation's space
+    ac_space : gym.Space
+        action's space.
+        This should be gym.spaces.Box
+    net : torch.nn.Module
+    noise : Noise
+    rnn : bool
+    normalize_ac : bool
+        If True, the output of network is spreaded for ac_space.
+        In this situation the output of network is expected to be in -1~1.
+    data_parallel : bool
+        If True, network computation is executed in parallel.
+    parallel_dim : int
+        Splitted dimension in data parallel.
+    """
+
     def __init__(self, ob_space, ac_space, net, noise=None, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         if rnn:
             raise ValueError(

@@ -24,18 +24,55 @@ from machina import loss_functional as lf
 from machina import logger
 
 
-def train(off_traj,
+def train(traj,
           pol, qf, targ_qf, log_alpha,
           optim_pol, optim_qf, optim_alpha,
           epoch, batch_size,  # optimization hypers
           tau, gamma, sampling,
           ):
+    """
+    Train function for soft actor critic.
+
+    Parameters
+    ----------
+    traj : Traj
+        Off policy trajectory.
+    pol : Pol
+        Policy.
+    qf : SAVfunction
+        Q function.
+    targ_qf : SAVfunction
+        Target Q function.
+    log_alpha : torch.Tensor
+        Temperature parameter of entropy.
+    optim_pol : torch.optim.Optimizer
+        Optimizer for Policy.
+    optim_qf : torch.optim.Optimizer
+        Optimizer for Q function.
+    optim_alpha : torch.optim.Optimizer
+        Optimizer for alpha.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    tau : float
+        Target updating rate.
+    gamma : float
+        Discounting rate.
+    sampling : int
+        Number of samping in calculating expectation.
+
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
 
     qf_losses = []
     pol_losses = []
     alpha_losses = []
     logger.log("Optimizing...")
-    for batch in off_traj.random_batch(batch_size, epoch):
+    for batch in traj.random_batch(batch_size, epoch):
         pol_loss, qf_loss, alpha_loss = lf.sac(
             pol, qf, targ_qf, log_alpha, batch, gamma, sampling)
 

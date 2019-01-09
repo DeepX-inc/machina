@@ -25,6 +25,21 @@ LARGE_NUMBER = 100000000
 
 
 def one_epi(env, pol, deterministic=False, prepro=None):
+    """
+    Sampling an episode.
+
+    Parameters
+    ----------
+    env : gym.Env
+    pol : Pol
+    deterministic : pool
+        If True, policy is deterministic.
+    prepro : Prepro
+
+    Returns
+    -------
+    epi_length, epi : int, dict
+    """
     if prepro is None:
         def prepro(x): return x
     obs = []
@@ -81,6 +96,31 @@ def one_epi(env, pol, deterministic=False, prepro=None):
 
 
 def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
+    """
+    Multiprocess sample.
+    Sampling episodes until max_steps or max_episodes is achieved.
+
+    Parameters
+    ----------
+    pol : Pol
+    env : gym.Env
+    max_steps : int
+        maximum steps of episodes
+    max_episodes : int
+        maximum episodes of episodes
+    n_steps_global : torch.Tensor
+        shared Tensor
+    n_episodes_global : torch.Tensor
+        shared Tensor
+    epis : list
+        multiprocessing's list for sharing episodes between processes.
+    exec_flags : list of torch.Tensor
+        execution flag
+    deterministic_flag : torch.Tensor
+    process_id : int
+    prepro : Prepro
+    seed : int
+    """
 
     np.random.seed(seed + process_id)
     torch.manual_seed(seed + process_id)
@@ -99,6 +139,15 @@ def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_glob
 class EpiSampler(object):
     """
     A sampler which sample episodes.
+
+    Parameters
+    ----------
+    env : gym.Env
+    pol : Pol
+    num_parallel : int
+        Number of processes
+    prepro : Prepro
+    seed : int
     """
 
     def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256):
@@ -133,6 +182,30 @@ class EpiSampler(object):
             p.terminate()
 
     def sample(self, pol, max_episodes=None, max_steps=None, deterministic=False):
+        """
+        Switch on sampling processes.
+
+        Parameters
+        ----------
+        pol : Pol
+        max_episodes : int or None
+            maximum episodes of episodes.
+            If None, this value is ignored.
+        max_steps : int or None
+            maximum steps of episodes
+            If None, this value is ignored.
+        deterministic : bool
+
+        Returns
+        -------
+        epis : list of dict
+            Sampled episodes.
+
+        Raises
+        ------
+        ValueError
+            If max_steps and max_episodes are botch None.
+        """
         for sp, p in zip(self.pol.parameters(), pol.parameters()):
             sp.data.copy_(p.data.to('cpu'))
 

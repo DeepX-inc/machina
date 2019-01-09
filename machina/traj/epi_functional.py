@@ -22,6 +22,18 @@ from machina import loss_functional as lf
 
 
 def compute_vs(data, vf):
+    """
+    Computing Value Function.
+
+    Parameters
+    ----------
+    data : Traj
+    vf : SVFunction
+
+    Returns
+    -------
+    data : Traj
+    """
     epis = data.current_epis
     vf.reset()
     with torch.no_grad():
@@ -66,6 +78,19 @@ def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, determinis
 
 
 def compute_rets(data, gamma):
+    """
+    Computing discounted cumulative returns.
+
+    Parameters
+    ----------
+    data : Traj
+    gamma : float
+        Discount rate
+
+    Returns
+    -------
+    data : Traj
+    """
     epis = data.current_epis
     for epi in epis:
         rews = epi['rews']
@@ -79,6 +104,21 @@ def compute_rets(data, gamma):
 
 
 def compute_advs(data, gamma, lam):
+    """
+    Computing Advantage Function.
+
+    Parameters
+    ----------
+    data : Traj
+    gamma : float
+        Discount rate
+    lam : float
+        Bias-Variance trade-off parameter
+
+    Returns
+    -------
+    data : Traj
+    """
     epis = data.current_epis
     for epi in epis:
         rews = epi['rews']
@@ -95,6 +135,19 @@ def compute_advs(data, gamma, lam):
 
 
 def centerize_advs(data, eps=1e-6):
+    """
+    Centerizing Advantage Function.
+
+    Parameters
+    ----------
+    data : Traj
+    eps : float
+        Small value for preventing 0 division.
+
+    Returns
+    -------
+    data : Traj
+    """
     epis = data.current_epis
     _advs = np.concatenate([epi['advs'] for epi in epis])
     for epi in epis:
@@ -104,6 +157,17 @@ def centerize_advs(data, eps=1e-6):
 
 
 def add_next_obs(data):
+    """
+    Adding next observations to episodes.
+
+    Parameters
+    ----------
+    data : Traj
+
+    Returns
+    -------
+    data : Traj
+    """
     epis = data.current_epis
     for epi in epis:
         obs = epi['obs']
@@ -115,6 +179,18 @@ def add_next_obs(data):
 
 
 def compute_h_masks(data):
+    """
+    Computing masks for hidden state.
+    At the begining of an episode, it remarks 1.
+
+    Parameters
+    ----------
+    data : Traj
+
+    Returns
+    -------
+    data : Traj
+    """
     epis = data.current_epis
     for epi in epis:
         h_masks = np.zeros_like(epi['rews'])
