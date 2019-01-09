@@ -3,3 +3,4 @@ __pycache__
 garbage
 *.swp
 docs/_build/
+.DS_Store
