@@ -34,6 +34,7 @@ class BaseSAVfunc(nn.Module):
     parallel_dim : int
         Splitted dimension in data parallel.
     """
+
     def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0):
         nn.Module.__init__(self)
         self.ob_space = ob_space

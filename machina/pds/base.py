@@ -18,6 +18,7 @@ class BasePd(object):
     """
     Base class of probablistic distribution
     """
+
     def sample(self, params, sample_shape):
         """
         sampling

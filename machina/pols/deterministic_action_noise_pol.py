@@ -44,6 +44,7 @@ class DeterministicActionNoisePol(BasePol):
     parallel_dim : int
         Splitted dimension in data parallel.
     """
+
     def __init__(self, ob_space, ac_space, net, noise=None, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         if rnn:
             raise ValueError(

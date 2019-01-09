@@ -25,6 +25,7 @@ class GaussianPd(BasePd):
     """
     Gaussian probablistic distribution.
     """
+
     def sample(self, params, sample_shape=torch.Size()):
         mean, log_std = params['mean'], params['log_std']
         std = torch.exp(log_std)

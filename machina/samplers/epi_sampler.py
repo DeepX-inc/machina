@@ -149,6 +149,7 @@ class EpiSampler(object):
     prepro : Prepro
     seed : int
     """
+
     def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256):
         self.env = env
         self.pol = copy.deepcopy(pol)

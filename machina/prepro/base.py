@@ -26,6 +26,7 @@ class BasePrePro(object):
     ob_space : gym.Space
     normalize_ob : bool
     """
+
     def __init__(self, ob_space, normalize_ob=True):
         self.ob_space = ob_space
         self.normalize_ob = normalize_ob

@@ -30,6 +30,7 @@ class C2DEnv(object):
         e.g. continuous action space is 0 ~ 1 and n_bins=5,
         action space is converted to [0, 0.25, 0.5, 0.75, 1]
     """
+
     def __init__(self, env, n_bins=30):
         assert isinstance(env.ac_space, gym.spaces.Box)
         assert len(env.ac_space.shape) == 1
