@@ -194,7 +194,7 @@ class Traj(object):
             return data_map, indices
         else:
             return data_map
-          
+
     def prioritized_random_batch_once(self, batch_size, return_indices=False, mode='proportional', alpha=0.6, init_beta=0.4, beta_step=0.00025/4):
         if hasattr(self, 'pri_beta') == False:
             self.pri_beta = init_beta
