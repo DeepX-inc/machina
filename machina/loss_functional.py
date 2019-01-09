@@ -122,7 +122,7 @@ def pg_kl(pol, batch, kl_beta):
     return pol_loss
 
 
-def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, sampling=1):
+def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=True, sampling=1, reduction='elementwise_mean'):
     """
     Bellman loss.
     Mean Squared Error of left hand side and right hand side of Bellman Equation.
@@ -138,6 +138,9 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, sampling=1):
         action space is continuous or not
     sampling : int
         Number of samping in calculating expectation.
+    reduction : str
+      This argument takes only elementwise, sum, and none.
+      Loss shape is pytorch's manner.
 
     Returns
     -------
@@ -163,7 +166,11 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, sampling=1):
         targ = targ.detach()
         q, _ = qf(obs, acs)
 
-        return 0.5 * torch.mean((q - targ)**2)
+        ret = 0.5 * (q - targ)**2
+        if reduction != 'none':
+            ret = torch.mean(
+                ret) if reduction == 'elementwise_mean' else torch.sum(ret)
+        return ret
     else:
         raise NotImplementedError(
             "Only Q function with continuous action space is supported now.")
