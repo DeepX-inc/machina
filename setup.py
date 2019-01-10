@@ -11,7 +11,7 @@ with open('README.md', 'r') as f:
 
 install_requires = [
     'cached_property',
-    'torch>=0.3.0',
+    'torch>=0.4.1',
     'joblib>=0.11',
     'gym>=0.9.2',
     'numpy>=1.13.3',
@@ -21,8 +21,8 @@ install_requires = [
 
 setup(
     name='machina',
-    version='0.0.1',
-    description='A PyTorch Library for Reinforcement Learning',
+    version='0.2.0',
+    description='Machina is a library for a deep reinforcement learning.',
     long_description=readme,
     author='Reiji Hatsugai',
     author_email='reiji.hatsugai@deepx.co.jp',
