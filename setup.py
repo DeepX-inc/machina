@@ -5,6 +5,7 @@ import pkg_resources
 import sys
 
 from setuptools import setup
+from setuptools import find_packages
 
 with open('README.md', 'r') as f:
     readme = f.read()
@@ -28,8 +29,8 @@ setup(
     author_email='reiji.hatsugai@deepx.co.jp',
     url='https://github.com/DeepX-inc/machina',
     license='Apache License',
-    packages=['machina',
-              ],
+    packages=find_packages(),
     zip_safe=False,
     install_requires=install_requires,
+    test_suite='tests'
 )
