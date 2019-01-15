@@ -1,3 +1,7 @@
+"""
+Examples of network architecture.
+"""
+
 import torch
 import torch.nn as nn
 from torch.nn.init import kaiming_uniform_, uniform_

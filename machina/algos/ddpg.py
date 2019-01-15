@@ -1,4 +1,7 @@
-
+"""
+This is implementation of Deep Deterministic Policy Gradient.
+See https://arxiv.org/abs/1509.02971
+"""
 
 import torch
 import torch.nn as nn

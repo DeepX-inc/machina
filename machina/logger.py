@@ -27,7 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # ==============================================================================
-# This code is taken from rllab
+# This code is taken from rllab which is MIT-licensed
 
 
 import collections
