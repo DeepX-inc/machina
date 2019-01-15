@@ -1,8 +1,11 @@
 <div align="center"><img src="assets/machina_logo.jpg" width="800"/></div>
 
+[![Build Status](https://travis-ci.com/DeepX-inc/machina.svg?token=xZEqXwSaqc7xZ2saWZa2&branch=master)](https://travis-ci.com/DeepX-inc/machina)
+[![Python Version](https://img.shields.io/pypi/pyversions/Django.svg)](https://github.com/DeepX-inc/machina)
+
 # machina
 
-Machina is a library for a real world Deep Reinforcement Learning and is built on top of PyTorch.
+machina is a library for a real world Deep Reinforcement Learning and is built on top of PyTorch.
 
 ## Features
 + Composability
@@ -16,12 +19,20 @@ By the composability, we can easily implement following configurations which are
 To obtain the composability, machina's sampling method is restricted to be episode-based. Episode-based sampling is suitable for real world environment. Some algorithms like updating step by step (e.g. DQN, DDPG) are not reproduced their results exactly with machina.
 
 
-## install
+## Installation
 
+machina only supports Python3.5, 3.6, 3.7.
+
+machina can be installed by PyPI.
 ```
-git clone https://github.com/DeepX-inc/machina.git
-cd ./machina
-pip install -e .
+pip install machina
+```
+
+Or you can install machina from source code.
+```
+git clone https://github.com/DeepX-inc/machina
+cd machina
+python setup.py install
 ```
 
 ## Quick Start
