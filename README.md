@@ -25,7 +25,7 @@ To obtain the composability, machina's sampling method is restricted to be episo
 
 ## Installation
 
-machina supports Python3.5, 3.6, 3.7 and PyTorch0.4+.
+machina supports Python3.5, 3.6 and PyTorch0.4+.
 
 machina can be installed by PyPI.
 ```
