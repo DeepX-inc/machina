@@ -20,7 +20,7 @@ By the composability, we can easily implement following configurations which are
 + An agent learns by multiple algorithms rather than a single algorithm (e.g. Q-Prop is combination of TRPO and DDPG).
 + Hyper parameters for an algorithm are changing dynamically (e.g. Meta Learning).
 
-To obtain the composability, machina's sampling method is restricted to be episode-based. Episode-based sampling is suitable for real world environment. Some algorithms like updating step by step (e.g. DQN, DDPG) are not reproduced their results exactly with machina.
+To obtain the composability, machina's sampling method is restricted to be episode-based. Episode-based sampling is suitable for real world environment. Some algorithms like updating networks by step (e.g. DQN, DDPG) are not reproduced their results exactly with machina.
 
 
 ## Installation
