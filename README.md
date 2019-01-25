@@ -40,9 +40,9 @@ python setup.py install
 ```
 
 ## Quick Start
-Let's start machina with a quick start Jupyter notebook (some links are to be here).
+Let's start machina with a [quickstart](https://github.com/DeepX-inc/machina/tree/master/example/quickstart).
 
-You can check implemented algorithms in examples (link) for the next step.
+You can check implemented algorithms in [examples](https://github.com/DeepX-inc/machina/tree/master/example) for the next step.
 
 
 
