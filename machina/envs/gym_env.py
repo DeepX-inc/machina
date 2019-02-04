@@ -51,22 +51,19 @@ class NoVideoSchedule(object):
 
 
 class GymEnv(object):
-    def __init__(self, env_name, record_video=True, video_schedule=None, log_dir=None, record_log=True,
+    def __init__(self, env, record_video=False, video_schedule=None, log_dir=None,
                  force_reset=False):
-        if log_dir is None:
-            if logger.get_snapshot_dir() is None:
-                logger.log(
-                    "Warning: skipping Gym environment monitoring since snapshot_dir not configured.")
-            else:
-                log_dir = os.path.join(logger.get_snapshot_dir(), "gym_log")
 
-        env = gym.envs.make(env_name)
+        if isinstance(env, str):
+            env = gym.envs.make(env)
         self.env = env
+        if hasattr(env, 'original_env'):
+            self.original_env = env.original_env
+        else:
+            self.original_env = env
         self.env_id = env.spec.id
 
-        assert not (not record_log and record_video)
-
-        if log_dir is None or record_log is False:
+        if log_dir is None:
             self.monitoring = False
         else:
             if not record_video:
@@ -117,13 +114,3 @@ class GymEnv(object):
     def terminate(self):
         if self.monitoring:
             self.env._close()
-            if self._log_dir is not None:
-                print("""
-    ***************************
-
-    Training finished! You can upload results to OpenAI Gym by running the following command:
-
-    python scripts/submit_gym.py %s
-
-    ***************************
-                """ % self._log_dir)
