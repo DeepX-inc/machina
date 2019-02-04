@@ -3,6 +3,7 @@ Sampler class
 """
 
 import copy
+import time
 
 import gym
 import numpy as np
@@ -21,7 +22,7 @@ def one_epi(env, pol, deterministic=False, prepro=None):
     ----------
     env : gym.Env
     pol : Pol
-    deterministic : pool
+    deterministic : bool
         If True, policy is deterministic.
     prepro : Prepro
 
@@ -116,6 +117,7 @@ def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_glob
     torch.set_num_threads(1)
 
     while True:
+        time.sleep(0.1)
         if exec_flags[process_id] > 0:
             while max_steps > n_steps_global and max_episodes > n_episodes_global:
                 l, epi = one_epi(env, pol, deterministic_flag, prepro)
