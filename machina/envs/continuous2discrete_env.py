@@ -26,6 +26,10 @@ class C2DEnv(object):
         self.n_bins = n_bins
         self.ac_space = gym.spaces.MultiDiscrete(
             env.ac_space.shape[0] * [n_bins])
+        if hasattr(env, 'original_env'):
+            self.original_env = env.original_env
+        else:
+            self.original_env = env
 
     @property
     def observation_space(self):
@@ -37,7 +41,8 @@ class C2DEnv(object):
 
     @property
     def horizon(self):
-        return self.env._horizon
+        if hasattr(self.env, 'horizon'):
+            return self.env._horizon
 
     def reset(self):
         return self.env.reset()
