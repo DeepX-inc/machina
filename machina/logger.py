@@ -53,6 +53,7 @@ from cached_property import cached_property
 import dateutil.tz
 import joblib
 import json
+import multiprocessing as mp
 import numpy as np
 import pandas as pd
 import pickle
@@ -934,7 +935,7 @@ def _check_available():
     return _available
 
 
-def plot_scores(filename, key, x_key, label=None, title=None,
+def plot_scores(filename, key, x_key, scores=None, label=None, title=None,
                 color=None, result_directory=None,
                 plot_legend=True, xlim=None, ylim=None,
                 y_label=None):
@@ -948,7 +949,8 @@ def plot_scores(filename, key, x_key, label=None, title=None,
 
     f = plt.figure()
     a = f.add_subplot(111)
-    scores = pd.read_csv(filename)
+    if scores is None:
+        scores = pd.read_csv(filename)
     x = scores[x_key]
     mean = scores[key + 'Average']
     std = scores[key + 'Std']
@@ -1248,6 +1250,9 @@ _snapshot_gap = 1
 
 _log_tabular_only = False
 _header_printed = False
+
+_running_processes = []
+_async_plot_flag = False
 
 
 def _add_output(file_name, arr, fds, mode='a'):
@@ -1556,7 +1561,9 @@ def record_results(log_dir, result_dict, score_file,
                    total_epi,
                    step, total_step,
                    rewards=None,
-                   plot_title=None, **plot_kwargs):
+                   plot_title=None,
+                   async_plot=True,
+                   ):
     log("outdir {}".format(os.path.abspath(log_dir)))
 
     for key, value in result_dict.items():
@@ -1572,14 +1579,38 @@ def record_results(log_dir, result_dict, score_file,
     record_tabular('TotalStep', total_step)
     dump_tabular()
 
-    csv2table(score_file)
 
-    for key, value in result_dict.items():
-        if hasattr(value, '__len__'):
-            fig_fname = plot_scores(score_file, key, 'TotalStep',
+    if not async_plot:
+        for key, value in result_dict.items():
+            if hasattr(value, '__len__'):
+                fig_fname = plot_scores(score_file, key, 'TotalStep',
+                                        title=plot_title)
+                log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
+        if rewards is not None:
+            fig_fname = plot_scores(score_file, 'Reward', 'TotalStep',
                                     title=plot_title)
             log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
+    else:
+        global _async_plot_flag
+        if not _async_plot_flag:
+            global plot_process
+            plot_process = mp.Pool(processes=1)
+            _async_plot_flag = True
+        if _running_processes:
+            p = _running_processes[0]
+            if p.ready():
+                del _running_processes[:]
+        if not _running_processes:
+            p = plot_process.apply_async(func=async_plot_scores, args=(score_file, plot_title, result_dict, rewards))
+            _running_processes.append(p)
+
+
+def async_plot_scores(filename, title, result_dict, rewards):
+    scores = pd.read_csv(filename)
+    for key, value in result_dict.items():
+        if hasattr(value, '__len__'):
+            fig_fname = plot_scores(filename, key, 'TotalStep',
+                                    title=title, scores=scores)
     if rewards is not None:
-        fig_fname = plot_scores(score_file, 'Reward', 'TotalStep',
-                                title=plot_title, **plot_kwargs)
-        log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
+        fig_fname = plot_scores(filename, 'Reward', 'TotalStep',
+                                title=title, scores=scores)
