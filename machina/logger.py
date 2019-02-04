@@ -1579,7 +1579,6 @@ def record_results(log_dir, result_dict, score_file,
     record_tabular('TotalStep', total_step)
     dump_tabular()
 
-
     if not async_plot:
         for key, value in result_dict.items():
             if hasattr(value, '__len__'):
@@ -1601,7 +1600,8 @@ def record_results(log_dir, result_dict, score_file,
             if p.ready():
                 del _running_processes[:]
         if not _running_processes:
-            p = plot_process.apply_async(func=async_plot_scores, args=(score_file, plot_title, result_dict, rewards))
+            p = plot_process.apply_async(func=async_plot_scores, args=(
+                score_file, plot_title, result_dict, rewards))
             _running_processes.append(p)
 
 
