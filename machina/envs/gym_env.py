@@ -34,6 +34,7 @@ This code is taken from rllab which is MIT-licensed.
 
 import gym
 from machina import logger
+from machina.utils import get_device
 
 
 class CappedCubicVideoSchedule(object):
@@ -114,3 +115,53 @@ class GymEnv(object):
     def terminate(self):
         if self.monitoring:
             self.env._close()
+
+
+class ImaginaryEnv(object):
+    def __init__(self, env, ob_model, rew_model):
+        if isinstance(env, str):
+            env = gym.envs.make(env)
+        self.env = env
+        if hasattr(env, 'original_env'):
+            self.original_env = env.original_env
+        else:
+            self.original_env = env
+        self.env_id = env.spec.id
+
+        self.ob_space = env.observation_space
+        self.ac_space = env.action_space
+        self._horizon = env.spec.tags['wrapper_config.TimeLimit.max_episode_steps']
+
+        self._ob_model = ob_model
+        self._rew_model = rew_model
+        self._ob = None
+        self._n_steps = 0
+    
+    @property
+    def observation_space(self):
+        return self.ob_space
+
+    @property
+    def action_space(self):
+        return self.ac_space
+
+    @property
+    def horizon(self):
+        return self._horizon
+
+    def reset(self):
+        self._n_steps = 0
+        self._ob = self.env.reset()
+        return self._ob
+
+    def step(self, action):
+        action = torch.tensor(action, device=get_device()).unsqueeze(0)
+        with torch.no_grad():
+            reward = self._rew_model(self._ob, action).cpu().numpy()[0][0]
+            self._ob = self._ob_model(self._ob, action)
+        
+        self._n_steps += 1
+        done = False
+        if self._n_steps >= self._horizon:
+            done = True
+        return self._ob, reward, done, None
