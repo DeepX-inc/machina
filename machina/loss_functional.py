@@ -346,9 +346,7 @@ def dynamics(model, batch, target='next_obs'):
     """
     obs = batch['obs']
     acs = batch['acs']
-
-    model.reset()
+    
     pred = model(obs, acs)
-
     model_loss = 0.5 * torch.mean((pred - batch[target])**2)
     return model_loss
