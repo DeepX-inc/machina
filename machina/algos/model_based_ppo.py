@@ -129,10 +129,9 @@ def train_models(traj, ob_model, rew_model,
     ob_model_losses = []
     rew_model_losses = []
     logger.log("Optimizing...")
-    iterator = traj.iterate(batch_size, epoch)
-    for batch in iterator:
-        ob_model_loss = update_model(ob_model, optim_ob_model, batch)
-        rew_model_loss = update_model(rew_model, optim_rew_model, batch)
+    for batch in traj.random_batch(batch_size, epoch):
+        ob_model_loss = update_model(ob_model, optim_ob_model, batch, target='next_obs')
+        rew_model_loss = update_model(rew_model, optim_rew_model, batch, target='rews')
 
         ob_model_losses.append(ob_model_loss)
         rew_model_losses.append(rew_model_loss)
