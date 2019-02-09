@@ -33,6 +33,7 @@ This code is taken from rllab which is MIT-licensed.
 """
 
 import gym
+import torch
 from machina import logger
 from machina.utils import get_device
 
@@ -151,17 +152,18 @@ class ImaginaryEnv(object):
 
     def reset(self):
         self._n_steps = 0
-        self._ob = self.env.reset()
-        return self._ob
+        self._ob = torch.tensor(self.env.reset(), dtype=torch.float, device=get_device()).unsqueeze(0)
+        return self._ob.cpu().numpy()[0]
 
     def step(self, action):
-        action = torch.tensor(action, device=get_device()).unsqueeze(0)
+        action = torch.tensor(action, dtype=torch.float, device=get_device()).unsqueeze(0)
         with torch.no_grad():
-            reward = self._rew_model(self._ob, action).cpu().numpy()[0][0]
+            reward = self._rew_model(self._ob, action).cpu().numpy()
+            reward = reward[0][0]
             self._ob = self._ob_model(self._ob, action)
         
         self._n_steps += 1
         done = False
         if self._n_steps >= self._horizon:
             done = True
-        return self._ob, reward, done, None
+        return self._ob.cpu().numpy()[0], reward, done, dict()
