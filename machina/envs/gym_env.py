@@ -32,6 +32,7 @@ This is code for gym.
 This code is taken from rllab which is MIT-licensed.
 """
 
+import copy
 import gym
 import torch
 from machina import logger
@@ -133,8 +134,10 @@ class ImaginaryEnv(object):
         self.ac_space = env.action_space
         self._horizon = env.spec.tags['wrapper_config.TimeLimit.max_episode_steps']
 
-        self._ob_model = ob_model
-        self._rew_model = rew_model
+        self._ob_model = copy.deepcopy(ob_model)
+        self._rew_model = copy.deepcopy(rew_model)
+        self._ob_model.to('cpu')
+        self._rew_model.to('cpu')
         self._ob = None
         self._n_steps = 0
     
@@ -152,14 +155,13 @@ class ImaginaryEnv(object):
 
     def reset(self):
         self._n_steps = 0
-        self._ob = torch.tensor(self.env.reset(), dtype=torch.float, device=get_device()).unsqueeze(0)
+        self._ob = torch.tensor(self.env.reset(), dtype=torch.float).unsqueeze(0)
         return self._ob.cpu().numpy()[0]
 
     def step(self, action):
-        action = torch.tensor(action, dtype=torch.float, device=get_device()).unsqueeze(0)
+        action = torch.tensor(action, dtype=torch.float).unsqueeze(0)
         with torch.no_grad():
-            reward = self._rew_model(self._ob, action).cpu().numpy()
-            reward = reward[0][0]
+            reward = self._rew_model(self._ob, action).numpy()[0][0]
             self._ob = self._ob_model(self._ob, action)
         
         self._n_steps += 1
