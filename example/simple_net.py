@@ -8,6 +8,8 @@ from torch.nn.init import kaiming_uniform_, uniform_
 import torch.nn.functional as F
 import gym
 
+from machina.utils import get_device
+
 
 def mini_weight_init(m):
     if m.__class__.__name__ == 'Linear':
@@ -103,19 +105,20 @@ class QNet(nn.Module):
         return self.output_layer(h)
 
 
-class Model(nn.Module):
-    def __init__(self, ob_space, ac_space, out_space,  h1=200, h2=100):
-        super(Model, self).__init__()
-        self.fc1 = nn.Linear(ob_space.shape[0], h1)
-        self.fc2 = nn.Linear(ac_space.shape[0] + h1, h2)
+class ModelNet(nn.Module):
+    def __init__(self, ob_space, ac_space, out_space,  h1=1024, h2=1024):
+        super(ModelNet, self).__init__()
+        self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
+        self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, out_space)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(mini_weight_init)
+        self.to(get_device())
 
     def forward(self, ob, ac):
-        h = F.relu(self.fc1(ob))
-        h = torch.cat([h, ac], dim=-1)
+        h = torch.cat([ob, ac], dim=-1)
+        h = F.relu(self.fc1(h))
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
 
