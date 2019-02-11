@@ -162,7 +162,7 @@ class ImaginaryEnv(object):
         action = torch.tensor(action, dtype=torch.float).unsqueeze(0)
         with torch.no_grad():
             reward = self._rew_model(self._ob, action).numpy()[0][0]
-            self._ob += self._ob_model(self._ob, action)
+            self._ob = self._ob_model(self._ob, action)
         
         self._n_steps += 1
         done = False
