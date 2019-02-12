@@ -41,6 +41,8 @@ class DeterministicSVfunc(BaseSVfunc):
             if hs is None:
                 if self.hs is None:
                     self.hs = self.net.init_hs(batch_size)
+                if self.dp_run:
+                    self.hs = (self.hs[0].unsqueeze(0), self.hs[1].unsqueeze(0))
                 hs = self.hs
 
             if h_masks is None:
