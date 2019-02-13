@@ -27,7 +27,6 @@ from machina.utils import measure
 
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
-
 class RandomPolicy(nn.Module):
     def __init__(self, action_space):
         super(RandomPolicy, self).__init__()
@@ -140,7 +139,8 @@ rand_traj_val.add_epis(epis)
 rand_traj_val = ef.add_next_obs(rand_traj_val)
 rand_traj_val.register_epis()
 
-### 
+# obs, next_obs, and acs should become mean 0, std 1
+traj, mean_obs, std_obs, mean_next_obs, std_next_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(traj)
 
 total_epi = 0
 total_step = 0
