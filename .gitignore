@@ -4,3 +4,5 @@ garbage
 *.swp
 docs/_build/
 .DS_Store
+.ipynb_checkpoints
+.python-version
