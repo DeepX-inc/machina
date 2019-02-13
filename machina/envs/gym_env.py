@@ -61,7 +61,10 @@ class GymEnv(object):
             self.original_env = env.original_env
         else:
             self.original_env = env
-        self.env_id = env.spec.id
+        if self.env.spec is not None:
+            self.env_id = env.spec.id
+        else:
+            self.env_id = None
 
         if log_dir is None:
             self.monitoring = False
@@ -79,7 +82,10 @@ class GymEnv(object):
         logger.log("observation space: {}".format(self.ob_space))
         self.ac_space = env.action_space
         logger.log("action space: {}".format(self.ac_space))
-        self._horizon = env.spec.tags['wrapper_config.TimeLimit.max_episode_steps']
+        if self.env.spec is not None:
+            self._horizon = env.spec.tags['wrapper_config.TimeLimit.max_episode_steps']
+        else:
+            self._horizon = None
         self._log_dir = log_dir
         self._force_reset = force_reset
 
