@@ -34,7 +34,9 @@ class MPCPol(BasePol):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, net, rew_func, env, n_samples=1000, horizon=20, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
+    def __init__(self, ob_space, ac_space, net, rew_func, env, n_samples=1000, horizon=20,
+                 mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., mean_next_obs=0., std_next_obs=1.,
+                 rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         if rnn:
             raise ValueError(
                 'rnn with MPCPol is not supported now')
@@ -45,6 +47,12 @@ class MPCPol(BasePol):
         self.env = env
         self.n_samples = n_samples
         self.horizon = horizon
+        self.mean_obs = mean_obs
+        self.std_obs = std_obs
+        self.mean_acs = mean_acs
+        self.std_acs = std_acs
+        self.mean_next_obs = mean_next_obs
+        self.std_next_obs = std_next_obs
         self.to(get_device())
 
     def reset(self):
@@ -65,8 +73,11 @@ class MPCPol(BasePol):
         obs[0] = self._check_obs_shape(obs[0])
         with torch.no_grad():
             for i in range(self.horizon):
-                obs[i+1] = obs[i] + self.net(obs[i], sample_acs[i])
-                rews_sum += rew_func(obs[i+1], )
+                ob = (obs[i] - mean_obs) / std_obs
+                ac = (sample_acs[i] - mean_acs) / std_acs
+                next_ob = ob + self.net(ob, ac)
+                rews_sum += rew_func(next_ob, ac)
+                obs[i+1] = (next_ob + mean_next_obs) * std_next_obs
 
         best_sample_index = rews_sum.max(0)[1]
         ac = all_sample_acs[0][best_sample_index]
