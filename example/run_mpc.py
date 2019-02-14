@@ -27,25 +27,30 @@ from machina.utils import measure
 
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
+
 class RandomPolicy(nn.Module):
     def __init__(self, action_space):
         super(RandomPolicy, self).__init__()
         self.low_val = action_space.low
         self.high_val = action_space.high
         self.shape = action_space.shape
-    
+
     def forward(self, ob):
-        ac_real = np.random.uniform(self.low_val, self.high_val, self.shape, dtype=np.float32)
+        ac_real = np.random.uniform(
+            self.low_val, self.high_val, self.shape, dtype=np.float32)
         ac = torch.tensor(ac_real)
         mean = torch.zeros_like(ac)
         return ac_real, ac, dict(mean=mean)
+
 
 def add_noise_to_init_ob(data, std):
     epis = data.current_epis
     with torch.no_grad():
         for epi in epis:
-            epis['obs'][0] += torch.normal(mean=0, std=torch.full_like(epi['obs'][0], std))
+            epis['obs'][0] += torch.normal(mean=0,
+                                           std=torch.full_like(epi['obs'][0], std))
     return data
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
@@ -140,7 +145,8 @@ rand_traj_val = ef.add_next_obs(rand_traj_val)
 rand_traj_val.register_epis()
 
 # obs, next_obs, and acs should become mean 0, std 1
-traj, mean_obs, std_obs, mean_next_obs, std_next_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(traj)
+traj, mean_obs, std_obs, mean_next_obs, std_next_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
+    traj)
 
 total_epi = 0
 total_step = 0
