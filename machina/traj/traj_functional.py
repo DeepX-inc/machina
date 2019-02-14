@@ -38,14 +38,20 @@ def normalize_obs_and_acs(traj, mean_obs=None, std_obs=None, mean_acs=None, std_
             traj.data_map['next_obs'] - mean_next_obs) / std_next_obs
 
         # inf to mean
-        traj.data_map['obs'][traj.data_map['obs'] == float(
-            'inf')] = mean_obs[traj.data_map['obs'] == float('inf')]
-        traj.data_map['acs'][traj.data_map['acs'] == float(
-            'inf')] = mean_acs[traj.data_map['acs'] == float('inf')]
-        traj.data_map['next_obs'][traj.data_map['next_obs'] == float(
-            'inf')] = mean_next_obs[traj.data_map['next_obs'] == float('inf')]
+        len_data_map = traj.data_map['obs'].size()[0]
+        repeated_mean_obs = mean_obs.repeat(len_data_map, 1)
+        repeated_mean_acs = mean_acs.repeat(len_data_map, 1)
+        repeated_mean_next_obs = mean_next_obs.repeat(len_data_map, 1)
 
-    if return_statistics:
+        obs_inf_mask = traj.data_map['obs'] == float('inf')
+        acs_inf_mask = traj.data_map['acs'] == float('inf')
+        next_obs_inf_mask = traj.data_map['next_obs'] == float('inf')
+
+        traj.data_map['obs'][obs_inf_mask] = repeated_mean_obs[obs_inf_mask]
+        traj.data_map['acs'][acs_inf_mask] = repeated_mean_acs[acs_inf_mask]
+        traj.data_map['next_obs'][next_obs_inf_mask] = repeated_mean_next_obs[next_obs_inf_mask]
+
+    if return_statistic:
         return traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs
     else:
         return traj
