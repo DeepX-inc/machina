@@ -14,8 +14,8 @@ import torch.nn.functional as F
 import gym
 
 import machina as mc
-from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-from machina.algos import trpo
+from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, MPCPol
+from machina.algos import mpo
 from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
@@ -25,7 +25,7 @@ from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import measure
 
-from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
+from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM
 
 
 class RandomPolicy(nn.Module):
@@ -69,13 +69,21 @@ parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--num_rollouts_train', type=int, default=10)
-parser.add_argument('--num_rollouts_val', type=int, default=20)
 parser.add_argument('--num_parallel', type=int, default=4)
 
-parser.add_argument('--max_steps_per_iter', type=int, default=10000)
-parser.add_argument('--epoch_per_iter', type=int, default=5)
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--num_rollouts_train', type=int, default=10)
+parser.add_argument('--num_rollouts_val', type=int, default=20)
+parser.add_argument('--n_samples', type=int, default=1000)
+parser.add_argument('--horizon_of_samples', type=int, default=20)
+parser.add_argument('--max_aggregation_episodes', type=int, default=7)
+parser.add_argument('--max_episodes_per_iter_mb', type=int, default=1000)
+parser.add_argument('--epoch_per_iter_mb', type=int, default=60)
+parser.add_argument('--batch_size_mb', type=int, default=512)
+parser.add_argument('--dm_lr', type=float, default=1e-4)
+
+parser.add_argument('--max_steps_per_iter_mf', type=int, default=10000)
+parser.add_argument('--epoch_per_iter_mf', type=int, default=5)
+parser.add_argument('--batch_size_mf', type=int, default=64)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--rnn', action='store_true', default=False)
 
@@ -123,18 +131,9 @@ else:
 
 random_pol = RandomPolicy(ac_space)
 
-if args.rnn:
-    vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
-else:
-    vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
-
-sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
-optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
-
-############################
-### Train Dynamics Model ###
-############################
+######################
+### Model-Based RL ###
+######################
 
 ### Prepare the dataset D_RAND ###
 
@@ -157,13 +156,79 @@ rand_traj_val.register_epis()
 traj, mean_obs, std_obs, mean_next_obs, std_next_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
     traj)
 
+### Train Dynamics Model ###
+
+# initialize dynamics model and mpc policy
+dyn_model = Model(ob_space, ac_space)
+mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func,
+                 args.n_samples, args.horizon_of_samples)
+optim_dm = torch.optim.Adam(dm_model.parameters(), args.dm_lr)
+
+# train loop
+total_epi = 0
+total_step = 0
+max_rew = -1e-6
+while args.max_aggregation_episodes > total_epi:
+    with measure('train model'):
+        result_dict = mpc.train_dm(
+            traj, dyn_model, optim_dm, epoch=args.epoch_per_iter_mb, batch_size=args.batch_size_mb)
+    with measure('sample'):
+        epis = sampler.sample(
+            mpc_pol, max_episodes=args.max_episodes_per_iter_mb)
+
+        rl_traj = Traj()
+        rl_traj.add_epis(epis)
+
+        rl_traj = ef.add_next_obs(rl_traj)
+        rl_traj.register_epis()
+
+        traj.add_traj(rl_traj)
+
+    total_epi += rl_traj.num_epi
+    step = rl_traj.num_step
+    total_step += step
+    rewards = [np.sum(epi['rews']) for epi in epis]
+    mean_rew = np.mean(rewards)
+    logger.record_results(args.log, result_dict, score_file,
+                          total_epi, step, total_step,
+                          rewards,
+                          plot_title=args.env_name)
+
+    if mean_rew > max_rew:
+        torch.save(dyn_model.state_dict(), os.path.join(
+            args.log, 'models', 'dm_max.pkl'))
+        torch.save(optim_dm.state_dict(), os.path.join(
+            args.log, 'models', 'optim_dm_max.pkl'))
+        max_rew = mean_rew
+
+    torch.save(dyn_model.state_dict(), os.path.join(
+        args.log, 'models', 'dm_last.pkl'))
+    torch.save(optim_dm.state_dict(), os.path.join(
+        args.log, 'models', 'optim_dm_last.pkl'))
+
+    total_epi += 1
+    del rl_traj
+del sampler
+
+######################
+### Model-Free RL ###
+######################
+
+if args.rnn:
+    vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
+else:
+    vf_net = VNet(ob_space)
+vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
+
+sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
+optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 
 total_epi = 0
 total_step = 0
 max_rew = -1e6
 while args.max_episodes > total_epi:
     with measure('sample'):
-        epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
+        epis = sampler.sample(pol, max_steps=args.max_steps_per_iter_mf)
     with measure('train'):
         traj = Traj()
         traj.add_epis(epis)
@@ -175,8 +240,8 @@ while args.max_episodes > total_epi:
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
 
-        result_dict = trpo.train(
-            traj, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
+        result_dict = mpo.train_pol_and_vf(
+            traj, pol, vf, optim_vf, args.epoch_per_iter_mf, args.batch_size_mf)
 
     total_epi += traj.num_epi
     step = traj.num_step
