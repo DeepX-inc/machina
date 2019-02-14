@@ -54,4 +54,3 @@ class RewInObEnv(gym.Env):
 
     def terminate(self):
         self.env.terminate()
-
