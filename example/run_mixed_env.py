@@ -146,6 +146,8 @@ while args.max_episodes > total_epi:
     rewards1 = [np.sum(epi['rews']) for epi in epis1]
     rewards2 = [np.sum(epi['rews']) for epi in epis2]
     mean_rew = np.mean(rewards1 + rewards2)
+    logger.record_tabular_misc_stat('Reward1', rewards1)
+    logger.record_tabular_misc_stat('Reward2', rewards2)
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_step,
                           rewards1 + rewards2,
