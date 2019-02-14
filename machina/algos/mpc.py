@@ -76,6 +76,49 @@ def make_kl(pol, batch):
     )
 
 
+def update_dm(dm, optim_dm, batch):
+    dm_loss = lf.dynamics(model, batch)
+    optim_dm.zero_grad()
+    dm_loss.backward()
+    optim_dm.step()
+
+    return dm_loss.detach().cpu().numpy()
+
+
+def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512):
+    """
+    Train function for dynamics model.
+
+    Parameters
+    ----------
+    traj : Traj
+        On policy trajectory.
+    dyn_model : Model
+        dynamics model.
+    optim_dm : torch.optim.Optimizer
+        Optimizer for dynamics model.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
+
+    dm_losses = []
+    logger.log("Optimizing...")
+    iterator = traj.iterate(batch_size, epoch)
+    for batch in iterator:
+        ob_model_loss = update_dm(
+            dyn_model, optim_dm, batch, target='next_obs')
+        ob_model_losses.append(dm_loss)
+    logger.log("Optimization finished!")
+
+    return dict(DynModelLoss=dm_losses)
+
+
 def update_pol(pol, batch, make_kl=make_kl, max_kl=0.01, damping=0.1, num_cg=10):
     pol_loss = lf.pg(pol, batch)
     grads = torch.autograd.grad(pol_loss, pol.parameters(), create_graph=True)
@@ -125,11 +168,11 @@ def update_vf(vf, optim_vf, batch):
     return vf_loss.detach().cpu().numpy()
 
 
-def train(traj, pol, vf,
-          optim_vf,
-          epoch=5, batch_size=64, num_epi_per_seq=1,  # optimization hypers
-          max_kl=0.01, num_cg=10, damping=0.1,
-          ):
+def train_pol_and_vf(traj, pol, vf,
+                     optim_vf,
+                     epoch=5, batch_size=64, num_epi_per_seq=1,  # optimization hypers
+                     max_kl=0.01, num_cg=10, damping=0.1,
+                     ):
     """
     Train function for trust region policy optimization.
 
