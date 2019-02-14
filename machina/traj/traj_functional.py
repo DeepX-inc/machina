@@ -37,6 +37,14 @@ def normalize_obs_and_acs(traj, mean_obs=None, std_obs=None, mean_acs=None, std_
         traj.data_map['next_obs'] = (
             traj.data_map['next_obs'] - mean_next_obs) / std_next_obs
 
+        # inf to mean
+        traj.data_map['obs'][traj.data_map['obs'] == float(
+            'inf')] = mean_obs[traj.data_map['obs'] == float('inf')]
+        traj.data_map['acs'][traj.data_map['acs'] == float(
+            'inf')] = mean_acs[traj.data_map['acs'] == float('inf')]
+        traj.data_map['next_obs'][traj.data_map['next_obs'] == float(
+            'inf')] = mean_next_obs[traj.data_map['next_obs'] == float('inf')]
+
     if return_statistics:
         return traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs
     else:

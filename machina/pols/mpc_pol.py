@@ -75,6 +75,9 @@ class MPCPol(BasePol):
             for i in range(self.horizon):
                 ob = (obs[i] - mean_obs) / std_obs
                 ac = (sample_acs[i] - mean_acs) / std_acs
+                # inf to mean
+                ob[ob == float('inf')] = mean_obs[ob == float('inf')]
+                ac[ac == float('inf')] = mean_acs[ac == float('inf')]
                 next_ob = ob + self.net(ob, ac)
                 rews_sum += rew_func(next_ob, ac)
                 obs[i+1] = (next_ob + mean_next_obs) * std_next_obs
