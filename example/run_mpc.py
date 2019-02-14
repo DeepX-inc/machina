@@ -28,13 +28,11 @@ from machina.utils import measure
 from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM
 
 
-def add_noise_to_init_obs(data, std):
-    epis = data.current_epis
+def add_noise_to_init_obs(epis, std):
     with torch.no_grad():
         for epi in epis:
-            epis['obs'][0] += torch.normal(mean=0,
-                                           std=torch.full_like(epi['obs'][0], std))
-    return data
+            epi['obs'][0] += np.random.normal(0, std, epi['obs'][0].shape)
+    return epis
 
 
 def rew_func(next_obs, acs):
@@ -59,6 +57,7 @@ parser.add_argument('--num_parallel', type=int, default=4)
 
 parser.add_argument('--num_rollouts_train', type=int, default=10)
 parser.add_argument('--num_rollouts_val', type=int, default=20)
+parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
 parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--horizon_of_samples', type=int, default=20)
 parser.add_argument('--max_aggregation_episodes', type=int, default=7)
@@ -131,14 +130,14 @@ sampler = EpiSampler(
     env, random_pol, num_parallel=args.num_parallel, seed=args.seed)
 
 epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_train)
-epis = add_noise_to_init_obs(epis)
+epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
 rand_traj_train = Traj()
 rand_traj_train.add_epis(epis)
 rand_traj_train = ef.add_next_obs(rand_traj_train)
 rand_traj_train.register_epis()
 
 epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_val)
-epis = add_noise_to_init_obs(epis)
+epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
 rand_traj_val = Traj()
 rand_traj_val.add_epis(epis)
 rand_traj_val = ef.add_next_obs(rand_traj_val)
