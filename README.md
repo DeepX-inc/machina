@@ -59,6 +59,8 @@ result_dict = ppo_clip.train(traj=traj1, pol=pol, vf=vf, clip_param=args.clip_pa
                              optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
 ```
 
+You can see full of this code [here].
+
 
 To obtain this composability, machina's sampling method is restricted to be episode-based. Episode-based sampling is suitable for real-world environments. Some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
 
