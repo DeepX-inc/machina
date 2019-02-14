@@ -38,7 +38,7 @@ class RewInObEnv(gym.Env):
     def reset(self):
         ob = self.env.reset()
         initial_rew = np.ones((1, )) * self.initial_value
-        ob = np.concatenate([ob, np.array([initial_rew])], axis=self.dim)
+        ob = np.concatenate([ob, initial_rew], axis=self.dim)
         return ob
 
     def step(self, action):
