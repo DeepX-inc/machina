@@ -29,7 +29,6 @@ from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--c2d', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
