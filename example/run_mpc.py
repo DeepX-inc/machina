@@ -105,6 +105,9 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
+if args.roboschool:
+    import roboschool
+
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
