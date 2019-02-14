@@ -40,6 +40,8 @@ class MPCPol(BasePol):
                 'rnn with MPCPol is not supported now')
         BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac,
                          data_parallel=data_parallel, parallel_dim=parallel_dim)
+        if isinstance(env, str):
+            env = gym.envs.make(env)
         self.env = env
         self.n_samples = n_samples
         self.horizon = horizon
