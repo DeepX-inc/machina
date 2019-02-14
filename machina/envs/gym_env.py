@@ -50,7 +50,7 @@ class NoVideoSchedule(object):
         return False
 
 
-class GymEnv(object):
+class GymEnv(gym.Env):
     def __init__(self, env, record_video=False, video_schedule=None, log_dir=None,
                  force_reset=False):
 
