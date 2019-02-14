@@ -327,3 +327,29 @@ def monte_carlo(vf, batch, clip_param=0.2, clip=False):
     else:
         vf_loss = 0.5 * torch.mean(vfloss1 * out_masks)
     return vf_loss
+
+
+def dynamics(dm, batch, target='next_obs', td=True):
+    """
+    MSE loss for Dynamics models.
+    Parameters
+    ----------
+    model : Model
+    batch : dict of torch.Tensor
+    target : string
+        Prediction target is next_obs or rews.
+    td : bool
+        If True, the dynamics model learn temporal difference of dynamics.
+
+    Returns
+    -------
+    model_loss : torch.Tensor
+    """
+
+    pred = dm(obs, acs)
+    if target == 'rews' or not td:
+        dm_loss = 0.5 * torch.mean((pred - batch[target])**2)
+    else
+    dm_loss = 0.5 * torch.mean((pred - (batch['next_obs'] - batch['obs']))**2)
+
+    return dm_loss
