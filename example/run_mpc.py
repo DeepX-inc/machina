@@ -14,7 +14,7 @@ import torch.nn.functional as F
 import gym
 
 import machina as mc
-from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, MPCPol
+from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, MPCPol, RandomPol
 from machina.algos import mpc
 from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv, C2DEnv
@@ -26,21 +26,6 @@ from machina import logger
 from machina.utils import measure
 
 from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM
-
-
-class RandomPolicy(nn.Module):
-    def __init__(self, action_space):
-        super(RandomPolicy, self).__init__()
-        self.low_val = action_space.low
-        self.high_val = action_space.high
-        self.shape = action_space.shape
-
-    def forward(self, ob):
-        ac_real = np.random.uniform(
-            self.low_val, self.high_val, self.shape, dtype=np.float32)
-        ac = torch.tensor(ac_real)
-        mean = torch.zeros_like(ac)
-        return ac_real, ac, dict(mean=mean)
 
 
 def add_noise_to_init_obs(data, std):
@@ -133,7 +118,7 @@ elif isinstance(ac_space, gym.spaces.MultiDiscrete):
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
-random_pol = RandomPolicy(ac_space)
+random_pol = RandomPol(ob_space, ac_space)
 
 ######################
 ### Model-Based RL ###
@@ -142,6 +127,9 @@ random_pol = RandomPolicy(ac_space)
 ### Prepare the dataset D_RAND ###
 
 # Performing rollouts to collect training data
+sampler = EpiSampler(
+    env, random_pol, num_parallel=args.num_parallel, seed=args.seed)
+
 epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_train)
 epis = add_noise_to_init_obs(epis)
 rand_traj_train = Traj()
