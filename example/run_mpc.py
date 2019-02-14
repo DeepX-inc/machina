@@ -153,7 +153,7 @@ rand_traj_val = ef.add_next_obs(rand_traj_val)
 rand_traj_val.register_epis()
 
 # obs, next_obs, and acs should become mean 0, std 1
-traj, mean_obs, std_obs, mean_next_obs, std_next_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
+traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = tf.normalize_obs_and_acs(
     traj)
 
 ### Train Dynamics Model ###
@@ -181,6 +181,7 @@ while args.max_aggregation_episodes > total_epi:
 
         rl_traj = ef.add_next_obs(rl_traj)
         rl_traj.register_epis()
+        rl_traj = tf.normalize_obs_and_acs(rl_traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs, return_statistic=False)
 
         traj.add_traj(rl_traj)
 
