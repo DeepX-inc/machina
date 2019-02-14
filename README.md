@@ -72,35 +72,35 @@ Some algorithms like [Q-Prop](https://arxiv.org/abs/1611.02247) are combination 
 This is an example of the combination of [ppo](https://arxiv.org/abs/1707.06347) and [sac](https://arxiv.org/abs/1801.01290).
 
 ```
-        epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
+epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
 
-        on_traj = Traj()
-        on_traj.add_epis(epis)
+on_traj = Traj()
+on_traj.add_epis(epis)
 
-        on_traj = ef.add_next_obs(on_traj)
-        on_traj = ef.compute_vs(on_traj, vf)
-        on_traj = ef.compute_rets(on_traj, args.gamma)
-        on_traj = ef.compute_advs(on_traj, args.gamma, args.lam)
-        on_traj = ef.centerize_advs(on_traj)
-        on_traj = ef.compute_h_masks(on_traj)
-        on_traj.register_epis()
+on_traj = ef.add_next_obs(on_traj)
+on_traj = ef.compute_vs(on_traj, vf)
+on_traj = ef.compute_rets(on_traj, args.gamma)
+on_traj = ef.compute_advs(on_traj, args.gamma, args.lam)
+on_traj = ef.centerize_advs(on_traj)
+on_traj = ef.compute_h_masks(on_traj)
+on_traj.register_epis()
 
-        result_dict1 = ppo_clip.train(traj=on_traj, pol=pol, vf=vf, clip_param=args.clip_param,
-                                    optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+result_dict1 = ppo_clip.train(traj=on_traj, pol=pol, vf=vf, clip_param=args.clip_param,
+                            optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
 
-        total_epi += on_traj.num_epi
-        step = on_traj.num_step
-        total_step += step
+total_epi += on_traj.num_epi
+step = on_traj.num_step
+total_step += step
 
-        off_traj.add_traj(on_traj)
+off_traj.add_traj(on_traj)
 
-        result_dict2 = sac.train(
-            off_traj,
-            pol, qf, targ_qf, log_alpha,
-            optim_pol, optim_qf, optim_alpha,
-            100, args.batch_size,
-            args.tau, args.gamma, args.sampling,
-        )
+result_dict2 = sac.train(
+    off_traj,
+    pol, qf, targ_qf, log_alpha,
+    optim_pol, optim_qf, optim_alpha,
+    100, args.batch_size,
+    args.tau, args.gamma, args.sampling,
+)
 ```
 
 You can see full code here.
