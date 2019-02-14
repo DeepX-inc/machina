@@ -161,7 +161,9 @@ traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = tf.nor
 # initialize dynamics model and mpc policy
 dyn_model = Model(ob_space, ac_space)
 mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func,
-                 args.n_samples, args.horizon_of_samples)
+                 args.n_samples, args.horizon_of_samples,
+                 mean_obs, std_obs, mean_acs, std_acs,
+                 mean_next_obs, std_next_obs)
 optim_dm = torch.optim.Adam(dm_model.parameters(), args.dm_lr)
 
 # train loop
@@ -181,7 +183,8 @@ while args.max_aggregation_episodes > total_epi:
 
         rl_traj = ef.add_next_obs(rl_traj)
         rl_traj.register_epis()
-        rl_traj = tf.normalize_obs_and_acs(rl_traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs, return_statistic=False)
+        rl_traj = tf.normalize_obs_and_acs(rl_traj, mean_obs, std_obs, mean_acs, std_acs,
+                                           mean_next_obs, std_next_obs, return_statistic=False)
 
         traj.add_traj(rl_traj)
 
