@@ -150,12 +150,12 @@ traj_train, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = 
 ### Train Dynamics Model ###
 
 # initialize dynamics model and mpc policy
-dyn_model = Model(ob_space, ac_space)
+dyn_model = ModelNet(ob_space, ac_space)
 mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func,
                  args.n_samples, args.horizon_of_samples,
                  mean_obs, std_obs, mean_acs, std_acs,
                  mean_next_obs, std_next_obs)
-optim_dm = torch.optim.Adam(dm_model.parameters(), args.dm_lr)
+optim_dm = torch.optim.Adam(dyn_model.parameters(), args.dm_lr)
 
 # train loop
 total_epi = 0
@@ -235,7 +235,7 @@ while args.max_episodes > total_epi:
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
 
-        result_dict = mpo.train_pol_and_vf(
+        result_dict = mpc.train_pol_and_vf(
             traj, pol, vf, optim_vf, args.epoch_per_iter_mf, args.batch_size_mf)
 
     total_epi += traj.num_epi
