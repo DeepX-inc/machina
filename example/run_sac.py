@@ -36,6 +36,7 @@ parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
 parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=256)
@@ -77,13 +78,13 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net)
+pol = GaussianPol(ob_space, ac_space, pol_net, data_parallel=args.data_parallel, parallel_dim=0)
 
 qf_net = QNet(ob_space, ac_space)
-qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
+qf = DeterministicSAVfunc(ob_space, ac_space, qf_net, data_parallel=args.data_parallel, parallel_dim=0)
 targ_qf_net = QNet(ob_space, ac_space)
 targ_qf_net.load_state_dict(qf_net.state_dict())
-targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
+targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net, data_parallel=args.data_parallel, parallel_dim=0)
 
 log_alpha = nn.Parameter(torch.zeros((), device=device))
 
@@ -116,6 +117,10 @@ while args.max_episodes > total_epi:
         step = on_traj.num_step
         total_step += step
 
+        if args.data_parallel:
+            pol.dp_run = True
+            qf.dp_run = True
+
         result_dict = sac.train(
             off_traj,
             pol, qf, targ_qf, log_alpha,
@@ -123,6 +128,10 @@ while args.max_episodes > total_epi:
             step, args.batch_size,
             args.tau, args.gamma, args.sampling,
         )
+
+        if args.data_parallel:
+            pol.dp_run = False
+            qf.dp_run = False
 
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
