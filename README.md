@@ -25,7 +25,7 @@ We usually define meta learning as a fast adaptation method for tasks which is s
 In meta RL, task is defined as MDP.
 RL agent have to adapt new MDP quickly.
 We have to sample episodes from different environments to learn a meta agent.
-We can implement this easily like below.
+We can implement this easily like below with machina.
 
 ```python:run_mixed_env.py
 env1 = GymEnv('HumanoidBulletEnv-v0')
@@ -62,7 +62,48 @@ result_dict = ppo_clip.train(traj=traj1, pol=pol, vf=vf, clip_param=args.clip_pa
 You can see full of this code [here].
 
 ### 2 Combination of Off-policy and On-policy algorithms
+DeepRL algorithms can be roughly divided into 2 types.
+On-policy and Off-policy algorithms.
+On-policy algorithms use only current episodes for updating policy or some value functions.
+On the other hand, Off-policy algorithms use whole episodes for updating policy or some value functions.
+On-policy algorithms are stable but need many episdeos.
+Off-policy algorithms are sample efficient but unstable.
+Some algorithms like [Q-Prop](https://arxiv.org/abs/1611.02247) are combination of On-policy and Off-policy algorithms.
+This is an example of the combination of [ppo](https://arxiv.org/abs/1707.06347) and [sac](https://arxiv.org/abs/1801.01290).
 
+```
+        epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
+
+        on_traj = Traj()
+        on_traj.add_epis(epis)
+
+        on_traj = ef.add_next_obs(on_traj)
+        on_traj = ef.compute_vs(on_traj, vf)
+        on_traj = ef.compute_rets(on_traj, args.gamma)
+        on_traj = ef.compute_advs(on_traj, args.gamma, args.lam)
+        on_traj = ef.centerize_advs(on_traj)
+        on_traj = ef.compute_h_masks(on_traj)
+        on_traj.register_epis()
+
+        result_dict1 = ppo_clip.train(traj=on_traj, pol=pol, vf=vf, clip_param=args.clip_param,
+                                    optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+
+        total_epi += on_traj.num_epi
+        step = on_traj.num_step
+        total_step += step
+
+        off_traj.add_traj(on_traj)
+
+        result_dict2 = sac.train(
+            off_traj,
+            pol, qf, targ_qf, log_alpha,
+            optim_pol, optim_qf, optim_alpha,
+            100, args.batch_size,
+            args.tau, args.gamma, args.sampling,
+        )
+```
+
+You can see full code here.
 
 To obtain this composability, machina's sampling method is restricted to be episode-based. Episode-based sampling is suitable for real-world environments. Some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
 
