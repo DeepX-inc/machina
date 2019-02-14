@@ -43,13 +43,22 @@ class RandomPolicy(nn.Module):
         return ac_real, ac, dict(mean=mean)
 
 
-def add_noise_to_init_ob(data, std):
+def add_noise_to_init_obs(data, std):
     epis = data.current_epis
     with torch.no_grad():
         for epi in epis:
             epis['obs'][0] += torch.normal(mean=0,
                                            std=torch.full_like(epi['obs'][0], std))
     return data
+
+
+def rew_func(next_obs, acs):
+    # HarfCheetah
+    index_of_velx = 3
+    rews = next_obs[:, index_of_velx] + 0.05 * \
+        torch.sum(acs**2, dim=1, keepdim=True)**2
+    rews = rews.squeeze(0)
+    return rews
 
 
 parser = argparse.ArgumentParser()
@@ -131,14 +140,14 @@ optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 
 # Performing rollouts to collect training data
 epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_train)
-epis = add_noise_to_init_ob(epis)
+epis = add_noise_to_init_obs(epis)
 rand_traj_train = Traj()
 rand_traj_train.add_epis(epis)
 rand_traj_train = ef.add_next_obs(rand_traj_train)
 rand_traj_train.register_epis()
 
 epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_val)
-epis = add_noise_to_init_ob(epis)
+epis = add_noise_to_init_obs(epis)
 rand_traj_val = Traj()
 rand_traj_val.add_epis(epis)
 rand_traj_val = ef.add_next_obs(rand_traj_val)
@@ -147,6 +156,7 @@ rand_traj_val.register_epis()
 # obs, next_obs, and acs should become mean 0, std 1
 traj, mean_obs, std_obs, mean_next_obs, std_next_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
     traj)
+
 
 total_epi = 0
 total_step = 0
