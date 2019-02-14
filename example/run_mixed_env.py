@@ -137,8 +137,16 @@ while args.max_episodes > total_epi:
 
         traj1.add_traj(traj2)
 
+        if args.data_parallel:
+            pol.dp_run = True
+            vf.dp_run = True
+
         result_dict = ppo_clip.train(traj=traj1, pol=pol, vf=vf, clip_param=args.clip_param,
                                      optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+
+        if args.data_parallel:
+            pol.dp_run = False
+            vf.dp_run = False
 
     total_epi += traj1.num_epi
     step = traj1.num_step
