@@ -28,9 +28,9 @@ def normalize_obs_and_acs(traj, mean_obs=None, std_obs=None, mean_acs=None, std_
         if std_next_obs is None:
             mean_next_obs = torch.mean(
                 traj.data_map['next_obs'], dim=0, keepdim=True)
-        if std_next_obs is None
-        std_next_obs = torch.std(
-            traj.data_map['next_obs'], dim=0, keepdim=True)
+        if std_next_obs is None:
+            std_next_obs = torch.std(
+                traj.data_map['next_obs'], dim=0, keepdim=True)
 
         traj.data_map['obs'] = (traj.data_map['obs'] - mean_obs) / std_obs
         traj.data_map['acs'] = (traj.data_map['acs'] - mean_acs) / std_acs

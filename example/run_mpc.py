@@ -15,7 +15,7 @@ import gym
 
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, MPCPol
-from machina.algos import mpo
+from machina.algos import mpc
 from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
@@ -63,8 +63,9 @@ def rew_func(next_obs, acs):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='Pendulum-v0')
+parser.add_argument('--env_name', type=str, default='RoboschoolHalfCheetah-v1')
 parser.add_argument('--c2d', action='store_true', default=False)
+parser.add_argument('--roboschool', action='store_true', default=True)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
