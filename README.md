@@ -61,6 +61,8 @@ result_dict = ppo_clip.train(traj=traj1, pol=pol, vf=vf, clip_param=args.clip_pa
 
 You can see full of this code [here].
 
+### 2 Combination of Off-policy and On-policy algorithms
+
 
 To obtain this composability, machina's sampling method is restricted to be episode-based. Episode-based sampling is suitable for real-world environments. Some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
 

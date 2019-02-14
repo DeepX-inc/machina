@@ -92,11 +92,14 @@ if args.rnn:
 else:
     pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn, data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn,
+                      data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn, data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn, data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                              data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
@@ -104,7 +107,8 @@ if args.rnn:
     vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
 else:
     vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net, args.rnn, data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+vf = DeterministicSVfunc(ob_space, vf_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 

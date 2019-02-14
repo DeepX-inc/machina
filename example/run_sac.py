@@ -78,13 +78,16 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net, data_parallel=args.data_parallel, parallel_dim=0)
+pol = GaussianPol(ob_space, ac_space, pol_net,
+                  data_parallel=args.data_parallel, parallel_dim=0)
 
 qf_net = QNet(ob_space, ac_space)
-qf = DeterministicSAVfunc(ob_space, ac_space, qf_net, data_parallel=args.data_parallel, parallel_dim=0)
+qf = DeterministicSAVfunc(ob_space, ac_space, qf_net,
+                          data_parallel=args.data_parallel, parallel_dim=0)
 targ_qf_net = QNet(ob_space, ac_space)
 targ_qf_net.load_state_dict(qf_net.state_dict())
-targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net, data_parallel=args.data_parallel, parallel_dim=0)
+targ_qf = DeterministicSAVfunc(
+    ob_space, ac_space, targ_qf_net, data_parallel=args.data_parallel, parallel_dim=0)
 
 log_alpha = nn.Parameter(torch.zeros((), device=device))
 

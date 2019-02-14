@@ -84,16 +84,20 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net, data_parallel=args.data_parallel, parallel_dim=0)
+pol = GaussianPol(ob_space, ac_space, pol_net,
+                  data_parallel=args.data_parallel, parallel_dim=0)
 
 vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net, data_parallel=args.data_parallel, parallel_dim=0)
+vf = DeterministicSVfunc(
+    ob_space, vf_net, data_parallel=args.data_parallel, parallel_dim=0)
 
 qf_net = QNet(ob_space, ac_space)
-qf = DeterministicSAVfunc(ob_space, ac_space, qf_net, data_parallel=args.data_parallel, parallel_dim=0)
+qf = DeterministicSAVfunc(ob_space, ac_space, qf_net,
+                          data_parallel=args.data_parallel, parallel_dim=0)
 targ_qf_net = QNet(ob_space, ac_space)
 targ_qf_net.load_state_dict(qf_net.state_dict())
-targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net, data_parallel=args.data_parallel, parallel_dim=0)
+targ_qf = DeterministicSAVfunc(
+    ob_space, ac_space, targ_qf_net, data_parallel=args.data_parallel, parallel_dim=0)
 
 log_alpha = nn.Parameter(torch.zeros((), device=device))
 
@@ -132,7 +136,7 @@ while args.max_episodes > total_epi:
             qf.dp_run = True
 
         result_dict1 = ppo_clip.train(traj=on_traj, pol=pol, vf=vf, clip_param=args.clip_param,
-                                    optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+                                      optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
 
         total_epi += on_traj.num_epi
         step = on_traj.num_step
@@ -183,4 +187,3 @@ while args.max_episodes > total_epi:
         args.log, 'models', 'optim_qf_last.pkl'))
     del on_traj
 del sampler
-
