@@ -90,15 +90,20 @@ assert env1.ac_space.shape == env2.ac_space.shape
 ob_space = env1.observation_space
 ac_space = env1.action_space
 
-pol_net = PolNetLSTM(ob_space, ac_space, h_size=args.h_size, cell_size=args.cell_size)
+pol_net = PolNetLSTM(ob_space, ac_space, h_size=args.h_size,
+                     cell_size=args.cell_size)
 
-pol = MultiCategoricalPol(ob_space, ac_space, pol_net, True, data_parallel=args.data_parallel, parallel_dim=1)
+pol = MultiCategoricalPol(ob_space, ac_space, pol_net,
+                          True, data_parallel=args.data_parallel, parallel_dim=1)
 
 vf_net = VNetLSTM(ob_space, h_size=args.h_size, cell_size=args.cell_size)
-vf = DeterministicSVfunc(ob_space, vf_net, True, data_parallel=args.data_parallel, parallel_dim=1)
+vf = DeterministicSVfunc(ob_space, vf_net, True,
+                         data_parallel=args.data_parallel, parallel_dim=1)
 
-sampler1 = EpiSampler(env1, pol, num_parallel=args.num_parallel, seed=args.seed)
-sampler2 = EpiSampler(env2, pol, num_parallel=args.num_parallel, seed=args.seed)
+sampler1 = EpiSampler(
+    env1, pol, num_parallel=args.num_parallel, seed=args.seed)
+sampler2 = EpiSampler(
+    env2, pol, num_parallel=args.num_parallel, seed=args.seed)
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
@@ -168,4 +173,3 @@ while args.max_episodes > total_epi:
     del traj1
     del traj2
 del sampler
-
