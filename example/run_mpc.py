@@ -23,7 +23,7 @@ from machina.traj import epi_functional as ef
 from machina.traj import traj_functional as tf
 from machina.samplers import EpiSampler
 from machina import logger
-from machina.utils import measure
+from machina.utils import set_device, measure
 
 from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM
 
@@ -54,6 +54,7 @@ parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--num_rollouts_train', type=int, default=10)
 parser.add_argument('--num_rollouts_val', type=int, default=20)
@@ -88,6 +89,10 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
+
+device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
+device = torch.device(device_name)
+set_device(device)
 
 if args.roboschool:
     import roboschool
