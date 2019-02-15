@@ -79,8 +79,8 @@ class MPCPol(BasePol):
                 ob[ob == float('inf')] = mean_obs[ob == float('inf')]
                 ac[ac == float('inf')] = mean_acs[ac == float('inf')]
                 next_ob = ob + self.net(ob, ac)
-                rews_sum += rew_func(next_ob, ac)
                 obs[i+1] = (next_ob + mean_next_obs) * std_next_obs
+                rews_sum += rew_func(obs[i+1], sample_acs[i])
 
         best_sample_index = rews_sum.max(0)[1]
         ac = all_sample_acs[0][best_sample_index]
