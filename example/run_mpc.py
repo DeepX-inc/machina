@@ -61,7 +61,7 @@ parser.add_argument('--num_rollouts_val', type=int, default=20)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
 parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--horizon_of_samples', type=int, default=20)
-parser.add_argument('--num_aggregation_iters', type=int, default=7)
+parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
 parser.add_argument('--epoch_per_iter', type=int, default=60)
 parser.add_argument('--fraction_use_rl_traj', type=float, default=0.9)
@@ -104,19 +104,6 @@ if args.c2d:
 
 ob_space = env.observation_space
 ac_space = env.action_space
-
-if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
-else:
-    pol_net = PolNet(ob_space, ac_space)
-if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
-elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
-elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
-else:
-    raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
 random_pol = RandomPol(ob_space, ac_space)
 
