@@ -61,9 +61,10 @@ parser.add_argument('--num_rollouts_val', type=int, default=20)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
 parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--horizon_of_samples', type=int, default=20)
-parser.add_argument('--max_aggregation_episodes', type=int, default=1000000)
-parser.add_argument('--max_episodes_per_iter', type=int, default=1000)
+parser.add_argument('--num_aggregation_iters', type=int, default=7)
+parser.add_argument('--max_episodes_per_iter', type=int, default=9)
 parser.add_argument('--epoch_per_iter', type=int, default=60)
+parser.add_argument('--fraction_use_rl_traj', type=float, default=0.9)
 parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--dm_lr', type=float, default=1e-4)
 parser.add_argument('--rnn', action='store_true', default=False)
@@ -160,8 +161,9 @@ optim_dm = torch.optim.Adam(dyn_model.parameters(), args.dm_lr)
 # train loop
 total_epi = 0
 total_step = 0
+counter_agg_iters = 0
 max_rew = -1e-6
-while args.max_aggregation_episodes > total_epi:
+while args.num_aggregation_iters > counter_agg_iters:
     with measure('train model'):
         result_dict = mpc.train_dm(
             traj_train, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size)
@@ -201,6 +203,6 @@ while args.max_aggregation_episodes > total_epi:
     torch.save(optim_dm.state_dict(), os.path.join(
         args.log, 'models', 'optim_dm_last.pkl'))
 
-    total_epi += 1
+    counter_agg_iters += 1
     del rl_traj
 del sampler
