@@ -346,6 +346,9 @@ def dynamics(dm, batch, target='next_obs', td=True):
     model_loss : torch.Tensor
     """
 
+    obs = batch['obs']
+    acs = batch['acs']
+
     pred = dm(obs, acs)
     if target == 'rews' or not td:
         dm_loss = 0.5 * torch.mean((pred - batch[target])**2)
