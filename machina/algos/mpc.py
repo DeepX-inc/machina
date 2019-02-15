@@ -21,7 +21,7 @@ def update_dm(dm, optim_dm, batch, target='next_obs', td=True):
     return dm_loss.detach().cpu().numpy()
 
 
-def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_obs', td=True):
+def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, fraction_use_rl_traj=0.9, target='next_obs', td=True):
     """
     Train function for dynamics model.
 
@@ -43,10 +43,29 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_o
         Dictionary which contains losses information.
     """
 
+    batch_size_rl = int(batch_size * fraction_use_rl_traj)
+    batch_size_rand = batch_size - batch_size_rl
+
     dm_losses = []
     logger.log("Optimizing...")
-    iterator = traj.iterate(batch_size, epoch)
-    for batch in iterator:
+    for rl_batch, rand_batch in zip(rl_traj.random_batch(batch_size_rl, epoch), rand_traj.random_batch(batch_size_rand, epoch)):
+        batch = dict()
+
+        if len(rl_batch) == 0:
+            batch['obs'] = rand_batch['obs']
+            batch['acs'] = rand_batch['acs']
+            batch['next_obs'] = rand_batch['next_obs']
+        else:
+            batch['obs'] = rl_batch['obs']
+            batch['acs'] = rl_batch['acs']
+            batch['next_obs'] = rl_batch['next_obs']
+
+        if batch_size_rand > 0:
+            batch['obs'] = torch.cat([batch['obs'], rand_batch['obs']], dim=0)
+            batch['acs'] = torch.cat([batch['acs'], rand_batch['acs']], dim=0)
+            batch['next_obs'] = torch.cat(
+                [batch['next_obs'], rand_batch['next_obs']], dim=0)
+
         dm_loss = update_dm(
             dyn_model, optim_dm, batch, target=target, td=td)
         dm_losses.append(dm_loss)

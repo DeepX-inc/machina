@@ -132,21 +132,23 @@ sampler = EpiSampler(
 
 epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_train)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
-traj_train = Traj()
-traj_train.add_epis(epis)
-traj_train = ef.add_next_obs(traj_train)
-traj_train.register_epis()
+rand_traj = Traj()
+rand_traj.add_epis(epis)
+rand_traj = ef.add_next_obs(rand_traj)
+rand_traj.register_epis()
 
 epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_val)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
-traj_val = Traj()
-traj_val.add_epis(epis)
-traj_val = ef.add_next_obs(traj_val)
-traj_val.register_epis()
+rand_traj_val = Traj()
+rand_traj_val.add_epis(epis)
+rand_traj_val = ef.add_next_obs(rand_traj_val)
+rand_traj_val.register_epis()
 
 # obs, next_obs, and acs should become mean 0, std 1
-traj_train, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = tf.normalize_obs_and_acs(
-    traj_train)
+rand_traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = tf.normalize_obs_and_acs(
+    rand_traj)
+
+rl_traj = Traj()
 
 ### Train Dynamics Model ###
 
@@ -166,20 +168,20 @@ max_rew = -1e-6
 while args.num_aggregation_iters > counter_agg_iters:
     with measure('train model'):
         result_dict = mpc.train_dm(
-            traj_train, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size)
+            rl_traj, rand_traj, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, fraction_use_rl_traj=args.fraction_use_rl_traj)
     with measure('sample'):
         epis = sampler.sample(
             mpc_pol, max_episodes=args.max_episodes_per_iter)
 
-        rl_traj = Traj()
-        rl_traj.add_epis(epis)
+        on_traj = Traj()
+        on_traj.add_epis(epis)
 
-        rl_traj = ef.add_next_obs(rl_traj)
-        rl_traj.register_epis()
-        rl_traj = tf.normalize_obs_and_acs(rl_traj, mean_obs, std_obs, mean_acs, std_acs,
+        on_traj = ef.add_next_obs(on_traj)
+        on_traj.register_epis()
+        on_traj = tf.normalize_obs_and_acs(on_traj, mean_obs, std_obs, mean_acs, std_acs,
                                            mean_next_obs, std_next_obs, return_statistic=False)
 
-        traj_train.add_traj(rl_traj)
+        rl_traj.add_traj(on_traj)
 
     total_epi += rl_traj.num_epi
     step = rl_traj.num_step
@@ -204,5 +206,5 @@ while args.num_aggregation_iters > counter_agg_iters:
         args.log, 'models', 'optim_dm_last.pkl'))
 
     counter_agg_iters += 1
-    del rl_traj
+    del on_traj
 del sampler
