@@ -45,11 +45,12 @@ class MPCPol(BasePol):
         if isinstance(env, str):
             env = gym.envs.make(env)
         self.env = env
+        self.rew_func = rew_func
         self.n_samples = n_samples
         self.horizon = horizon
-        self.mean_obs = mean_obs
-        self.std_obs = std_obs
-        self.mean_acs = mean_acs
+        self.mean_obs = mean_obs.repeat(n_samples, 1)
+        self.std_obs = std_obs.repeat(n_samples, 1)
+        self.mean_acs = mean_acs.repeat(n_samples, 1)
         self.std_acs = std_acs
         self.mean_next_obs = mean_next_obs
         self.std_next_obs = std_next_obs
@@ -61,29 +62,31 @@ class MPCPol(BasePol):
     def forward(self, obs):
         # randomly sample N candidate action sequences
         sample_acs = np.random.uniform(
-            self.ac_space.low, self.ac_space.high, (self.horizon, self.n_samples, self.ac_space.shape[0]))
-        sample_acs = torch.tensor(samples_acs, device=get_device())
+            self.ac_space.low[0], self.ac_space.high[0], (self.horizon, self.n_samples, self.ac_space.shape[0]))
+        sample_acs = torch.tensor(
+            sample_acs, dtype=torch.float, device=get_device())
 
         # forward simulate the action sequences to get predicted trajectories
         obs = torch.zeros((self.horizon+1, self.n_samples,
                            self.ob_space.shape[0]), dtype=torch.float, device=get_device())
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float, device=get_device())
+
         obs[0] = torch.tensor(self.env.reset(), device=get_device())
         obs[0] = self._check_obs_shape(obs[0])
         with torch.no_grad():
             for i in range(self.horizon):
-                ob = (obs[i] - mean_obs) / std_obs
-                ac = (sample_acs[i] - mean_acs) / std_acs
+                ob = (obs[i] - self.mean_obs) / self.std_obs
+                ac = (sample_acs[i] - self.mean_acs) / self.std_acs
                 # inf to mean
-                ob[ob == float('inf')] = mean_obs[ob == float('inf')]
-                ac[ac == float('inf')] = mean_acs[ac == float('inf')]
+                ob[ob == float('inf')] = self.mean_obs[ob == float('inf')]
+                ac[ac == float('inf')] = self.mean_acs[ac == float('inf')]
                 next_ob = ob + self.net(ob, ac)
-                obs[i+1] = next_ob * std_next_obs + mean_next_obs
-                rews_sum += rew_func(obs[i+1], sample_acs[i])
+                obs[i+1] = next_ob * self.std_next_obs + self.mean_next_obs
+                rews_sum += self.rew_func(obs[i+1], sample_acs[i])
 
         best_sample_index = rews_sum.max(0)[1]
-        ac = all_sample_acs[0][best_sample_index]
+        ac = sample_acs[0][best_sample_index]
         ac_real = ac.cpu().numpy()
 
         return ac_real, ac, dict(mean=ac)
