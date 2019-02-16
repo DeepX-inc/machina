@@ -124,13 +124,6 @@ rand_traj.add_epis(epis)
 rand_traj = ef.add_next_obs(rand_traj)
 rand_traj.register_epis()
 
-epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_val)
-epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
-rand_traj_val = Traj()
-rand_traj_val.add_epis(epis)
-rand_traj_val = ef.add_next_obs(rand_traj_val)
-rand_traj_val.register_epis()
-
 # obs, next_obs, and acs should become mean 0, std 1
 rand_traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = tf.normalize_obs_and_acs(
     rand_traj)
