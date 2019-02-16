@@ -80,8 +80,10 @@ class MPCPol(BasePol):
                 ob = (obs[i] - self.mean_obs) / self.std_obs
                 ac = (sample_acs[i] - self.mean_acs) / self.std_acs
                 # inf to mean
-                ob[ob == float('inf')] = self.mean_obs[ob == float('inf')]
-                ac[ac == float('inf')] = self.mean_acs[ac == float('inf')]
+                ob[ob == float('inf')
+                   ] = 0.  # self.mean_obs[ob == float('inf')]
+                ac[ac == float('inf')
+                   ] = 0.  # self.mean_acs[ac == float('inf')]
                 next_ob = ob + self.net(ob, ac)
                 obs[i+1] = next_ob * self.std_next_obs + self.mean_next_obs
                 rews_sum += self.rew_func(obs[i+1], sample_acs[i])
