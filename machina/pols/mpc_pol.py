@@ -59,7 +59,7 @@ class MPCPol(BasePol):
     def reset(self):
         super(MPCPol, self).reset()
 
-    def forward(self, obs):
+    def forward(self, ob):
         # randomly sample N candidate action sequences
         sample_acs = np.random.uniform(
             self.ac_space.low[0], self.ac_space.high[0], (self.horizon, self.n_samples, self.ac_space.shape[0]))
@@ -72,7 +72,8 @@ class MPCPol(BasePol):
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float, device=get_device())
 
-        obs[0] = torch.tensor(self.env.reset(), device=get_device())
+        #obs[0] = torch.tensor(self.env.reset(), device=get_device())
+        obs[0] = ob.repeat(self.n_samples, 1)
         obs[0] = self._check_obs_shape(obs[0])
         with torch.no_grad():
             for i in range(self.horizon):

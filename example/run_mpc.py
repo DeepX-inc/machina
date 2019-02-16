@@ -39,12 +39,12 @@ def rew_func(next_obs, acs):
     # HarfCheetah
     index_of_velx = 3
     if isinstance(next_obs, torch.Tensor):
-        rews = next_obs[:, index_of_velx]  # - 0.05 * \
-        #torch.sum(acs**2, dim=1)**0.5
+        rews = next_obs[:, index_of_velx] - 0.05 * \
+            torch.sum(acs**2, dim=1)**0.5
         rews = rews.squeeze(0)
     else:
-        rews = next_obs[:, index_of_velx]  # - 0.05 * \
-        # np.sum(acs**2, axis=1)**0.5
+        rews = next_obs[:, index_of_velx] - 0.05 * \
+            np.sum(acs**2, axis=1)**0.5
         rews = rews[0]
 
     return rews
@@ -71,14 +71,11 @@ parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--horizon_of_samples', type=int, default=20)
 parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
-parser.add_argument('--epoch_per_iter', type=int, default=60)
+parser.add_argument('--epoch_per_iter', type=int, default=10)  # 60
 parser.add_argument('--fraction_use_rl_traj', type=float, default=0.9)
 parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true', default=False)
-
-parser.add_argument('--gamma', type=float, default=0.995)
-parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -131,6 +128,8 @@ rand_traj = Traj()
 rand_traj.add_epis(epis)
 rand_traj = ef.add_next_obs(rand_traj)
 rand_traj.register_epis()
+
+del rand_sampler
 
 # obs, next_obs, and acs should become mean 0, std 1
 rand_traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = tf.normalize_obs_and_acs(
