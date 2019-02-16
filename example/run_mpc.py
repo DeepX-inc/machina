@@ -40,12 +40,12 @@ def rew_func(next_obs, acs):
     # HarfCheetah
     index_of_velx = 3
     if isinstance(next_obs, np.ndarray):
-        rews = next_obs[:, index_of_velx] - 0.05 * \
-            np.sum(acs**2, axis=1)
+        rews = next_obs[:, index_of_velx]  # - 0.05 * \
+        #np.sum(acs**2, axis=1)
         rews = rews[0]
     else:
-        rews = next_obs[:, index_of_velx] - 0.05 * \
-            torch.sum(acs**2, dim=1)
+        rews = next_obs[:, index_of_velx]  # - 0.05 * \
+        #torch.sum(acs**2, dim=1)
         rews = rews.squeeze(0)
 
     return rews
@@ -99,7 +99,6 @@ set_device(device)
 if args.roboschool:
     import roboschool
 
-#####
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
@@ -173,14 +172,6 @@ while args.num_aggregation_iters > counter_agg_iters:
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
-
-        """
-        import copy
-        epis = copy.deepcopy(on_traj.current_epis)
-        for epi in epis:
-            #print(epi['next_obs'][:,:])
-            epi['rews'] = rew_func(epi['next_obs'], epi['acs'])
-        """
 
         on_traj.register_epis()
         on_traj = tf.normalize_obs_and_acs(on_traj, mean_obs, std_obs, mean_acs, std_acs,
