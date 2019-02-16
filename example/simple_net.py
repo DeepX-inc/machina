@@ -106,16 +106,16 @@ class QNet(nn.Module):
 class ModelNet(nn.Module):
     def __init__(self, ob_space, ac_space, h1=500, h2=500):
         super(ModelNet, self).__init__()
-        self.fc1 = nn.Linear(ob_space.shape[0], h1)
-        self.fc2 = nn.Linear(ac_space.shape[0] + h1, h2)
+        self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
+        self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, ob_space.shape[0])
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
-        self.output_layer.apply(mini_weight_init)
+        self.output_layer.apply(weight_init)
 
     def forward(self, ob, ac):
-        h = F.relu(self.fc1(ob))
-        h = torch.cat([h, ac], dim=-1)
+        h = torch.cat([ob, ac], dim=-1)
+        h = F.relu(self.fc1(h))
         h = F.relu(self.fc2(h))
         return self.output_layer(h)
 
