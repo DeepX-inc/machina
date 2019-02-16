@@ -38,9 +38,15 @@ def add_noise_to_init_obs(epis, std):
 def rew_func(next_obs, acs):
     # HarfCheetah
     index_of_velx = 3
-    rews = next_obs[:, index_of_velx] + 0.05 * \
-        torch.sum(acs**2, dim=1, keepdim=True)**2
-    rews = rews.squeeze(0)
+    if isinstance(next_obs, torch.Tensor):
+        rews = next_obs[:, index_of_velx] + 0.05 * \
+            torch.sum(acs**2, dim=1, keepdim=True)**2
+        rews = rews.squeeze(0)
+    else:
+        rews = next_obs[:, index_of_velx] + 0.05 * \
+            np.sum(acs**2, axis=1, keepdims=True)**2
+        rews = rews[0]
+
     return rews
 
 
@@ -58,6 +64,8 @@ parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--num_rollouts_train', type=int, default=10)
 parser.add_argument('--num_rollouts_val', type=int, default=20)
+parser.add_argument('--max_steps_in_rollouts', type=int, default=10000)
+parser.add_argument('--max_steps_per_iter', type=int, default=60000)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
 parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--horizon_of_samples', type=int, default=20)
@@ -66,7 +74,7 @@ parser.add_argument('--max_episodes_per_iter', type=int, default=9)
 parser.add_argument('--epoch_per_iter', type=int, default=60)
 parser.add_argument('--fraction_use_rl_traj', type=float, default=0.9)
 parser.add_argument('--batch_size', type=int, default=512)
-parser.add_argument('--dm_lr', type=float, default=1e-4)
+parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true', default=False)
 
 parser.add_argument('--gamma', type=float, default=0.995)
@@ -117,7 +125,7 @@ random_pol = RandomPol(ob_space, ac_space)
 sampler = EpiSampler(
     env, random_pol, num_parallel=args.num_parallel, seed=args.seed)
 
-epis = sampler.sample(random_pol, max_episodes=args.num_rollouts_train)
+epis = sampler.sample(random_pol, max_steps=args.max_steps_in_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
 rand_traj = Traj()
 rand_traj.add_epis(epis)
@@ -151,12 +159,14 @@ while args.num_aggregation_iters > counter_agg_iters:
             rl_traj, rand_traj, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, fraction_use_rl_traj=args.fraction_use_rl_traj)
     with measure('sample'):
         epis = sampler.sample(
-            mpc_pol, max_episodes=args.max_episodes_per_iter)
+            mpc_pol, max_steps=args.max_steps_per_iter)
 
         on_traj = Traj()
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
+        for epi in on_traj.current_epis:
+            epi['rews'] = rew_func(epi['next_obs'], epi['acs'])
         on_traj.register_epis()
         on_traj = tf.normalize_obs_and_acs(on_traj, mean_obs, std_obs, mean_acs, std_acs,
                                            mean_next_obs, std_next_obs, return_statistic=False)

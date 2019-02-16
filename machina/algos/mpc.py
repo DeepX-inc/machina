@@ -48,27 +48,31 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
 
     dm_losses = []
     logger.log("Optimizing...")
-    for rl_batch, rand_batch in zip(rl_traj.random_batch(batch_size_rl, epoch), rand_traj.random_batch(batch_size_rand, epoch)):
-        batch = dict()
+    step = rand_traj.num_step // batch_size_rand
+    for e in range(epoch):
+        for rl_batch, rand_batch in zip(rl_traj.random_batch(batch_size_rl, step), rand_traj.random_batch(batch_size_rand, step)):
+            batch = dict()
 
-        if len(rl_batch) == 0:
-            batch['obs'] = rand_batch['obs']
-            batch['acs'] = rand_batch['acs']
-            batch['next_obs'] = rand_batch['next_obs']
-        else:
-            batch['obs'] = rl_batch['obs']
-            batch['acs'] = rl_batch['acs']
-            batch['next_obs'] = rl_batch['next_obs']
+            if len(rl_batch) == 0:
+                batch['obs'] = rand_batch['obs']
+                batch['acs'] = rand_batch['acs']
+                batch['next_obs'] = rand_batch['next_obs']
+            else:
+                batch['obs'] = rl_batch['obs']
+                batch['acs'] = rl_batch['acs']
+                batch['next_obs'] = rl_batch['next_obs']
 
-        if batch_size_rand > 0:
-            batch['obs'] = torch.cat([batch['obs'], rand_batch['obs']], dim=0)
-            batch['acs'] = torch.cat([batch['acs'], rand_batch['acs']], dim=0)
-            batch['next_obs'] = torch.cat(
-                [batch['next_obs'], rand_batch['next_obs']], dim=0)
+            if batch_size_rand > 0:
+                batch['obs'] = torch.cat(
+                    [batch['obs'], rand_batch['obs']], dim=0)
+                batch['acs'] = torch.cat(
+                    [batch['acs'], rand_batch['acs']], dim=0)
+                batch['next_obs'] = torch.cat(
+                    [batch['next_obs'], rand_batch['next_obs']], dim=0)
 
-        dm_loss = update_dm(
-            dyn_model, optim_dm, batch, target=target, td=td)
-        dm_losses.append(dm_loss)
+            dm_loss = update_dm(
+                dyn_model, optim_dm, batch, target=target, td=td)
+            dm_losses.append(dm_loss)
     logger.log("Optimization finished!")
 
     return dict(DynModelLoss=dm_losses)
