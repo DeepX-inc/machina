@@ -49,6 +49,7 @@ class MPCPol(BasePol):
         self.n_samples = n_samples
         self.horizon = horizon
         self.to(get_device())
+
         self.mean_obs = mean_obs.repeat(n_samples, 1).to('cpu')
         self.std_obs = std_obs.repeat(n_samples, 1).to('cpu')
         self.mean_acs = mean_acs.repeat(n_samples, 1).to('cpu')

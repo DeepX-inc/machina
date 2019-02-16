@@ -48,7 +48,8 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
 
     dm_losses = []
     logger.log("Optimizing...")
-    step = rand_traj.num_step // batch_size_rand
+    #step = rand_traj.num_step // batch_size_rand
+    step = 100000 // batch_size
     for e in range(epoch):
         for rl_batch, rand_batch in zip(rl_traj.random_batch(batch_size_rl, step), rand_traj.random_batch(batch_size_rand, step)):
             batch = dict()
