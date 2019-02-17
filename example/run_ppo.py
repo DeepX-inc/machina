@@ -30,18 +30,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--c2d', action='store_true', default=False)
-parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000)
-parser.add_argument('--epoch_per_iter', type=int, default=50)
+parser.add_argument('--epoch_per_iter', type=int, default=10)
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--pol_lr', type=float, default=1e-4)
+parser.add_argument('--pol_lr', type=float, default=3e-4)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
-parser.add_argument('--cuda', type=int, default=-1)
 
 parser.add_argument('--rnn', action='store_true', default=False)
 parser.add_argument('--max_grad_norm', type=float, default=10)
@@ -75,9 +75,6 @@ device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
 device = torch.device(device_name)
 set_device(device)
 
-if args.roboschool:
-    import roboschool
-
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
@@ -95,11 +92,14 @@ if args.rnn:
 else:
     pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn,
+                      data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                              data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
@@ -107,7 +107,8 @@ if args.rnn:
     vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
 else:
     vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
+vf = DeterministicSVfunc(ob_space, vf_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
@@ -132,6 +133,10 @@ while args.max_episodes > total_epi:
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
 
+        if args.data_parallel:
+            pol.dp_run = True
+            vf.dp_run = True
+
         if args.ppo_type == 'clip':
             result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=args.clip_param,
                                          optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
@@ -139,6 +144,11 @@ while args.max_episodes > total_epi:
             result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
                                        optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
+
+        if args.data_parallel:
+            pol.dp_run = False
+            vf.dp_run = False
+
     total_epi += traj.num_epi
     step = traj.num_step
     total_step += step
