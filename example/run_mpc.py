@@ -73,7 +73,7 @@ parser.add_argument('--horizon_of_samples', type=int, default=4)
 parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
 parser.add_argument('--epoch_per_iter', type=int, default=60)
-parser.add_argument('--fraction_use_rl_traj', type=float, default=0.9)
+parser.add_argument('--rl_batch_rate', type=float, default=0.9)
 parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true', default=False)
@@ -159,7 +159,7 @@ max_rew = -1e-6
 while args.num_aggregation_iters > counter_agg_iters:
     with measure('train model'):
         result_dict = mpc.train_dm(
-            rl_traj, rand_traj, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, fraction_use_rl_traj=args.fraction_use_rl_traj)
+            rl_traj, rand_traj, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, rl_batch_rate=args.rl_batch_rate)
     with measure('sample'):
         epis = rl_sampler.sample(
             mpc_pol, max_episodes=args.max_episodes_per_iter)

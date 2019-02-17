@@ -20,10 +20,18 @@ class MPCPol(BasePol):
     net : torch.nn.Module
         dymamics model
     rew_func : function
-        rt = rew_func(st+1, at). rt, st+1 and at are torch.Tensor.
+        rt = rew_func(st+1, at). rt, st+1 and at are torch.tensor.
     env : gym.Env
     n_samples : int
+        num of action samples in the model predictive control
     horizon : int
+        horizon of prediction
+    mean_obs : torch.tensor
+    std_obs : torch.tensor
+    mean_acs : torch.tensor
+    std_acs : torch.tensor
+    mean_next_obs : torch.tensor
+    std_next_obs : torch.tensor
     rnn : bool
     normalize_ac : bool
         If True, the output of network is spreaded for ac_space.

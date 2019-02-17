@@ -21,7 +21,7 @@ def update_dm(dm, optim_dm, batch, target='next_obs', td=True):
     return dm_loss.detach().cpu().numpy()
 
 
-def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, fraction_use_rl_traj=0.9, target='next_obs', td=True):
+def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, rl_batch_rate=0.9, target='next_obs', td=True):
     """
     Train function for dynamics model.
 
@@ -37,13 +37,20 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
         Number of iteration.
     batch_size : int
         Number of batches.
+    rl_batch_rate : float
+        rate of size of rl batch.
+    target : str
+        Target of prediction is next_obs or rews.
+    td : bool
+        If True, dyn_model learn temporal differance of target.
+
     Returns
     -------
     result_dict : dict
         Dictionary which contains losses information.
     """
 
-    batch_size_rl = int(batch_size * fraction_use_rl_traj)
+    batch_size_rl = int(batch_size * rl_batch_rate)
     batch_size_rand = batch_size - batch_size_rl
 
     dm_losses = []
