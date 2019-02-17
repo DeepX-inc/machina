@@ -1,4 +1,3 @@
-import pybullet_envs
 """
 An example of Model Predictive Control.
 """
@@ -55,18 +54,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='HalfCheetahBulletEnv-v0')
 parser.add_argument('--c2d', action='store_true', default=False)
-parser.add_argument('--roboschool', action='store_true', default=True)
+parser.add_argument('--pybullet_env', action='store_true', default=True)
 parser.add_argument('--record', action='store_true', default=False)
-parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--num_parallel', type=int, default=1)
+parser.add_argument('--num_parallel', type=int, default=4)
 parser.add_argument('--cuda', type=int, default=-1)
 
-parser.add_argument('--num_rollouts_train', type=int, default=10)
-parser.add_argument('--num_rollouts_val', type=int, default=20)
-parser.add_argument('--max_steps_in_rollouts', type=int, default=10000)
-parser.add_argument('--max_steps_per_iter', type=int, default=9000)
+parser.add_argument('--num_random_rollouts', type=int, default=10)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
 parser.add_argument('--n_samples', type=int, default=300)
 parser.add_argument('--horizon_of_samples', type=int, default=4)
@@ -96,8 +90,8 @@ device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
 device = torch.device(device_name)
 set_device(device)
 
-if args.roboschool:
-    import roboschool
+if args.pybullet_env:
+    import pybullet_envs
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
@@ -123,7 +117,7 @@ random_pol = RandomPol(ob_space, ac_space)
 rand_sampler = EpiSampler(
     env, random_pol, num_parallel=args.num_parallel, seed=args.seed)
 
-epis = rand_sampler.sample(random_pol, max_episodes=args.num_rollouts_train)
+epis = rand_sampler.sample(random_pol, max_episodes=args.num_random_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
 rand_traj = Traj()
 rand_traj.add_epis(epis)
