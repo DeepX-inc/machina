@@ -165,7 +165,7 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
             "Only Q function with continuous action space is supported now.")
 
 
-def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling, normalize=True, eps=1e-6):
+def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling, normalize=False, eps=1e-6):
     """
     Loss for soft actor critic.
 
