@@ -136,7 +136,7 @@ rl_traj = Traj()
 
 # initialize dynamics model and mpc policy
 dyn_model = ModelNet(ob_space, ac_space)
-mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func, env,
+mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func,
                  args.n_samples, args.horizon_of_samples,
                  mean_obs, std_obs, mean_acs, std_acs,
                  mean_next_obs, std_next_obs)

@@ -42,7 +42,7 @@ class MPCPol(BasePol):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, net, rew_func, env, n_samples=1000, horizon=20,
+    def __init__(self, ob_space, ac_space, net, rew_func, n_samples=1000, horizon=20,
                  mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., mean_next_obs=0., std_next_obs=1.,
                  rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
         if rnn:
@@ -50,9 +50,6 @@ class MPCPol(BasePol):
                 'rnn with MPCPol is not supported now')
         BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac,
                          data_parallel=data_parallel, parallel_dim=parallel_dim)
-        if isinstance(env, str):
-            env = gym.envs.make(env)
-        self.env = env
         self.rew_func = rew_func
         self.n_samples = n_samples
         self.horizon = horizon
