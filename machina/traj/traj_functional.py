@@ -25,7 +25,7 @@ def normalize_obs_and_acs(traj, mean_obs=None, std_obs=None, mean_acs=None, std_
         if std_acs is None:
             std_acs = torch.std(traj.data_map['acs'], dim=0, keepdim=True)
 
-        if std_next_obs is None:
+        if mean_next_obs is None:
             mean_next_obs = torch.mean(
                 traj.data_map['next_obs'], dim=0, keepdim=True)
         if std_next_obs is None:
