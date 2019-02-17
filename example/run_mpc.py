@@ -68,12 +68,12 @@ parser.add_argument('--num_rollouts_val', type=int, default=20)
 parser.add_argument('--max_steps_in_rollouts', type=int, default=10000)
 parser.add_argument('--max_steps_per_iter', type=int, default=9000)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
-parser.add_argument('--n_samples', type=int, default=300)  # 1000
-parser.add_argument('--horizon_of_samples', type=int, default=4)  # 20
+parser.add_argument('--n_samples', type=int, default=300)
+parser.add_argument('--horizon_of_samples', type=int, default=4)
 parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
 parser.add_argument('--epoch_per_iter', type=int, default=60)
-parser.add_argument('--fraction_use_rl_traj', type=float, default=1.)  # 0.9
+parser.add_argument('--fraction_use_rl_traj', type=float, default=0.9)
 parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true', default=False)
@@ -98,7 +98,6 @@ set_device(device)
 
 if args.roboschool:
     import roboschool
-
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
@@ -158,13 +157,10 @@ total_step = 0
 counter_agg_iters = 0
 max_rew = -1e-6
 while args.num_aggregation_iters > counter_agg_iters:
+    with measure('train model'):
+        result_dict = mpc.train_dm(
+            rl_traj, rand_traj, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, fraction_use_rl_traj=args.fraction_use_rl_traj)
     with measure('sample'):
-
-        mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func, env,
-                         args.n_samples, args.horizon_of_samples,
-                         mean_obs, std_obs, mean_acs, std_acs,
-                         mean_next_obs, std_next_obs)
-
         epis = rl_sampler.sample(
             mpc_pol, max_episodes=args.max_episodes_per_iter)
 
@@ -178,9 +174,6 @@ while args.num_aggregation_iters > counter_agg_iters:
                                            mean_next_obs, std_next_obs, return_statistic=False)
 
         rl_traj.add_traj(on_traj)
-    with measure('train model'):
-        result_dict = mpc.train_dm(
-            rl_traj, rand_traj, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, fraction_use_rl_traj=args.fraction_use_rl_traj)
 
     total_epi += on_traj.num_epi
     step = on_traj.num_step
