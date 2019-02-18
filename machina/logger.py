@@ -1606,11 +1606,11 @@ def record_results(log_dir, result_dict, score_file,
 
 
 def record_results_bc(log_dir, result_dict, score_file,
-                   epoch,
-                   rewards=None,
-                   plot_title=None,
-                   async_plot=True,
-                   ):
+                      epoch,
+                      rewards=None,
+                      plot_title=None,
+                      async_plot=True,
+                      ):
     log("outdir {}".format(os.path.abspath(log_dir)))
 
     for key, value in result_dict.items():
