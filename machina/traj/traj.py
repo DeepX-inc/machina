@@ -156,7 +156,7 @@ class Traj(object):
                 yield self._next_batch(batch_size, indices)
             self._next_id = 0
 
-    def step(self, batch_size, step=1, indices=None, shuffle=True):
+    def iterate_step(self, batch_size, step=1, indices=None, shuffle=True):
         indices = self._get_indices(indices, shuffle)
         for _ in range(step):
             self._next_id = self._next_id % len(indices)
