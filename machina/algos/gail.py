@@ -23,7 +23,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from machina import  loss_functional as lf
-from machina.misc import logger
+from machina import logger
 from machina.algos import trpo, ppo_kl, ppo_clip
 from machina.utils import get_device
 

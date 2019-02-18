@@ -351,7 +351,7 @@ def cross_ent(discrim, batch, expert_or_agent, ent_beta):
     obs = batch['obs']
     acs = batch['acs']
     len = obs.shape[0]
-    logits = discrim(obs, acs)
+    logits, _ = discrim(obs, acs)
     discrim_loss = F.binary_cross_entropy_with_logits(logits, torch.ones(len, device=get_device())*expert_or_agent)
     ent = (1 - torch.sigmoid(logits))*logits - F.logsigmoid(logits)
     discrim_loss -= ent_beta * torch.mean(ent)

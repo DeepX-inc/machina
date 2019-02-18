@@ -19,8 +19,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from machina import  loss_functional as lf
-from machina.misc import logger
-from machina.utils import get_device
 
 def update_pol(pol, optim_pol, batch, deterministic=False):
     if deterministic:
