@@ -1,6 +1,6 @@
 """
-This is an implementation of Generative Adversarial Imiation Learning
-See https://arxiv.org/abs/1606.03476
+This is an implementation of Adversarial Inverse Reinforcement Learning
+https://arxiv.org/abs/1710.11248
 """
 
 import torch
@@ -13,11 +13,17 @@ from machina.algos import trpo, ppo_kl, ppo_clip
 from machina.utils import get_device
 
 
-def update_discrim(discrim, optim_discrim, agent_batch, expert_batch, ent_beta=0.001):
-    discrim_loss = lf.cross_ent(
-        discrim, agent_batch, expert_or_agent=0, ent_beta=ent_beta)
-    discrim_loss += lf.cross_ent(discrim, expert_batch,
-                                 expert_or_agent=1, ent_beta=ent_beta)
+def update_discrim(rewf, shaping_vf, advf, pol, irl_type, optim_discrim, agent_batch, expert_batch, gamma):
+    if irl_type == 'rew':
+        discrim_loss = lf.density_ratio_rew_cross_ent(
+            rewf, shaping_vf, pol, agent_batch, expert_or_agent=0, gamma=gamma)
+        discrim_loss += lf.density_ratio_rew_cross_ent(
+            rewf, shaping_vf, pol, expert_batch, expert_or_agent=1, gamma=gamma)
+    else:
+        discrim_loss = lf.density_ratio_adv_cross_ent(
+            advf, pol, agent_batch, expert_or_agent=0)
+        discrim_loss += lf.density_ratio_adv_cross_ent(
+            advf, pol, expert_batch, expert_or_agent=1)
     discrim_loss /= 2
     optim_discrim.zero_grad()
     discrim_loss.backward()
@@ -25,8 +31,9 @@ def update_discrim(discrim, optim_discrim, agent_batch, expert_batch, ent_beta=0
     return discrim_loss.detach().cpu().numpy()
 
 
-def train(agent_traj, expert_traj, pol, vf, discrim,
+def train(agent_traj, expert_traj, pol, vf,
           optim_vf, optim_discim,
+          rewf=None, shaping_vf=None, advf=None, irl_type='rew',
           rl_type='trpo',
           pol_ent_beta=0, discrim_ent_beta=0,
           epoch=1,
@@ -34,7 +41,8 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
           num_epi_per_seq=1, discrim_step=1,  # optimization hypers
           damping=0.1, max_kl=0.01, num_cg=10,  # trpo hypers
           optim_pol=None,
-          clip_param=0.2, max_grad_norm=0.5, clip_vfunc=False, kl_beta=1, kl_targ=0.01  # ppo hypers
+          clip_param=0.2, max_grad_norm=0.5, clip_vfunc=False, kl_beta=1, kl_targ=0.01,  # ppo hypers
+          gamma=0.995
           ):
 
     pol_losses = []
@@ -72,7 +80,7 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
             vf_losses.append(vf_loss)
         new_kl_beta = 0
         kl_mean = 0
-    else:
+    elif rl_type == 'ppo_kl':
         iterator = agent_traj.iterate(batch_size, epoch) if not pol.rnn else agent_traj.iterate_rnn(batch_size=batch_size,
                                                                                                     num_epi_per_seq=num_epi_per_seq,
                                                                                                     epoch=epoch)
@@ -105,6 +113,8 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
             new_kl_beta = kl_beta / 1.5
         else:
             new_kl_beta = kl_beta
+    else:
+        raise ValueError('Only trpo, ppo_clip and ppo_kl are supported')
 
     agent_iterator = agent_traj.iterate_step(
         batch_size=discrim_batch_size, step=discrim_step)
@@ -112,7 +122,7 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
         batch_size=discrim_batch_size, step=discrim_step)
     for agent_batch, expert_batch in zip(agent_iterator, expert_iterator):
         discrim_loss = update_discrim(
-            discrim, optim_discim, agent_batch, expert_batch, ent_beta=discrim_ent_beta)
+            rewf, shaping_vf, advf, pol, irl_type, optim_discim, agent_batch, expert_batch, gamma)
         discrim_losses.append(discrim_loss)
     logger.log("Optimization finished!")
 
