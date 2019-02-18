@@ -335,14 +335,6 @@ def monte_carlo(vf, batch, clip_param=0.2, clip=False):
     return vf_loss
 
 
-def mse(pol, batch):
-    obs = batch['obs']
-    acs = batch['acs']
-    _, _, pd_params = pol(obs)
-    pol_loss = torch.mean(0.5*(acs-pd_params['mean'])**2)
-    return pol_loss
-
-
 def likelihood(pol, batch):
     obs = batch['obs']
     acs = batch['acs']

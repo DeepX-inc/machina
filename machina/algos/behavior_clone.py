@@ -21,33 +21,27 @@ import torch.nn.functional as F
 from machina import loss_functional as lf
 
 
-def update_pol(pol, optim_pol, batch, deterministic=False):
-    if deterministic:
-        pol_loss = lf.mse(pol, batch)
-    else:
-        pol_loss = lf.likelihood(pol, batch)
-    pol_loss.backward()
+def update_pol(pol, optim_pol, batch):
+    pol_loss = lf.likelihood(pol, batch)
     optim_pol.zero_grad()
+    pol_loss.backward()
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
 
-def train(expert_traj, pol, optim_pol, batch_size, deterministic=False):
+def train(expert_traj, pol, optim_pol, batch_size):
     pol_losses = []
     iterater = expert_traj.iterate_once(batch_size)
     for batch in iterater:
-        pol_loss = update_pol(pol, optim_pol, batch, deterministic)
+        pol_loss = update_pol(pol, optim_pol, batch)
         pol_losses.append(pol_loss)
     return dict(PolLoss=pol_losses)
 
 
-@torch.no_grad()
-def test(expert_traj, pol, deterministic=False):
+def test(expert_traj, pol):
     pol.eval()
     iterater = expert_traj.full_batch(epoch=1)
     for batch in iterater:
-        if deterministic:
-            pol_loss = lf.mse(pol, batch)
-        else:
+        with torch.no_grad():
             pol_loss = lf.likelihood(pol, batch)
-    return dict(TestPolLoss=float(pol_loss.detach().cpu().numpy()))
+    return dict(TestPolLoss=[float(pol_loss.detach().cpu().numpy())])
