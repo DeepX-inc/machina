@@ -29,13 +29,12 @@ import gym
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
 from machina.algos import gail, behavior_clone
-from machina.vfuncs import DeterministicSVfunc
-from machina.discrims import Discrim
+from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
-from machina.misc import logger
+from machina import logger
 from machina.utils import measure, set_device
 
 from simple_net import PolNet, PolNetLSTM, VNet, DiscrimNet
@@ -138,7 +137,7 @@ vf_net = VNet(ob_space)
 vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
 
 discrim_net = DiscrimNet(ob_space, ac_space, h1=args.discrim_h1, h2=args.discrim_h2)
-discrim = Discrim(ob_space, ac_space, discrim_net)
+discrim = DeterministicSAVfunc(ob_space, ac_space, discrim_net)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
@@ -154,7 +153,7 @@ expert_traj.register_epis()
 expert_rewards = [np.sum(epi['rews']) for epi in expert_epis]
 expert_mean_rew = np.mean(expert_rewards)
 logger.log('expert_score={}'.format(expert_mean_rew))
-logger.log('expert_score={}'.format(expert_traj.num_epi))
+logger.log('expert_num_epi={}'.format(expert_traj.num_epi))
 
 
 total_epi = 0
