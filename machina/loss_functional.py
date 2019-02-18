@@ -165,7 +165,7 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
             "Only Q function with continuous action space is supported now.")
 
 
-def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
+def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling, normalize=False, eps=1e-6):
     """
     Loss for soft actor critic.
 
@@ -179,6 +179,9 @@ def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
     gamma : float
     sampling : int
         Number of samping in calculating expectation.
+    normalize : bool
+        If True, normalize value of log likelihood.
+    eps : float
 
     Returns
     -------
@@ -219,8 +222,12 @@ def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling):
 
     qf_loss = 0.5 * torch.mean((q - q_targ)**2)
 
-    pol_loss = torch.mean(
-        sampled_llh * (alpha * sampled_llh - sampled_q).detach())
+    pg_weight = (alpha * sampled_llh - sampled_q).detach()
+
+    if normalize:
+        pg_weight = (pg_weight - pg_weight.mean()) / (pg_weight.std() + eps)
+
+    pol_loss = torch.mean(sampled_llh * pg_weight)
 
     alpha_loss = - torch.mean(log_alpha * (sampled_llh -
                                            np.prod(pol.ac_space.shape).item()).detach())

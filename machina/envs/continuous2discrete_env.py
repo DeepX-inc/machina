@@ -26,6 +26,7 @@ class C2DEnv(object):
         self.n_bins = n_bins
         self.ac_space = gym.spaces.MultiDiscrete(
             env.ac_space.shape[0] * [n_bins])
+        self.ob_space = self.env.observation_space
         if hasattr(env, 'original_env'):
             self.original_env = env.original_env
         else:
