@@ -106,9 +106,9 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
         else:
             new_kl_beta = kl_beta
 
-    agent_iterator = agent_traj.step(
+    agent_iterator = agent_traj.iterate_step(
         batch_size=discrim_batch_size, step=discrim_step)
-    expert_iterator = expert_traj.step(
+    expert_iterator = expert_traj.iterate_step(
         batch_size=discrim_batch_size, step=discrim_step)
     for agent_batch, expert_batch in zip(agent_iterator, expert_iterator):
         discrim_loss = update_discrim(
