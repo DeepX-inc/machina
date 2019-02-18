@@ -42,8 +42,8 @@ from simple_net import PolNet, PolNetLSTM, VNet, DiscrimNet
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--c2d', action='store_true' ,default=False)
-parser.add_argument('--rnn', action='store_true' ,default=False)
+parser.add_argument('--c2d', action='store_true', default=False)
+parser.add_argument('--rnn', action='store_true', default=False)
 parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--cuda', type=int, default=-1)
@@ -79,13 +79,14 @@ parser.add_argument('--vf_h2', type=int, default=32)
 parser.add_argument('--discrim_h1', type=int, default=100)
 parser.add_argument('--discrim_h2', type=int, default=100)
 
-parser.add_argument('--rl_type', type=str, choices=['trpo', 'ppo_clip', 'ppo_kl'], default='trpo')
+parser.add_argument('--rl_type', type=str,
+                    choices=['trpo', 'ppo_clip', 'ppo_kl'], default='trpo')
 parser.add_argument('--clip_param', type=float, default=0.2)
 parser.add_argument('--kl_targ', type=float, default=0.01)
 parser.add_argument('--init_kl_beta', type=float, default=1)
 
 parser.add_argument('--bc_batch_size', type=int, default=256)
-parser.add_argument('--pretrain', action='store_true' ,default=False)
+parser.add_argument('--pretrain', action='store_true', default=False)
 parser.add_argument('--bc_epoch', type=int, default=1000)
 args = parser.parse_args()
 
@@ -102,7 +103,8 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
-device_name = 'cpu' if args.cuda < 0 or args.rl_type=='trpo' else "cuda:{}".format(args.cuda)
+device_name = 'cpu' if args.cuda < 0 or args.rl_type == 'trpo' else "cuda:{}".format(
+    args.cuda)
 device = torch.device(device_name)
 set_device(device)
 
@@ -112,7 +114,8 @@ if args.roboschool:
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env = GymEnv(args.env_name, log_dir=os.path.join(
+    args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
@@ -136,7 +139,8 @@ else:
 vf_net = VNet(ob_space)
 vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
 
-discrim_net = DiscrimNet(ob_space, ac_space, h1=args.discrim_h1, h2=args.discrim_h2)
+discrim_net = DiscrimNet(
+    ob_space, ac_space, h1=args.discrim_h1, h2=args.discrim_h2)
 discrim = DeterministicSAVfunc(ob_space, ac_space, discrim_net)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
@@ -160,7 +164,7 @@ total_epi = 0
 total_step = 0
 max_rew = -1e6
 
-if args.rl_type=='ppo_kl':
+if args.rl_type == 'ppo_kl':
     kl_beta = args.init_kl_beta
 
 if args.pretrain:
@@ -182,7 +186,7 @@ while args.max_episodes > total_epi:
         agent_traj = ef.centerize_advs(agent_traj)
         agent_traj = ef.compute_h_masks(agent_traj)
         agent_traj.register_epis()
-        
+
         if args.rl_type == 'trpo':
             result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
                                      rl_type=args.rl_type,
@@ -199,7 +203,7 @@ while args.max_episodes > total_epi:
                                      discrim_step=args.discrim_step,
                                      pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta,
                                      optim_pol=optim_pol,
-                                     clip_param = args.clip_param, max_grad_norm=args.max_grad_norm)
+                                     clip_param=args.clip_param, max_grad_norm=args.max_grad_norm)
 
         else:
             result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
@@ -210,7 +214,7 @@ while args.max_episodes > total_epi:
                                      discrim_batch_size=args.discrim_batch_size,
                                      discrim_step=args.discrim_step,
                                      optim_pol=optim_pol,
-                                     kl_beta = kl_beta, kl_targ = args.kl_targ, max_grad_norm=args.max_grad_norm)
+                                     kl_beta=kl_beta, kl_targ=args.kl_targ, max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
 
     total_epi += agent_traj.num_epi
@@ -227,20 +231,31 @@ while args.max_episodes > total_epi:
 
     mean_rew = np.mean([np.sum(path['real_rews']) for path in epis])
     if mean_rew > max_rew:
-        torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
-        torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_max.pkl'))
-        torch.save(discrim.state_dict(), os.path.join(args.log, 'models', 'discrim_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_max.pkl'))
-        torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_max.pkl'))
-        torch.save(optim_discrim.state_dict(), os.path.join(args.log, 'models', 'optim_discrim_max.pkl'))
+        torch.save(pol.state_dict(), os.path.join(
+            args.log, 'models', 'pol_max.pkl'))
+        torch.save(vf.state_dict(), os.path.join(
+            args.log, 'models', 'vf_max.pkl'))
+        torch.save(discrim.state_dict(), os.path.join(
+            args.log, 'models', 'discrim_max.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(
+            args.log, 'models', 'optim_pol_max.pkl'))
+        torch.save(optim_vf.state_dict(), os.path.join(
+            args.log, 'models', 'optim_vf_max.pkl'))
+        torch.save(optim_discrim.state_dict(), os.path.join(
+            args.log, 'models', 'optim_discrim_max.pkl'))
         max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_last.pkl'))
-    torch.save(vf.state_dict(), os.path.join(args.log, 'models', 'vf_last.pkl'))
-    torch.save(discrim.state_dict(), os.path.join(args.log, 'models', 'discrim_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
-    torch.save(optim_vf.state_dict(), os.path.join(args.log, 'models', 'optim_vf_last.pkl'))
-    torch.save(optim_discrim.state_dict(), os.path.join(args.log, 'models', 'optim_discrim_last.pkl'))
+    torch.save(pol.state_dict(), os.path.join(
+        args.log, 'models', 'pol_last.pkl'))
+    torch.save(vf.state_dict(), os.path.join(
+        args.log, 'models', 'vf_last.pkl'))
+    torch.save(discrim.state_dict(), os.path.join(
+        args.log, 'models', 'discrim_last.pkl'))
+    torch.save(optim_pol.state_dict(), os.path.join(
+        args.log, 'models', 'optim_pol_last.pkl'))
+    torch.save(optim_vf.state_dict(), os.path.join(
+        args.log, 'models', 'optim_vf_last.pkl'))
+    torch.save(optim_discrim.state_dict(), os.path.join(
+        args.log, 'models', 'optim_discrim_last.pkl'))
     del agent_traj
 del sampler
-

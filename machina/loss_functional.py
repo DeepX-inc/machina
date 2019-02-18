@@ -260,6 +260,7 @@ def ag(pol, qf, batch, sampling=1):
 
     return pol_loss
 
+
 def pg(pol, batch, ent_beta=0):
     """
     Policy Gradient.
@@ -293,6 +294,7 @@ def pg(pol, batch, ent_beta=0):
     ent = pd.ent(pd_params)
     pol_loss -= ent_beta * torch.mean(ent)
     return pol_loss
+
 
 def monte_carlo(vf, batch, clip_param=0.2, clip=False):
     """
@@ -332,12 +334,14 @@ def monte_carlo(vf, batch, clip_param=0.2, clip=False):
         vf_loss = 0.5 * torch.mean(vfloss1 * out_masks)
     return vf_loss
 
+
 def mse(pol, batch):
     obs = batch['obs']
     acs = batch['acs']
     _, _, pd_params = pol(obs)
     pol_loss = torch.mean(0.5*(acs-pd_params['mean'])**2)
     return pol_loss
+
 
 def likelihood(pol, batch):
     obs = batch['obs']
@@ -347,12 +351,14 @@ def likelihood(pol, batch):
     pol_loss = -torch.mean(llh)
     return pol_loss
 
+
 def cross_ent(discrim, batch, expert_or_agent, ent_beta):
     obs = batch['obs']
     acs = batch['acs']
     len = obs.shape[0]
     logits, _ = discrim(obs, acs)
-    discrim_loss = F.binary_cross_entropy_with_logits(logits, torch.ones(len, device=get_device())*expert_or_agent)
+    discrim_loss = F.binary_cross_entropy_with_logits(
+        logits, torch.ones(len, device=get_device())*expert_or_agent)
     ent = (1 - torch.sigmoid(logits))*logits - F.logsigmoid(logits)
     discrim_loss -= ent_beta * torch.mean(ent)
     return discrim_loss

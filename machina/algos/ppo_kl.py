@@ -10,6 +10,7 @@ import torch.nn as nn
 from machina import loss_functional as lf
 from machina import logger
 
+
 def update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm, ent_beta=0):
     pol_loss = lf.pg_kl(pol, batch, kl_beta, ent_beta)
     optim_pol.zero_grad()
@@ -73,7 +74,8 @@ def train(traj, pol, vf,
     iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(
         batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
-        pol_loss = update_pol(pol, optim_pol, batch, kl_beta, max_grad_norm, ent_beta)
+        pol_loss = update_pol(pol, optim_pol, batch,
+                              kl_beta, max_grad_norm, ent_beta)
         vf_loss = update_vf(vf, optim_vf, batch)
 
         pol_losses.append(pol_loss)

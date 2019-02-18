@@ -43,7 +43,7 @@ def linesearch(
     expected_improve_rate,
     max_backtracks=10,
     accept_ratio=.1,
-    ent_beta = 0
+    ent_beta=0
 ):
     fval = f(pol, batch).detach()
     for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):

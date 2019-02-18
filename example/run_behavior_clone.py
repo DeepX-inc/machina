@@ -44,8 +44,8 @@ from simple_net import PolNet, PolNetLSTM, VNet, DiscrimNet
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--c2d', action='store_true' ,default=False)
-parser.add_argument('--rnn', action='store_true' ,default=False)
+parser.add_argument('--c2d', action='store_true', default=False)
+parser.add_argument('--rnn', action='store_true', default=False)
 parser.add_argument('--roboschool', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--episode', type=int, default=1000000)
@@ -71,7 +71,7 @@ parser.add_argument('--lam', type=float, default=1)
 parser.add_argument('--train_size', type=int, default=0.7)
 parser.add_argument('--check_rate', type=int, default=0.05)
 parser.add_argument('--epoch', type=int, default=1000)
-parser.add_argument('--deterministic', action='store_true' ,default=False)
+parser.add_argument('--deterministic', action='store_true', default=False)
 args = parser.parse_args()
 
 device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
@@ -97,7 +97,8 @@ if args.roboschool:
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env = GymEnv(args.env_name, log_dir=os.path.join(
+    args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
@@ -123,7 +124,8 @@ optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 
 with open(os.path.join(args.expert_dir, args.expert_fname), 'rb') as f:
     expert_epis = pickle.load(f)
-train_epis, test_epis = ef.train_test_split(expert_epis, train_size=args.train_size)
+train_epis, test_epis = ef.train_test_split(
+    expert_epis, train_size=args.train_size)
 train_traj = Traj()
 train_traj.add_epis(train_epis)
 train_traj.register_epis()
@@ -146,21 +148,26 @@ for curr_epoch in range(args.epoch):
     for key in test_result_dict.keys():
         result_dict[key] = test_result_dict[key]
 
-        if curr_epoch % int(args.check_rate * args.epoch) == 0 or  curr_epoch==0:
+        if curr_epoch % int(args.check_rate * args.epoch) == 0 or curr_epoch == 0:
             with measure('sample'):
-                paths = sampler.sample(pol, max_episodes=args.max_episodes_per_iter)
+                paths = sampler.sample(
+                    pol, max_episodes=args.max_episodes_per_iter)
             rewards = [np.sum(path['rews']) for path in paths]
             mean_rew = np.mean([np.sum(path['rews']) for path in paths])
             logger.record_bc_results(args.log, result_dict, score_file,
-                              curr_epoch, rewards,
-                              plot_title=args.env_name, x_label='epochs')
+                                     curr_epoch, rewards,
+                                     plot_title=args.env_name, x_label='epochs')
 
         if mean_rew > max_rew:
-            torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_max.pkl'))
-            torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_max.pkl'))
+            torch.save(pol.state_dict(), os.path.join(
+                args.log, 'models', 'pol_max.pkl'))
+            torch.save(optim_pol.state_dict(), os.path.join(
+                args.log, 'models', 'optim_pol_max.pkl'))
             max_rew = mean_rew
 
-        torch.save(pol.state_dict(), os.path.join(args.log, 'models', 'pol_last.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(args.log, 'models', 'optim_pol_last.pkl'))
+        torch.save(pol.state_dict(), os.path.join(
+            args.log, 'models', 'pol_last.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(
+            args.log, 'models', 'optim_pol_last.pkl'))
 
 del sampler

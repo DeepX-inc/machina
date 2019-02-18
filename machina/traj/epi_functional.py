@@ -189,6 +189,7 @@ def compute_h_masks(data):
 
     return data
 
+
 def compute_pseudo_rews(data, discrim):
     epis = data.current_epis
     for epi in epis:
@@ -200,6 +201,7 @@ def compute_pseudo_rews(data, discrim):
         epi['real_rews'] = copy.deepcopy(epi['rews'])
         epi['rews'] = rews
     return data
+
 
 def train_test_split(epis, train_size):
     num_epi = len(epis)

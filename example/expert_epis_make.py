@@ -56,7 +56,8 @@ device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
 device = torch.device(device_name)
 set_device(device)
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.pol_dir, 'movie'), record_video=args.record)
+env = GymEnv(args.env_name, log_dir=os.path.join(
+    args.pol_dir, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
@@ -85,13 +86,15 @@ else:
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel,  seed=args.seed)
 
-with open(os.path.join(args.pol_dir,args.pol_fname), 'rb') as f:
-    pol.load_state_dict(torch.load(f, map_location=lambda storage, location: storage))
+with open(os.path.join(args.pol_dir, args.pol_fname), 'rb') as f:
+    pol.load_state_dict(torch.load(
+        f, map_location=lambda storage, location: storage))
 
 
 epis = sampler.sample(pol, max_episodes=args.num_epis)
 
-filename = args.epis_fname if len(args.epis_fname)!=0  else env.env.spec.id + '_{}trajs.pkl'.format(len(epis))
+filename = args.epis_fname if len(
+    args.epis_fname) != 0 else env.env.spec.id + '_{}trajs.pkl'.format(len(epis))
 with open(os.path.join(args.epis_dir, filename), 'wb') as f:
     pickle.dump(epis, f)
 rewards = [np.sum(epi['rews']) for epi in epis]

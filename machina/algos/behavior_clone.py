@@ -18,7 +18,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from machina import  loss_functional as lf
+from machina import loss_functional as lf
+
 
 def update_pol(pol, optim_pol, batch, deterministic=False):
     if deterministic:
@@ -30,6 +31,7 @@ def update_pol(pol, optim_pol, batch, deterministic=False):
     optim_pol.step()
     return pol_loss.detach().cpu().numpy()
 
+
 def train(expert_traj, pol, optim_pol, batch_size, deterministic=False):
     pol_losses = []
     iterater = expert_traj.iterate_once(batch_size)
@@ -37,6 +39,7 @@ def train(expert_traj, pol, optim_pol, batch_size, deterministic=False):
         pol_loss = update_pol(pol, optim_pol, batch, deterministic)
         pol_losses.append(pol_loss)
     return dict(PolLoss=pol_losses)
+
 
 @torch.no_grad()
 def test(expert_traj, pol, deterministic=False):

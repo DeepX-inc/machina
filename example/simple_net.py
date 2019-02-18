@@ -203,8 +203,9 @@ class VNetLSTM(nn.Module):
 
         return outs, hs
 
+
 class DiscrimNet(nn.Module):
-    def  __init__(self, ob_space, ac_space, h1=32, h2=32):
+    def __init__(self, ob_space, ac_space, h1=32, h2=32):
         nn.Module.__init__(self)
         self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
