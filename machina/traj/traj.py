@@ -156,6 +156,12 @@ class Traj(object):
                 yield self._next_batch(batch_size, indices)
             self._next_id = 0
 
+    def iterate_step(self, batch_size, step=1, indices=None, shuffle=True):
+        indices = self._get_indices(indices, shuffle)
+        for _ in range(step):
+            self._next_id = self._next_id % len(indices)
+            yield self._next_batch(batch_size, indices)
+
     def random_batch_once(self, batch_size, indices=None, return_indices=False):
         """
         Providing a batch which is randomly sampled from trajectory.

@@ -219,3 +219,17 @@ class VNetLSTM(nn.Module):
         outs = self.output_layer(hiddens)
 
         return outs, hs
+
+
+class DiscrimNet(nn.Module):
+    def __init__(self, ob_space, ac_space, h1=32, h2=32):
+        nn.Module.__init__(self)
+        self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
+        self.fc2 = nn.Linear(h1, h2)
+        self.output_layer = nn.Linear(h2, 1)
+        self.apply(weight_init)
+
+    def forward(self, ob, ac):
+        h = torch.tanh(self.fc1(torch.cat([ob, ac], dim=1)))
+        h = torch.tanh(self.fc2(h))
+        return self.output_layer(h)
