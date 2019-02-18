@@ -30,8 +30,6 @@ class MPCPol(BasePol):
     std_obs : torch.tensor
     mean_acs : torch.tensor
     std_acs : torch.tensor
-    mean_next_obs : torch.tensor
-    std_next_obs : torch.tensor
     rnn : bool
     normalize_ac : bool
         If True, the output of network is spreaded for ac_space.
@@ -43,8 +41,8 @@ class MPCPol(BasePol):
     """
 
     def __init__(self, ob_space, ac_space, net, rew_func, n_samples=1000, horizon=20,
-                 mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., mean_next_obs=0., std_next_obs=1.,
-                 rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
+                 mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=False,
+                 normalize_ac=True, data_parallel=False, parallel_dim=0):
         if rnn:
             raise ValueError(
                 'rnn with MPCPol is not supported now')
@@ -58,9 +56,7 @@ class MPCPol(BasePol):
         self.mean_obs = mean_obs.repeat(n_samples, 1).to('cpu')
         self.std_obs = std_obs.repeat(n_samples, 1).to('cpu')
         self.mean_acs = mean_acs.repeat(n_samples, 1).to('cpu')
-        self.std_acs = std_acs.to('cpu')
-        self.mean_next_obs = mean_next_obs.to('cpu')
-        self.std_next_obs = std_next_obs.to('cpu')
+        self.std_acs = std_acs.repeat(n_samples, 1).to('cpu')
 
     def reset(self):
         super(MPCPol, self).reset()
@@ -84,11 +80,11 @@ class MPCPol(BasePol):
             for i in range(self.horizon):
                 ob = (obs[i] - self.mean_obs) / self.std_obs
                 ac = (sample_acs[i] - self.mean_acs) / self.std_acs
-                # inf to mean
+                # inf to zero
                 ob[ob == float('inf')] = 0.
                 ac[ac == float('inf')] = 0.
                 next_ob = ob + self.net(ob, ac)
-                obs[i+1] = next_ob * self.std_next_obs + self.mean_next_obs
+                obs[i+1] = next_ob * self.std_obs + self.mean_obs
                 rews_sum += self.rew_func(obs[i+1], sample_acs[i])
 
         best_sample_index = rews_sum.max(0)[1]

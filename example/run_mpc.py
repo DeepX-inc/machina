@@ -39,12 +39,12 @@ def rew_func(next_obs, acs):
     # HarfCheetah
     index_of_velx = 3
     if isinstance(next_obs, np.ndarray):
-        rews = next_obs[:, index_of_velx]  # - 0.05 * \
-        #np.sum(acs**2, axis=1)
+        rews = next_obs[:, index_of_velx] - 0.01 * \
+            np.sum(acs**2, axis=1)
         rews = rews[0]
     else:
-        rews = next_obs[:, index_of_velx]  # - 0.05 * \
-        #torch.sum(acs**2, dim=1)
+        rews = next_obs[:, index_of_velx] - 0.01 * \
+            torch.sum(acs**2, dim=1)
         rews = rews.squeeze(0)
 
     return rews
@@ -127,7 +127,7 @@ rand_traj.register_epis()
 del rand_sampler
 
 # obs, next_obs, and acs should become mean 0, std 1
-rand_traj, mean_obs, std_obs, mean_acs, std_acs, mean_next_obs, std_next_obs = tf.normalize_obs_and_acs(
+rand_traj, mean_obs, std_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
     rand_traj)
 
 rl_traj = Traj()
@@ -138,8 +138,7 @@ rl_traj = Traj()
 dyn_model = ModelNet(ob_space, ac_space)
 mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func,
                  args.n_samples, args.horizon_of_samples,
-                 mean_obs, std_obs, mean_acs, std_acs,
-                 mean_next_obs, std_next_obs)
+                 mean_obs, std_obs, mean_acs, std_acs)
 optim_dm = torch.optim.Adam(dyn_model.parameters(), args.dm_lr)
 
 rl_sampler = EpiSampler(
@@ -164,8 +163,8 @@ while args.num_aggregation_iters > counter_agg_iters:
         on_traj = ef.add_next_obs(on_traj)
 
         on_traj.register_epis()
-        on_traj = tf.normalize_obs_and_acs(on_traj, mean_obs, std_obs, mean_acs, std_acs,
-                                           mean_next_obs, std_next_obs, return_statistic=False)
+        on_traj = tf.normalize_obs_and_acs(
+            on_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
 
         rl_traj.add_traj(on_traj)
 
