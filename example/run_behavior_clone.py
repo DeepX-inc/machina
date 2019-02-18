@@ -22,16 +22,10 @@ import pickle
 
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import gym
-import pybullet_envs
 
-import machina as mc
-from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-from machina.algos import gail, behavior_clone
-from machina.vfuncs import DeterministicSVfunc
-from machina.discrims import Discrim
+from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, DeterministicActionNoisePol
+from machina.algos import behavior_clone
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -111,7 +105,10 @@ if args.rnn:
 else:
     pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
+    if args.deterministic:
+        pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net)
+    else:
+        pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
 elif isinstance(ac_space, gym.spaces.Discrete):
     pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
@@ -142,7 +139,7 @@ max_rew = -1e6
 for curr_epoch in range(args.epoch):
     result_dict = behavior_clone.train(
         train_traj, pol, optim_pol,
-        args.batch_size, deterministic=args.deterministic
+        args.batch_size
     )
     test_result_dict = behavior_clone.test(test_traj, pol)
     for key in test_result_dict.keys():
@@ -154,9 +151,9 @@ for curr_epoch in range(args.epoch):
                     pol, max_episodes=args.max_episodes_per_iter)
             rewards = [np.sum(path['rews']) for path in paths]
             mean_rew = np.mean([np.sum(path['rews']) for path in paths])
-            logger.record_bc_results(args.log, result_dict, score_file,
+            logger.record_results_bc(args.log, result_dict, score_file,
                                      curr_epoch, rewards,
-                                     plot_title=args.env_name, x_label='epochs')
+                                     plot_title=args.env_name)
 
         if mean_rew > max_rew:
             torch.save(pol.state_dict(), os.path.join(
