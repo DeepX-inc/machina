@@ -11,10 +11,10 @@ from machina import logger
 
 
 def train(traj,
-          pol, qf, targ_qf, log_alpha,
-          optim_pol, optim_qf, optim_alpha,
+          pol, qfs, targ_qfs, log_alpha,
+          optim_pol, optim_qfs, optim_alpha,
           epoch, batch_size,  # optimization hypers
-          tau, gamma, sampling,
+          tau, gamma, sampling, reparam=True,
           ):
     """
     Train function for soft actor critic.
@@ -25,15 +25,15 @@ def train(traj,
         Off policy trajectory.
     pol : Pol
         Policy.
-    qf : SAVfunction
+    qfs : list of SAVfunction
         Q function.
-    targ_qf : SAVfunction
+    targ_qfs : list of SAVfunction
         Target Q function.
     log_alpha : torch.Tensor
         Temperature parameter of entropy.
     optim_pol : torch.optim.Optimizer
         Optimizer for Policy.
-    optim_qf : torch.optim.Optimizer
+    optim_qfs : list of torch.optim.Optimizer
         Optimizer for Q function.
     optim_alpha : torch.optim.Optimizer
         Optimizer for alpha.
@@ -47,6 +47,7 @@ def train(traj,
         Discounting rate.
     sampling : int
         Number of samping in calculating expectation.
+    reparam : bool
 
     Returns
     -------
@@ -54,37 +55,40 @@ def train(traj,
         Dictionary which contains losses information.
     """
 
-    qf_losses = []
     pol_losses = []
+    _qf_losses = []
     alpha_losses = []
     logger.log("Optimizing...")
     for batch in traj.random_batch(batch_size, epoch):
-        pol_loss, qf_loss, alpha_loss = lf.sac(
-            pol, qf, targ_qf, log_alpha, batch, gamma, sampling)
+        pol_loss, qf_losses, alpha_loss = lf.sac(
+            pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling, reparam)
 
         optim_pol.zero_grad()
         pol_loss.backward()
         optim_pol.step()
 
-        optim_qf.zero_grad()
-        qf_loss.backward()
-        optim_qf.step()
+        for optim_qf, qf_loss in zip(optim_qfs, qf_losses):
+            optim_qf.zero_grad()
+            qf_loss.backward()
+            optim_qf.step()
 
         optim_alpha.zero_grad()
         alpha_loss.backward()
         optim_alpha.step()
 
-        for q, targ_q in zip(qf.parameters(), targ_qf.parameters()):
-            targ_q.detach().copy_((1 - tau) * targ_q.detach() + tau * q.detach())
+        for qf, targ_qf in zip(qfs, targ_qfs):
+            for q, targ_q in zip(qf.parameters(), targ_qf.parameters()):
+                targ_q.detach().copy_((1 - tau) * targ_q.detach() + tau * q.detach())
 
         pol_losses.append(pol_loss.detach().cpu().numpy())
-        qf_losses.append(qf_loss.detach().cpu().numpy())
+        _qf_losses.append(
+            (sum(qf_losses) / len(qf_losses)).detach().cpu().numpy())
         alpha_losses.append(alpha_loss.detach().cpu().numpy())
 
     logger.log("Optimization finished!")
 
     return dict(
         PolLoss=pol_losses,
-        QfLoss=qf_losses,
+        QfLoss=_qf_losses,
         AlphaLoss=alpha_losses
     )
