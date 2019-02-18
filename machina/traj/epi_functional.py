@@ -3,7 +3,9 @@ These are functions which is applied to episodes.
 """
 
 import numpy as np
+import copy
 import torch
+import torch.nn.functional as F
 
 from machina.utils import get_device
 from machina import loss_functional as lf
@@ -186,3 +188,26 @@ def compute_h_masks(data):
         epi['h_masks'] = h_masks
 
     return data
+
+
+def compute_pseudo_rews(data, discrim):
+    epis = data.current_epis
+    for epi in epis:
+        obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
+        acs = torch.tensor(epi['acs'], dtype=torch.float, device=get_device())
+        logits, _ = discrim(obs, acs)
+        with torch.no_grad():
+            rews = -F.logsigmoid(-logits).cpu().numpy()
+        epi['real_rews'] = copy.deepcopy(epi['rews'])
+        epi['rews'] = rews
+    return data
+
+
+def train_test_split(epis, train_size):
+    num_epi = len(epis)
+    num_train = int(num_epi * train_size)
+    indices = np.arange(num_epi)
+    train_epis, test_epis = [[epis[indice] for indice in indices] for indices in
+                             np.array_split(indices, [num_train])]
+
+    return train_epis, test_epis

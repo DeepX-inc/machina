@@ -938,7 +938,7 @@ def _check_available():
 def plot_scores(filename, key, x_key, scores=None, label=None, title=None,
                 color=None, result_directory=None,
                 plot_legend=True, xlim=None, ylim=None,
-                y_label=None):
+                x_label='steps', y_label=None):
     if _check_available:
         import matplotlib.pyplot as plt
     else:
@@ -961,7 +961,7 @@ def plot_scores(filename, key, x_key, scores=None, label=None, title=None,
                    color=color,
                    alpha=0.2)
 
-    a.set_xlabel('steps')
+    a.set_xlabel(x_label)
     if y_label is not None:
         a.set_ylabel(y_label)
     if plot_legend is True:
@@ -1605,12 +1605,56 @@ def record_results(log_dir, result_dict, score_file,
             _running_processes.append(p)
 
 
-def async_plot_scores(filename, title, result_dict, rewards):
+def record_results_bc(log_dir, result_dict, score_file,
+                      epoch,
+                      rewards=None,
+                      plot_title=None,
+                      async_plot=True,
+                      ):
+    log("outdir {}".format(os.path.abspath(log_dir)))
+
+    for key, value in result_dict.items():
+        if not hasattr(value, '__len__'):
+            record_tabular(key, value)
+        elif len(value) >= 1:
+            record_tabular_misc_stat(key, value)
+    if rewards is not None:
+        record_tabular_misc_stat('Reward', rewards)
+    record_tabular('CurrentEpoch', epoch)
+    dump_tabular()
+
+    if not async_plot:
+        for key, value in result_dict.items():
+            if hasattr(value, '__len__'):
+                fig_fname = plot_scores(score_file, key, 'CurrentEpoch',
+                                        title=plot_title, x_label='epoch')
+                log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
+        if rewards is not None:
+            fig_fname = plot_scores(score_file, 'Reward', 'CurrentEpoch',
+                                    title=plot_title, x_label='epoch')
+            log('Saved a figure as {}'.format(os.path.abspath(fig_fname)))
+    else:
+        global _async_plot_flag
+        if not _async_plot_flag:
+            global plot_process
+            plot_process = mp.Pool(processes=1)
+            _async_plot_flag = True
+        if _running_processes:
+            p = _running_processes[0]
+            if p.ready():
+                del _running_processes[:]
+        if not _running_processes:
+            p = plot_process.apply_async(func=async_plot_scores, args=(
+                score_file, plot_title, result_dict, rewards, 'CurrentEpoch', 'epoch'))
+            _running_processes.append(p)
+
+
+def async_plot_scores(filename, title, result_dict, rewards, x_key='TotalStep', x_label='steps'):
     scores = pd.read_csv(filename)
     for key, value in result_dict.items():
         if hasattr(value, '__len__'):
-            fig_fname = plot_scores(filename, key, 'TotalStep',
-                                    title=title, scores=scores)
+            fig_fname = plot_scores(filename, key, x_key,
+                                    title=title, scores=scores, x_label=x_label)
     if rewards is not None:
-        fig_fname = plot_scores(filename, 'Reward', 'TotalStep',
-                                title=title, scores=scores)
+        fig_fname = plot_scores(filename, 'Reward', x_key,
+                                title=title, scores=scores, x_label=x_label)
