@@ -15,7 +15,7 @@ from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, Deter
 from machina.noise import OUActionNoise
 from machina.envs import GymEnv, C2DEnv
 from machina.samplers import EpiSampler
-from machina.misc import logger
+from machina import logger
 from machina.utils import measure, set_device
 
 
