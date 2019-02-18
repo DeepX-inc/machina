@@ -371,6 +371,7 @@ def dynamics(dm, batch, target='next_obs', td=True):
 
     return dm_loss
 
+
 def likelihood(pol, batch):
     obs = batch['obs']
     acs = batch['acs']
