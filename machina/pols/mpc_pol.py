@@ -21,7 +21,6 @@ class MPCPol(BasePol):
         dymamics model
     rew_func : function
         rt = rew_func(st+1, at). rt, st+1 and at are torch.tensor.
-    env : gym.Env
     n_samples : int
         num of action samples in the model predictive control
     horizon : int
