@@ -68,10 +68,7 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
         rl_iterator = rl_traj.iterate(batch_size, epoch)
         rand_iterator = rand_traj.iterate(batch_size, epoch)
 
-    count = 0
     for rl_batch, rand_batch in zip(rl_iterator, rand_iterator):
-        print(count)
-        count += 1
         dyn_model.reset()
         batch = dict()
         if len(rl_batch) == 0:
@@ -95,7 +92,7 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
                 [rand_batch['next_obs'], rl_batch['next_obs']], dim=-2)
             if dyn_model.rnn:
                 batch['h_masks'] = torch.cat(
-                    [rand_batch['h_masks'], rl_batch['h_masks']], dim=0)
+                    [rand_batch['h_masks'], rl_batch['h_masks']], dim=1)
 
         dm_loss = update_dm(
             dyn_model, optim_dm, batch, target=target, td=td)
