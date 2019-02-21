@@ -240,7 +240,7 @@ class ModelNetLSTM(nn.Module):
         return new_hs
 
     def forward(self, ob, ac, hs, h_masks):
-        time_seq, batch_size, *_ = xs.shape
+        time_seq, batch_size, *_ = ob.shape
 
         hs = (hs[0].reshape(batch_size, self.cell_size),
               hs[1].reshape(batch_size, self.cell_size))

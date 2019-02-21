@@ -89,7 +89,7 @@ class MPCPol(BasePol):
                 ob = (obs[i] - self.mean_obs) / self.std_obs
                 ac = (sample_acs[i] - self.mean_acs) / self.std_acs
                 if self.rnn:
-                    d_ob, hs = self.net(ob, ac, hs, h_mask)
+                    d_ob, hs = self.net(ob, ac, hs, h_masks)
                     next_ob = ob + d_ob
                     if i == 0:
                         self.hs = hs
