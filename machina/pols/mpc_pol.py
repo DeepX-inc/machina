@@ -70,7 +70,6 @@ class MPCPol(BasePol):
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float)
         obs[0] = ob.repeat(self.n_samples, 1)
-        obs[0] = self._check_obs_shape(obs[0])
 
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
@@ -89,7 +88,8 @@ class MPCPol(BasePol):
                 ob = (obs[i] - self.mean_obs) / self.std_obs
                 ac = (sample_acs[i] - self.mean_acs) / self.std_acs
                 if self.rnn:
-                    d_ob, hs = self.net(ob, ac, hs, h_masks)
+                    d_ob, hs = self.net(ob.unsqueeze(
+                        0), ac.unsqueeze(0), hs, h_masks)
                     next_ob = ob + d_ob
                     if i == 0:
                         self.hs = hs
