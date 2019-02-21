@@ -52,7 +52,7 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
         Dictionary which contains losses information.
     """
 
-    batch_size_rl = int(batch_size * rl_batch_rate)
+    batch_size_rl = min(int(batch_size * rl_batch_rate), rl_traj.num_epi)
     batch_size_rand = batch_size - batch_size_rl
 
     dm_losses = []
@@ -63,9 +63,9 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
         rand_iterator = rand_traj.iterate(batch_size, epoch)
     else:
         rl_iterator = rl_traj.iterate_rnn(
-            batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+            batch_size=batch_size_rl, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
         rand_iterator = rand_traj.iterate_rnn(
-            batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+            batch_size=batch_size_rand, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
 
     for rl_batch, rand_batch in zip(rl_iterator, rand_iterator):
         dyn_model.reset()
