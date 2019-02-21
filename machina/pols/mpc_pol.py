@@ -60,7 +60,7 @@ class MPCPol(BasePol):
     def reset(self):
         super(MPCPol, self).reset()
 
-    def forward(self, ob):
+    def forward(self, ob, hs=None, h_masks=None):
         # randomly sample N candidate action sequences
         sample_acs = np.random.uniform(
             self.ac_space.low[0], self.ac_space.high[0], (self.horizon, self.n_samples, self.ac_space.shape[0]))
@@ -72,14 +72,32 @@ class MPCPol(BasePol):
                            self.ob_space.shape[0]), dtype=torch.float)
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float)
-
         obs[0] = ob.repeat(self.n_samples, 1)
         obs[0] = self._check_obs_shape(obs[0])
+
+        if self.rnn:
+            time_seq, batch_size, *_ = obs.shape
+
+            if hs is None:
+                if self.hs is None:
+                    self.hs = self.net.init_hs(batch_size)
+                hs = self.hs
+
+            if h_masks is None:
+                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            h_masks = h_masks.reshape(time_seq, batch_size, 1)
+
         with torch.no_grad():
             for i in range(self.horizon):
                 ob = (obs[i] - self.mean_obs) / self.std_obs
                 ac = (sample_acs[i] - self.mean_acs) / self.std_acs
-                next_ob = ob + self.net(ob, ac)
+                if self.rnn:
+                    d_ob, hs = self.net(ob, ac, hs, h_mask)
+                    next_ob = ob + d_ob
+                    if i == 0:
+                        self.hs = hs
+                else:
+                    next_ob = ob + self.net(ob, ac)
                 obs[i+1] = next_ob * self.std_obs + self.mean_obs
                 rews_sum += self.rew_func(obs[i+1], sample_acs[i])
 
@@ -87,11 +105,11 @@ class MPCPol(BasePol):
         ac = sample_acs[0][best_sample_index]
         ac_real = ac.cpu().numpy()
 
-        return ac_real, ac, dict(mean=ac)
+        return ac_real, ac, dict(mean=ac, hs=hs)
 
     def deterministic_ac_real(self, obs):
         """
         action for deployment
         """
         mean_read, mean, dic = self.forward(obs)
-        return mean_real, mean, dict(mean=mean)
+        return mean_real, mean, dic
