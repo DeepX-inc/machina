@@ -84,11 +84,11 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
             batch['next_obs'] = rl_batch['next_obs']
         else:
             batch['obs'] = torch.cat(
-                [rand_batch['obs'], rl_batch['obs']], dim=0)
+                [rand_batch['obs'], rl_batch['obs']], dim=-2)
             batch['acs'] = torch.cat(
-                [rand_batch['acs'], rl_batch['acs']], dim=0)
+                [rand_batch['acs'], rl_batch['acs']], dim=-2)
             batch['next_obs'] = torch.cat(
-                [rand_batch['next_obs'], rl_batch['next_obs']], dim=0)
+                [rand_batch['next_obs'], rl_batch['next_obs']], dim=-2)
 
         dm_loss = update_dm(
             dyn_model, optim_dm, batch, target=target, td=td)
