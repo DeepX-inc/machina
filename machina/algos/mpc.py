@@ -60,13 +60,13 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
     logger.log("Optimizing...")
 
     if dyn_model.rnn:
-        rl_iterator = rl_traj.iterate(batch_size, epoch)
-        rand_iterator = rand_traj.iterate(batch_size, epoch)
-    else:
         rl_iterator = rl_traj.iterate_rnn(
             batch_size=batch_size_rl, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
         rand_iterator = rand_traj.iterate_rnn(
             batch_size=batch_size_rand, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
+    else:
+        rl_iterator = rl_traj.iterate(batch_size, epoch)
+        rand_iterator = rand_traj.iterate(batch_size, epoch)
 
     count = 0
     for rl_batch, rand_batch in zip(rl_iterator, rand_iterator):
