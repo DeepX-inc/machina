@@ -77,12 +77,14 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
             batch['next_obs'] = rand_batch['next_obs']
             if dyn_model.rnn:
                 batch['h_masks'] = rand_batch['h_masks']
+                batch['out_masks'] = rand_batch['out_masks']
         elif len(rand_batch) == 0:
             batch['obs'] = rl_batch['obs']
             batch['acs'] = rl_batch['acs']
             batch['next_obs'] = rl_batch['next_obs']
             if dyn_model.rnn:
                 batch['h_masks'] = rl_batch['h_masks']
+                batch['out_masks'] = rl_batch['out_masks']
         else:
             batch['obs'] = torch.cat(
                 [rand_batch['obs'], rl_batch['obs']], dim=-2)
@@ -93,6 +95,8 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
             if dyn_model.rnn:
                 batch['h_masks'] = torch.cat(
                     [rand_batch['h_masks'], rl_batch['h_masks']], dim=1)
+                batch['out_masks'] = torch.cat(
+                    [rand_batch['out_masks'], rl_batch['out_masks']], dim=1)
 
         dm_loss = update_dm(
             dyn_model, optim_dm, batch, target=target, td=td)
