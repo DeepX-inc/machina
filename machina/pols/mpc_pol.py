@@ -102,7 +102,7 @@ class MPCPol(BasePol):
         ac = sample_acs[0][best_sample_index]
         ac_real = ac.cpu().numpy()
 
-        return ac_real, ac, dict(mean=ac, hs=hs)
+        return ac_real, ac, dict(mean=ac)
 
     def deterministic_ac_real(self, obs):
         """
