@@ -53,6 +53,7 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_o
     dm_losses = []
     logger.log("Optimizing...")
 
+    batch_size = min(batch_size, traj.num_epi)
     if dyn_model.rnn:
         iterator = traj.iterate_rnn(
             batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
