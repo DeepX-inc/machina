@@ -54,7 +54,7 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
 
     batch_size_rl = min(int(batch_size * rl_batch_rate), rl_traj.num_epi)
     batch_size_rand = min(
-        int(batch_size * (1 - rl_batch_rate)), rand_traj.num_epi)
+        int(batch_size - batch_size_rl), rand_traj.num_epi)
 
     dm_losses = []
     logger.log("Optimizing...")
