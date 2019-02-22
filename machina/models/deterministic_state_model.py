@@ -46,4 +46,4 @@ class DeterministicSModel(BaseModel):
             self.hs = hs
         else:
             d_ob = self.net(obs, acs)
-        return d_ob.squeeze(-1), dict(mean=d_ob.squeeze(-1))
+        return d_ob, dict(mean=d_ob)
