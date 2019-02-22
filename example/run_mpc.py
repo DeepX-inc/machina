@@ -121,19 +121,17 @@ rand_sampler = EpiSampler(
 
 epis = rand_sampler.sample(random_pol, max_episodes=args.num_random_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
-rand_traj = Traj()
-rand_traj.add_epis(epis)
-rand_traj = ef.add_next_obs(rand_traj)
-rand_traj = ef.compute_h_masks(rand_traj)
-rand_traj.register_epis()
+traj = Traj()
+traj.add_epis(epis)
+traj = ef.add_next_obs(traj)
+traj = ef.compute_h_masks(traj)
+traj.register_epis()
 
 del rand_sampler
 
 # obs, next_obs, and acs should become mean 0, std 1
-rand_traj, mean_obs, std_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
-    rand_traj)
-
-rl_traj = Traj()
+traj, mean_obs, std_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
+    traj)
 
 ### Train Dynamics Model ###
 
@@ -165,23 +163,23 @@ while args.num_aggregation_iters > counter_agg_iters:
         epis = rl_sampler.sample(
             mpc_pol, max_episodes=args.max_episodes_per_iter)
 
-        on_traj = Traj()
-        on_traj.add_epis(epis)
+        curr_traj = Traj()
+        curr_traj.add_epis(epis)
 
-        on_traj = ef.add_next_obs(on_traj)
-        on_traj = ef.compute_h_masks(on_traj)
+        curr_traj = ef.add_next_obs(curr_traj)
+        curr_traj = ef.compute_h_masks(curr_traj)
 
-        on_traj.register_epis()
-        on_traj = tf.normalize_obs_and_acs(
-            on_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
+        curr_traj.register_epis()
+        curr_traj = tf.normalize_obs_and_acs(
+            curr_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
 
-        rl_traj.add_traj(on_traj)
+        traj.add_traj(curr_traj)
     with measure('train model'):
         result_dict = mpc.train_dm(
-            rl_traj, rand_traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, rl_batch_rate=args.rl_batch_rate)
+            traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, rl_batch_rate=args.rl_batch_rate)
 
-    total_epi += on_traj.num_epi
-    step = on_traj.num_step
+    total_epi += curr_traj.num_epi
+    step = curr_traj.num_step
     total_step += step
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
@@ -203,5 +201,5 @@ while args.num_aggregation_iters > counter_agg_iters:
         args.log, 'models', 'optim_dm_last.pkl'))
 
     counter_agg_iters += 1
-    del on_traj
+    del curr_traj
 del rl_sampler
