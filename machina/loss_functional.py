@@ -391,3 +391,37 @@ def cross_ent(discrim, batch, expert_or_agent, ent_beta):
     ent = (1 - torch.sigmoid(logits))*logits - F.logsigmoid(logits)
     discrim_loss -= ent_beta * torch.mean(ent)
     return discrim_loss
+
+
+def density_ratio_rew_cross_ent(rewf, shaping_vf, pol, batch, expert_or_agent, gamma):
+    obs = batch['obs']
+    acs = batch['acs']
+    next_obs = batch['next_obs']
+    dones = batch['dones']
+    vs, _ = shaping_vf(obs)
+    rews, _ = rewf(obs)
+    next_vs, _ = shaping_vf(next_obs)
+    energies = rews + (1 - dones) * gamma * next_vs - vs
+    with torch.no_grad():
+        _, _, params = pol(obs)
+        llhs = pol.pd.llh(acs, params)
+    logits = energies - llhs
+    len = obs.shape[0]
+    discrim_loss = F.binary_cross_entropy_with_logits(
+        logits, torch.ones(len, device=get_device())*expert_or_agent)
+    return discrim_loss
+
+
+def density_ratio_adv_cross_ent(advf, pol, batch, expert_or_agent):
+    obs = batch['obs']
+    acs = batch['acs']
+    advs, _ = advf(obs, acs)
+    energies = advs
+    with torch.no_grad():
+        _, _, params = pol(obs)
+        llhs = pol.pd.llh(acs, params)
+    logits = energies - llhs
+    len = obs.shape[0]
+    discrim_loss = F.binary_cross_entropy_with_logits(
+        logits, torch.ones(len, device=get_device())*expert_or_agent)
+    return discrim_loss

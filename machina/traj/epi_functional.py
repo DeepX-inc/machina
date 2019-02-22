@@ -190,12 +190,16 @@ def compute_h_masks(data):
     return data
 
 
-def compute_pseudo_rews(data, discrim):
+def compute_pseudo_rews(data, rew_giver, state_only=False):
     epis = data.current_epis
     for epi in epis:
         obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
-        acs = torch.tensor(epi['acs'], dtype=torch.float, device=get_device())
-        logits, _ = discrim(obs, acs)
+        if state_only:
+            logits, _ = rew_giver(obs)
+        else:
+            acs = torch.tensor(
+                epi['acs'], dtype=torch.float, device=get_device())
+            logits, _ = rew_giver(obs, acs)
         with torch.no_grad():
             rews = -F.logsigmoid(-logits).cpu().numpy()
         epi['real_rews'] = copy.deepcopy(epi['rews'])
