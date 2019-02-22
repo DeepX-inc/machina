@@ -21,7 +21,7 @@ def update_dm(dm, optim_dm, batch, target='next_obs', td=True):
     return dm_loss.detach().cpu().numpy()
 
 
-def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, rl_batch_rate=0.9, target='next_obs', td=True, num_epi_per_seq=1):
+def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_obs', td=True, num_epi_per_seq=1):
     """
     Train function for dynamics model.
 
@@ -37,8 +37,6 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, rl_batch_rate=
         Number of iteration.
     batch_size : int
         Number of batches.
-    rl_batch_rate : float
-        rate of size of rl batch.
     target : str
         Target of prediction is next_obs or rews.
     td : bool
