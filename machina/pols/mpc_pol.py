@@ -91,8 +91,6 @@ class MPCPol(BasePol):
                     d_ob, hs = self.net(ob.unsqueeze(
                         0), ac.unsqueeze(0), hs, h_masks)
                     next_ob = ob + d_ob
-                    if i == 0:
-                        self.hs = hs
                 else:
                     next_ob = ob + self.net(ob, ac)
                 obs[i+1] = next_ob * self.std_obs + self.mean_obs
@@ -101,6 +99,12 @@ class MPCPol(BasePol):
         best_sample_index = rews_sum.max(0)[1]
         ac = sample_acs[0][best_sample_index]
         ac_real = ac.cpu().numpy()
+
+        if self.rnn:
+            normalized_ob = (obs[0] - self.mean_obs) / self.std_obs
+            normalized_ac = (ac - self.mean_acs) / self.std_acs
+            _, self.hs = self.net(normalized_ob.unsqueeze(
+                0), normalized_ac.unsqueeze(0), self.hs, h_masks)
 
         return ac_real, ac, dict(mean=ac)
 
