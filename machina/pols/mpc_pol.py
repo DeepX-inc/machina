@@ -71,6 +71,7 @@ class MPCPol(BasePol):
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float)
         obs[0] = ob.repeat(self.n_samples, 1)
+        obs[0] = (obs[0] - self.mean_obs) / self.std_obs
 
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
@@ -86,26 +87,27 @@ class MPCPol(BasePol):
 
         with torch.no_grad():
             for i in range(self.horizon):
-                ob = (obs[i] - self.mean_obs) / self.std_obs
+                ob = obs[i+1]
                 ac = normalized_acs[i]
                 if self.rnn:
                     d_ob, hs = self.net(ob.unsqueeze(
                         0), ac.unsqueeze(0), hs, h_masks)
-                    next_ob = ob + d_ob
+                    obs[i+1] = ob + d_ob
                 else:
-                    next_ob = ob + self.net(ob, ac)
-                obs[i+1] = next_ob * self.std_obs + self.mean_obs
-                rews_sum += self.rew_func(obs[i+1], sample_acs[i])
+                    obs[i+1] = ob + self.net(ob, ac)
+                denormalized_ob = obs[i+1] * self.std_obs + self.mean_obs
+                rews_sum += self.rew_func(denormalized_ob, sample_acs[i])
 
         best_sample_index = rews_sum.max(0)[1]
         ac = sample_acs[0][best_sample_index]
         ac_real = ac.cpu().numpy()
 
         if self.rnn:
-            normalized_ob = (obs[0] - self.mean_obs) / self.std_obs
-            normalized_ac = (ac - self.mean_acs) / self.std_acs
-            _, self.hs = self.net(normalized_ob.unsqueeze(
-                0), normalized_ac.unsqueeze(0), self.hs, h_masks)
+            normalized_ac = normalized_acs[0][best_sample_index].repeat(
+                self.n_samples, 1)
+            with torch.no_grad():
+                _, self.hs = self.net(obs[0].unsqueeze(
+                    0), normalized_ac.unsqueeze(0), self.hs, h_masks)
 
         return ac_real, ac, dict(mean=ac)
 
