@@ -85,14 +85,13 @@ class MPCPol(BasePol):
 
         with torch.no_grad():
             for i in range(self.horizon):
-                ob = obs[i+1]
                 ac = normalized_acs[i]
                 if self.rnn:
-                    d_ob, hs = self.net(ob.unsqueeze(
+                    d_ob, hs = self.net(obs[i].unsqueeze(
                         0), ac.unsqueeze(0), hs, h_masks)
-                    obs[i+1] = ob + d_ob
+                    obs[i+1] = obs[i] + d_ob
                 else:
-                    obs[i+1] = ob + self.net(ob, ac)
+                    obs[i+1] = obs[i] + self.net(obs[i], ac)
                 denormalized_ob = obs[i+1] * self.std_obs + self.mean_obs
                 rews_sum += self.rew_func(denormalized_ob, sample_acs[i])
 
