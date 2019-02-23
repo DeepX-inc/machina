@@ -59,10 +59,8 @@ class MPCPol(BasePol):
 
     def forward(self, ob, hs=None, h_masks=None):
         # randomly sample N candidate action sequences
-        sample_acs = np.random.uniform(
-            self.ac_space.low[0], self.ac_space.high[0], (self.horizon, self.n_samples, self.ac_space.shape[0]))
-        sample_acs = torch.tensor(
-            sample_acs, dtype=torch.float)
+        sample_acs = torch.empty(self.horizon, self.n_samples, self.ac_space.shape[0], dtype=torch.float).uniform_(
+            self.ac_space.low[0], self.ac_space.high[0])
         normalized_acs = (sample_acs - self.mean_acs) / self.std_acs
 
         # forward simulate the action sequences to get predicted trajectories
