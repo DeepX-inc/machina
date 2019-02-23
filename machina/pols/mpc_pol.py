@@ -63,6 +63,7 @@ class MPCPol(BasePol):
             self.ac_space.low[0], self.ac_space.high[0], (self.horizon, self.n_samples, self.ac_space.shape[0]))
         sample_acs = torch.tensor(
             sample_acs, dtype=torch.float)
+        normalized_acs = (sample_acs - self.mean_acs) / self.std_acs
 
         # forward simulate the action sequences to get predicted trajectories
         obs = torch.zeros((self.horizon+1, self.n_samples,
@@ -86,7 +87,7 @@ class MPCPol(BasePol):
         with torch.no_grad():
             for i in range(self.horizon):
                 ob = (obs[i] - self.mean_obs) / self.std_obs
-                ac = (sample_acs[i] - self.mean_acs) / self.std_acs
+                ac = normalized_acs[i]
                 if self.rnn:
                     d_ob, hs = self.net(ob.unsqueeze(
                         0), ac.unsqueeze(0), hs, h_masks)
