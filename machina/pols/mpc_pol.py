@@ -96,8 +96,8 @@ class MPCPol(BasePol):
                     obs[i+1] = obs[i] + d_ob
                 else:
                     obs[i+1] = obs[i] + self.net(obs[i], ac)
-                denormalized_ob = obs[i+1] * self.std_obs + self.mean_obs
-                rews_sum += self.rew_func(denormalized_ob, sample_acs[i])
+                rews_sum += self.rew_func(obs[i+1], sample_acs[i],
+                                          self.mean_obs, self.std_obs)
 
         best_sample_index = rews_sum.max(0)[1]
         ac = sample_acs[0][best_sample_index]
