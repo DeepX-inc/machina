@@ -148,7 +148,7 @@ rl_sampler = EpiSampler(
 total_epi = 0
 total_step = 0
 counter_agg_iters = 0
-max_rew = -1e-6
+max_rew = -1e+6
 while args.num_aggregation_iters > counter_agg_iters:
     with measure('train model'):
         result_dict = mpc.train_dm(
