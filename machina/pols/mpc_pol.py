@@ -25,10 +25,10 @@ class MPCPol(BasePol):
         num of action samples in the model predictive control
     horizon : int
         horizon of prediction
-    mean_obs : torch.tensor
-    std_obs : torch.tensor
-    mean_acs : torch.tensor
-    std_acs : torch.tensor
+    mean_obs : np.array
+    std_obs : np.array
+    mean_acs : np.array
+    std_acs : np.array
     rnn : bool
     normalize_ac : bool
         If True, the output of network is spreaded for ac_space.
@@ -49,10 +49,14 @@ class MPCPol(BasePol):
         self.horizon = horizon
         self.to(get_device())
 
-        self.mean_obs = mean_obs.repeat(n_samples, 1).to('cpu')
-        self.std_obs = std_obs.repeat(n_samples, 1).to('cpu')
-        self.mean_acs = mean_acs.repeat(n_samples, 1).to('cpu')
-        self.std_acs = std_acs.repeat(n_samples, 1).to('cpu')
+        self.mean_obs = torch.tensor(
+            mean_obs, dtype=torch.float).repeat(n_samples, 1)
+        self.std_obs = torch.tensor(
+            std_obs, dtype=torch.float).repeat(n_samples, 1)
+        self.mean_acs = torch.tensor(
+            mean_acs, dtype=torch.float).repeat(n_samples, 1)
+        self.std_acs = torch.tensor(
+            std_acs, dtype=torch.float).repeat(n_samples, 1)
 
     def reset(self):
         super(MPCPol, self).reset()

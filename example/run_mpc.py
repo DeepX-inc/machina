@@ -124,13 +124,11 @@ traj = Traj()
 traj.add_epis(epis)
 traj = ef.add_next_obs(traj)
 traj = ef.compute_h_masks(traj)
+# obs, next_obs, and acs should become mean 0, std 1
+traj, mean_obs, std_obs, mean_acs, std_acs = ef.normalize_obs_and_acs(traj)
 traj.register_epis()
 
 del rand_sampler
-
-# obs, next_obs, and acs should become mean 0, std 1
-traj, mean_obs, std_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
-    traj)
 
 ### Train Dynamics Model ###
 
@@ -170,11 +168,9 @@ while args.num_aggregation_iters > counter_agg_iters:
 
         curr_traj = ef.add_next_obs(curr_traj)
         curr_traj = ef.compute_h_masks(curr_traj)
-
-        curr_traj.register_epis()
-        curr_traj = tf.normalize_obs_and_acs(
+        traj = ef.normalize_obs_and_acs(
             curr_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
-
+        curr_traj.register_epis()
         traj.add_traj(curr_traj)
 
     total_epi += curr_traj.num_epi
