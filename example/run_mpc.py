@@ -17,6 +17,7 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, MPCPol, RandomPol
 from machina.algos import mpc
 from machina.vfuncs import DeterministicSVfunc
+from machina.models import DeterministicSModel
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -25,7 +26,7 @@ from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import set_device, measure
 
-from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM
+from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM, ModelNetLSTM
 
 
 def add_noise_to_init_obs(epis, std):
@@ -35,17 +36,14 @@ def add_noise_to_init_obs(epis, std):
     return epis
 
 
-def rew_func(next_obs, acs):
+def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+    next_obs = next_obs * std_obs + mean_obs
+    acs = acs * std_acs + mean_acs
     # HarfCheetah
     index_of_velx = 3
-    if isinstance(next_obs, np.ndarray):
-        rews = next_obs[:, index_of_velx] - 0.01 * \
-            np.sum(acs**2, axis=1)
-        rews = rews[0]
-    else:
-        rews = next_obs[:, index_of_velx] - 0.01 * \
-            torch.sum(acs**2, dim=1)
-        rews = rews.squeeze(0)
+    rews = next_obs[:, index_of_velx] - 0.01 * \
+        torch.sum(acs**2, dim=1)
+    rews = rews.squeeze(0)
 
     return rews
 
@@ -59,16 +57,16 @@ parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--num_parallel', type=int, default=4)
 parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--data_parallel', action='store_true', default=False)
 
-parser.add_argument('--num_random_rollouts', type=int, default=10)
+parser.add_argument('--num_random_rollouts', type=int, default=60)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
 parser.add_argument('--n_samples', type=int, default=300)
 parser.add_argument('--horizon_of_samples', type=int, default=4)
 parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
 parser.add_argument('--epoch_per_iter', type=int, default=60)
-parser.add_argument('--rl_batch_rate', type=float, default=0.9)
-parser.add_argument('--batch_size', type=int, default=512)
+parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true', default=False)
 args = parser.parse_args()
@@ -119,27 +117,29 @@ rand_sampler = EpiSampler(
 
 epis = rand_sampler.sample(random_pol, max_episodes=args.num_random_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
-rand_traj = Traj()
-rand_traj.add_epis(epis)
-rand_traj = ef.add_next_obs(rand_traj)
-rand_traj.register_epis()
+traj = Traj()
+traj.add_epis(epis)
+traj = ef.add_next_obs(traj)
+traj = ef.compute_h_masks(traj)
+# obs, next_obs, and acs should become mean 0, std 1
+traj, mean_obs, std_obs, mean_acs, std_acs = ef.normalize_obs_and_acs(traj)
+traj.register_epis()
 
 del rand_sampler
-
-# obs, next_obs, and acs should become mean 0, std 1
-rand_traj, mean_obs, std_obs, mean_acs, std_acs = tf.normalize_obs_and_acs(
-    rand_traj)
-
-rl_traj = Traj()
 
 ### Train Dynamics Model ###
 
 # initialize dynamics model and mpc policy
-dyn_model = ModelNet(ob_space, ac_space)
-mpc_pol = MPCPol(ob_space, ac_space, dyn_model, rew_func,
+if args.rnn:
+    dm_net = ModelNetLSTM(ob_space, ac_space)
+else:
+    dm_net = ModelNet(ob_space, ac_space)
+dm = DeterministicSModel(ob_space, ac_space, dm_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+mpc_pol = MPCPol(ob_space, ac_space, dm_net, rew_func,
                  args.n_samples, args.horizon_of_samples,
-                 mean_obs, std_obs, mean_acs, std_acs)
-optim_dm = torch.optim.Adam(dyn_model.parameters(), args.dm_lr)
+                 mean_obs, std_obs, mean_acs, std_acs, args.rnn)
+optim_dm = torch.optim.Adam(dm_net.parameters(), args.dm_lr)
 
 rl_sampler = EpiSampler(
     env, mpc_pol, num_parallel=args.num_parallel, seed=args.seed)
@@ -148,28 +148,30 @@ rl_sampler = EpiSampler(
 total_epi = 0
 total_step = 0
 counter_agg_iters = 0
-max_rew = -1e-6
+max_rew = -1e+6
 while args.num_aggregation_iters > counter_agg_iters:
     with measure('train model'):
         result_dict = mpc.train_dm(
-            rl_traj, rand_traj, dyn_model, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size, rl_batch_rate=args.rl_batch_rate)
+            traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size)
     with measure('sample'):
+        mpc_pol = MPCPol(ob_space, ac_space, dm.net, rew_func,
+                         args.n_samples, args.horizon_of_samples,
+                         mean_obs, std_obs, mean_acs, std_acs, args.rnn)
         epis = rl_sampler.sample(
             mpc_pol, max_episodes=args.max_episodes_per_iter)
 
-        on_traj = Traj()
-        on_traj.add_epis(epis)
+        curr_traj = Traj()
+        curr_traj.add_epis(epis)
 
-        on_traj = ef.add_next_obs(on_traj)
+        curr_traj = ef.add_next_obs(curr_traj)
+        curr_traj = ef.compute_h_masks(curr_traj)
+        traj = ef.normalize_obs_and_acs(
+            curr_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
+        curr_traj.register_epis()
+        traj.add_traj(curr_traj)
 
-        on_traj.register_epis()
-        on_traj = tf.normalize_obs_and_acs(
-            on_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
-
-        rl_traj.add_traj(on_traj)
-
-    total_epi += on_traj.num_epi
-    step = on_traj.num_step
+    total_epi += curr_traj.num_epi
+    step = curr_traj.num_step
     total_step += step
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
@@ -179,17 +181,17 @@ while args.num_aggregation_iters > counter_agg_iters:
                           plot_title=args.env_name)
 
     if mean_rew > max_rew:
-        torch.save(dyn_model.state_dict(), os.path.join(
+        torch.save(dm.state_dict(), os.path.join(
             args.log, 'models', 'dm_max.pkl'))
         torch.save(optim_dm.state_dict(), os.path.join(
             args.log, 'models', 'optim_dm_max.pkl'))
         max_rew = mean_rew
 
-    torch.save(dyn_model.state_dict(), os.path.join(
+    torch.save(dm.state_dict(), os.path.join(
         args.log, 'models', 'dm_last.pkl'))
     torch.save(optim_dm.state_dict(), os.path.join(
         args.log, 'models', 'optim_dm_last.pkl'))
 
     counter_agg_iters += 1
-    del on_traj
+    del curr_traj
 del rl_sampler

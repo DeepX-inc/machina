@@ -347,7 +347,7 @@ def dynamics(dm, batch, target='next_obs', td=True):
     MSE loss for Dynamics models.
     Parameters
     ----------
-    model : Model
+    dm : Dynamics Model
     batch : dict of torch.Tensor
     target : string
         Prediction target is next_obs or rews.
@@ -362,12 +362,20 @@ def dynamics(dm, batch, target='next_obs', td=True):
     obs = batch['obs']
     acs = batch['acs']
 
-    pred = dm(obs, acs)
-    if target == 'rews' or not td:
-        dm_loss = 0.5 * torch.mean((pred - batch[target])**2)
+    dm.reset()
+    if dm.rnn:
+        h_masks = batch['h_masks']
+        out_masks = batch['out_masks']
+        pred, _ = dm(obs, acs, h_masks=h_masks)
     else:
-        dm_loss = 0.5 * \
-            torch.mean((pred - (batch['next_obs'] - batch['obs']))**2)
+        out_masks = torch.ones_like(obs)
+        pred, _ = dm(obs, acs)
+
+    if target == 'rews' or not td:
+        dm_loss = (pred - batch[target])**2
+    else:
+        dm_loss = (pred - (batch['next_obs'] - batch['obs']))**2
+    dm_loss = 0.5 * torch.mean(torch.mean(dm_loss, dim=-1) * out_masks)
 
     return dm_loss
 

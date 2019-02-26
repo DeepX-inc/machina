@@ -25,10 +25,10 @@ class MPCPol(BasePol):
         num of action samples in the model predictive control
     horizon : int
         horizon of prediction
-    mean_obs : torch.tensor
-    std_obs : torch.tensor
-    mean_acs : torch.tensor
-    std_acs : torch.tensor
+    mean_obs : np.array
+    std_obs : np.array
+    mean_acs : np.array
+    std_acs : np.array
     rnn : bool
     normalize_ac : bool
         If True, the output of network is spreaded for ac_space.
@@ -42,9 +42,6 @@ class MPCPol(BasePol):
     def __init__(self, ob_space, ac_space, net, rew_func, n_samples=1000, horizon=20,
                  mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=False,
                  normalize_ac=True, data_parallel=False, parallel_dim=0):
-        if rnn:
-            raise ValueError(
-                'rnn with MPCPol is not supported now')
         BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac,
                          data_parallel=data_parallel, parallel_dim=parallel_dim)
         self.rew_func = rew_func
@@ -52,40 +49,66 @@ class MPCPol(BasePol):
         self.horizon = horizon
         self.to(get_device())
 
-        self.mean_obs = mean_obs.repeat(n_samples, 1).to('cpu')
-        self.std_obs = std_obs.repeat(n_samples, 1).to('cpu')
-        self.mean_acs = mean_acs.repeat(n_samples, 1).to('cpu')
-        self.std_acs = std_acs.repeat(n_samples, 1).to('cpu')
+        self.mean_obs = torch.tensor(
+            mean_obs, dtype=torch.float).repeat(n_samples, 1)
+        self.std_obs = torch.tensor(
+            std_obs, dtype=torch.float).repeat(n_samples, 1)
+        self.mean_acs = torch.tensor(
+            mean_acs, dtype=torch.float).repeat(n_samples, 1)
+        self.std_acs = torch.tensor(
+            std_acs, dtype=torch.float).repeat(n_samples, 1)
 
     def reset(self):
         super(MPCPol, self).reset()
 
-    def forward(self, ob):
+    def forward(self, ob, hs=None, h_masks=None):
         # randomly sample N candidate action sequences
-        sample_acs = np.random.uniform(
-            self.ac_space.low[0], self.ac_space.high[0], (self.horizon, self.n_samples, self.ac_space.shape[0]))
-        sample_acs = torch.tensor(
-            sample_acs, dtype=torch.float)
+        sample_acs = torch.empty(self.horizon, self.n_samples, self.ac_space.shape[0], dtype=torch.float).uniform_(
+            self.ac_space.low[0], self.ac_space.high[0])
+        normalized_acs = (sample_acs - self.mean_acs) / self.std_acs
 
         # forward simulate the action sequences to get predicted trajectories
         obs = torch.zeros((self.horizon+1, self.n_samples,
                            self.ob_space.shape[0]), dtype=torch.float)
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float)
-
         obs[0] = ob.repeat(self.n_samples, 1)
-        obs[0] = self._check_obs_shape(obs[0])
+        obs[0] = (obs[0] - self.mean_obs) / self.std_obs
+
+        if self.rnn:
+            time_seq, batch_size, *_ = obs.shape
+
+            if hs is None:
+                if self.hs is None:
+                    self.hs = self.net.init_hs(batch_size)
+                hs = self.hs
+
+            if h_masks is None:
+                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            h_masks = h_masks.reshape(time_seq, batch_size, 1)
+
         with torch.no_grad():
             for i in range(self.horizon):
-                ob = (obs[i] - self.mean_obs) / self.std_obs
-                ac = (sample_acs[i] - self.mean_acs) / self.std_acs
-                next_ob = ob + self.net(ob, ac)
-                obs[i+1] = next_ob * self.std_obs + self.mean_obs
-                rews_sum += self.rew_func(obs[i+1], sample_acs[i])
+                ac = normalized_acs[i]
+                if self.rnn:
+                    d_ob, hs = self.net(obs[i].unsqueeze(
+                        0), ac.unsqueeze(0), hs, h_masks)
+                    obs[i+1] = obs[i] + d_ob
+                else:
+                    obs[i+1] = obs[i] + self.net(obs[i], ac)
+                rews_sum += self.rew_func(obs[i+1], sample_acs[i],
+                                          self.mean_obs, self.std_obs)
 
         best_sample_index = rews_sum.max(0)[1]
         ac = sample_acs[0][best_sample_index]
         ac_real = ac.cpu().numpy()
+
+        if self.rnn:
+            normalized_ac = normalized_acs[0][best_sample_index].repeat(
+                self.n_samples, 1)
+            with torch.no_grad():
+                _, self.hs = self.net(obs[0].unsqueeze(
+                    0), normalized_ac.unsqueeze(0), self.hs, h_masks)
 
         return ac_real, ac, dict(mean=ac)
 
@@ -94,4 +117,4 @@ class MPCPol(BasePol):
         action for deployment
         """
         mean_read, mean, dic = self.forward(obs)
-        return mean_real, mean, dict(mean=mean)
+        return mean_real, mean, dic

@@ -215,3 +215,37 @@ def train_test_split(epis, train_size):
                              np.array_split(indices, [num_train])]
 
     return train_epis, test_epis
+
+
+def normalize_obs_and_acs(data, mean_obs=None, std_obs=None, mean_acs=None, std_acs=None, return_statistic=True, eps=1e-6):
+    with torch.no_grad():
+        epis = data.current_epis
+        obs = []
+        acs = []
+        for epi in epis:
+            obs.extend(epi['obs'])
+            acs.extend(epi['acs'])
+        obs = np.array(obs, dtype=np.float32)
+        acs = np.array(acs, dtype=np.float32)
+
+        if mean_obs is None:
+            mean_obs = np.mean(obs, axis=0, keepdims=True)
+        if std_obs is None:
+            std_obs = np.std(
+                obs, axis=0, keepdims=True) + eps
+        if mean_acs is None:
+            mean_acs = np.mean(acs, axis=0, keepdims=True)
+        if std_acs is None:
+            std_acs = np.std(
+                acs, axis=0, keepdims=True) + eps
+
+        for epi in epis:
+            epi['obs'] = (epi['obs'] - mean_obs) / std_obs
+            epi['acs'] = (epi['acs'] - mean_acs) / std_acs
+            epi['next_obs'] = (
+                epi['next_obs'] - mean_obs) / std_obs
+
+    if return_statistic:
+        return data, mean_obs, std_obs, mean_acs, std_acs
+    else:
+        return data

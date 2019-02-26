@@ -21,7 +21,7 @@ def update_dm(dm, optim_dm, batch, target='next_obs', td=True):
     return dm_loss.detach().cpu().numpy()
 
 
-def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, rl_batch_rate=0.9, target='next_obs', td=True):
+def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_obs', td=True, num_epi_per_seq=1):
     """
     Train function for dynamics model.
 
@@ -37,12 +37,12 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
         Number of iteration.
     batch_size : int
         Number of batches.
-    rl_batch_rate : float
-        rate of size of rl batch.
     target : str
         Target of prediction is next_obs or rews.
     td : bool
         If True, dyn_model learn temporal differance of target.
+    num_epi_per_seq : int
+        Number of episodes in one sequence for rnn.
 
     Returns
     -------
@@ -50,38 +50,20 @@ def train_dm(rl_traj, rand_traj, dyn_model, optim_dm, epoch=60, batch_size=512, 
         Dictionary which contains losses information.
     """
 
-    batch_size_rl = int(batch_size * rl_batch_rate)
-    batch_size_rand = batch_size - batch_size_rl
-
     dm_losses = []
     logger.log("Optimizing...")
-    if batch_size_rand > 0:
-        step = rand_traj.num_step // batch_size_rand
+
+    batch_size = min(batch_size, traj.num_epi)
+    if dyn_model.rnn:
+        iterator = traj.iterate_rnn(
+            batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     else:
-        step = rl_traj.num_step // batch_size_rl
+        iterator = traj.iterate(batch_size, epoch)
 
-    for e in range(epoch):
-        for rl_batch, rand_batch in zip(rl_traj.random_batch(batch_size_rl, step), rand_traj.random_batch(batch_size_rand, step)):
-            batch = dict()
-            if len(rl_batch) == 0:
-                batch['obs'] = rand_batch['obs']
-                batch['acs'] = rand_batch['acs']
-                batch['next_obs'] = rand_batch['next_obs']
-            elif len(rand_batch) == 0:
-                batch['obs'] = rl_batch['obs']
-                batch['acs'] = rl_batch['acs']
-                batch['next_obs'] = rl_batch['next_obs']
-            else:
-                batch['obs'] = torch.cat(
-                    [rand_batch['obs'], rl_batch['obs']], dim=0)
-                batch['acs'] = torch.cat(
-                    [rand_batch['acs'], rl_batch['acs']], dim=0)
-                batch['next_obs'] = torch.cat(
-                    [rand_batch['next_obs'], rl_batch['next_obs']], dim=0)
-
-            dm_loss = update_dm(
-                dyn_model, optim_dm, batch, target=target, td=td)
-            dm_losses.append(dm_loss)
+    for batch in iterator:
+        dm_loss = update_dm(
+            dyn_model, optim_dm, batch, target=target, td=td)
+        dm_losses.append(dm_loss)
     logger.log("Optimization finished!")
 
     return dict(DynModelLoss=dm_losses)
