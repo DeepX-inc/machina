@@ -72,7 +72,7 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
             vf_losses.append(vf_loss)
         new_kl_beta = 0
         kl_mean = 0
-    else:
+    elif rl_type == 'ppo_kl':
         iterator = agent_traj.iterate(batch_size, epoch) if not pol.rnn else agent_traj.iterate_rnn(batch_size=batch_size,
                                                                                                     num_epi_per_seq=num_epi_per_seq,
                                                                                                     epoch=epoch)
@@ -105,6 +105,8 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
             new_kl_beta = kl_beta / 1.5
         else:
             new_kl_beta = kl_beta
+    else:
+        raise ValueError('Only trpo, ppo_clip and ppo_kl are supported')
 
     agent_iterator = agent_traj.iterate_step(
         batch_size=discrim_batch_size, step=discrim_step)
