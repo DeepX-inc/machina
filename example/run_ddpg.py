@@ -91,7 +91,7 @@ qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
 qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
 
 targ_qf_net = QNet(ob_space, ac_space, args.h1, args.h2)
-targ_qf_net.load_state_dict(targ_qf_net.state_dict())
+targ_qf_net.load_state_dict(qf_net.state_dict())
 targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
