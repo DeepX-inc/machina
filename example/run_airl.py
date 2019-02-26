@@ -1,5 +1,5 @@
 """
-An example of Generative Adversarial Imitation Learning.
+An example of Adversarial Inverse Reinforcement Learning.
 """
 
 import argparse
