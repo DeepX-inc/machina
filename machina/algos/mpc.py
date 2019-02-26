@@ -61,8 +61,6 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_o
         iterator = traj.iterate(batch_size, epoch)
 
     for batch in iterator:
-        batch['out_masks'] = batch['out_masks'].unsqueeze(
-            -1).repeat(1, 1, batch['obs'].size()[-1])
         dm_loss = update_dm(
             dyn_model, optim_dm, batch, target=target, td=td)
         dm_losses.append(dm_loss)

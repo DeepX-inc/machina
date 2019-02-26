@@ -375,7 +375,7 @@ def dynamics(dm, batch, target='next_obs', td=True):
         dm_loss = (pred - batch[target])**2
     else:
         dm_loss = (pred - (batch['next_obs'] - batch['obs']))**2
-    dm_loss = 0.5 * torch.mean(dm_loss * out_masks)
+    dm_loss = 0.5 * torch.mean(torch.mean(dm_loss, dim=-1) * out_masks)
 
     return dm_loss
 
