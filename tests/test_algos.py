@@ -378,20 +378,29 @@ class TestSAC(unittest.TestCase):
         pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
         pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
 
-        qf_net = QNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
-        qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
+        qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
+        qf1 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net1)
+        targ_qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
+        targ_qf_net1.load_state_dict(qf_net1.state_dict())
+        targ_qf1 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net1)
 
-        targ_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
-        targ_qf_net.load_state_dict(targ_qf_net.state_dict())
-        targ_qf = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, targ_qf_net)
+        qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
+        qf2 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net2)
+        targ_qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
+        targ_qf_net2.load_state_dict(qf_net2.state_dict())
+        targ_qf2 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net2)
+
+        qfs = [qf1, qf2]
+        targ_qfs = [targ_qf1, targ_qf2]
 
         log_alpha = nn.Parameter(torch.zeros(()))
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
         optim_pol = torch.optim.Adam(pol_net.parameters(), 3e-4)
-        optim_qf = torch.optim.Adam(qf_net.parameters(), 3e-4)
+        optim_qf1 = torch.optim.Adam(qf_net1.parameters(), 3e-4)
+        optim_qf2 = torch.optim.Adam(qf_net2.parameters(), 3e-4)
+        optim_qfs = [optim_qf1, optim_qf2]
         optim_alpha = torch.optim.Adam([log_alpha], 3e-4)
 
         epis = sampler.sample(pol, max_steps=32)
@@ -404,8 +413,8 @@ class TestSAC(unittest.TestCase):
 
         result_dict = sac.train(
             traj,
-            pol, qf, targ_qf, log_alpha,
-            optim_pol, optim_qf, optim_alpha,
+            pol, qfs, targ_qfs, log_alpha,
+            optim_pol, optim_qfs, optim_alpha,
             2, 32,
             0.01, 0.99, 2,
         )

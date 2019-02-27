@@ -159,21 +159,29 @@ while args.max_episodes > total_epi:
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(
             args.log, 'models', 'pol_max.pkl'))
-        torch.save(qf.state_dict(), os.path.join(
-            args.log, 'models', 'qf_max.pkl'))
+        torch.save(qf1.state_dict(), os.path.join(
+            args.log, 'models', 'qf1_max.pkl'))
+        torch.save(qf2.state_dict(), os.path.join(
+            args.log, 'models', 'qf2_max.pkl'))
         torch.save(optim_pol.state_dict(), os.path.join(
             args.log, 'models', 'optim_pol_max.pkl'))
-        torch.save(optim_qf.state_dict(), os.path.join(
-            args.log, 'models', 'optim_qf_max.pkl'))
+        torch.save(optim_qf1.state_dict(), os.path.join(
+            args.log, 'models', 'optim_qf1_max.pkl'))
+        torch.save(optim_qf2.state_dict(), os.path.join(
+            args.log, 'models', 'optim_qf2_max.pkl'))
         max_rew = mean_rew
 
     torch.save(pol.state_dict(), os.path.join(
         args.log, 'models', 'pol_last.pkl'))
-    torch.save(qf.state_dict(), os.path.join(
-        args.log, 'models', 'qf_last.pkl'))
+    torch.save(qf1.state_dict(), os.path.join(
+        args.log, 'models', 'qf1_last.pkl'))
+    torch.save(qf2.state_dict(), os.path.join(
+        args.log, 'models', 'qf2_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(
         args.log, 'models', 'optim_pol_last.pkl'))
-    torch.save(optim_qf.state_dict(), os.path.join(
-        args.log, 'models', 'optim_qf_last.pkl'))
+    torch.save(optim_qf1.state_dict(), os.path.join(
+        args.log, 'models', 'optim_qf1_last.pkl'))
+    torch.save(optim_qf2.state_dict(), os.path.join(
+        args.log, 'models', 'optim_qf2_last.pkl'))
     del on_traj
 del sampler
