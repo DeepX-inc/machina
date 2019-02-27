@@ -1,0 +1,130 @@
+"""
+An example of Teacher and On-policy Distillation
+"""
+
+import argparse
+import json
+import os 
+from pprint import pprint
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import gym
+import pybullet as p
+import machina as mc
+from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
+#Import the Distillation losses here
+from machina.vfuncs import DeterministicSVfunc
+from machina.envs import GymEnv, C2DEnv
+from machina.traj import Traj
+from machina.traj import epi_functional as ef
+from machina.samplers import EpiSampler
+from machina import logger
+from machina.utils import measure, set_device
+
+from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--log', type = str, default = 'garbage')
+parser.add_argument('--env_name', type = str, default = 'HalfCheetahBulletEnv-v0')
+parser.add_argument('--c2d', action = 'store_true', default = False)
+parser.add_argument('--record', action = 'store_true', default = False)
+parser.add_argument('--seed', type = int, default = 256)
+parser.add_argument('--max_episodes', type = int, default = 1000000)
+parser.add_argument('--num_parallel', type = int, default = 4)
+parser.add_argument('--cuda', type = int, default = -1)
+parser.add_argument('--data_parallel', action = 'store_true', default = False)
+parser.add_argument('--max_steps_per_iter', type = int, default = 10000)
+parser.add_argument('--epoch_per_iter', type = int, default = 10)
+parser.add_argument('--batch_size', default = int, default = 256)
+parser.add_argument('--gamma', type = float, default = 0.995)
+parser.add_argument('--lam', type = float, default = 1)
+parser.add_argument('--sampling_pol', type = str, choices = ['student', 'teacher'], default = 'teacher')
+
+if not os.path.exists(args.log):
+    os.mkdir(args.log)
+
+with open(os.path.join(args.log, 'args.json'), 'w') as f:
+    json.dump(vars(args), f)
+pprint(vars(args))
+
+if not os.path.exists(os.path.join(args.log, 'models')):
+    os.mkdir(os.path.join(args.log, 'models'))
+
+np.random.seed(args.seed)
+torch.manual_seed(args.seed)
+
+device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
+device = torch.device(device_name)
+set_device(device)
+
+score_file = os.path.join(args.log, 'progress.csv')
+logger.add_tabular_output(score_file)
+
+env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env.env.seed(args.seed)
+if args.c2d:
+    env = C2DEnv(env)
+
+ob_space = env.observation_space
+ac_space = env.action_space
+
+#Generate teacher (t) policy and student (s) policy and load teacher policy
+if args.rnn:
+    t_pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
+    s_pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
+else:
+    t_pol_net = PolNet(ob_space, ac_space)
+    s_pol_net = PolNet(ob_space, ac_space)
+if isinstance(ac_space, gym.spaces.Box):
+    t_pol = GaussianPol(ob_space, ac_space, t_pol_net, args.rnn)
+    s_pol = GaussianPol(ob_space, ac_space, s_pol_net, args.rnn)
+elif isinstance(ac_space, gym.spaces.Discrete):
+    t_pol = CategoricalPol(ob_space, ac_space, t_pol_net, args.rnn)
+    s_pol = CategoricalPol(ob_space, ac_space, s_pol_net, args.rnn)
+elif isinstance(ac_space, gym.spaces.MultiDiscrete):
+    t_pol = MultiCategoricalPol(ob_space, ac_space, t_pol_net, args.rnn)
+    s_pol = MultiCategoricalPol(ob_space, ac_space, s_pol_net, args.rnn)
+else:
+    raise ValueError('Only Box, Discrete and Multidiscrete are supported')
+
+if args.pol:
+    t_pol.load_state_dict(torch.load(args.pol, map_location = lambda storage, loc: storage))
+
+if args.rnn:
+    t_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
+    s_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
+else:
+    t_vf_net = VNet(ob_space)
+    s_vf_net = VNet(ob_space)
+
+#:TODO load teacher value function 
+
+if args.sampling_policy == 'student':
+    sampler = EpiSampler(env, s_pol, num_parallel = args.num_parallel, seed = args.seed)
+else:
+    sampler = EpiSampler(env, t_pol, num_parallel = args.num_parallel, seed = args.seed)
+
+optim_pol = torch.optim.Adam(s_pol_net.parameters(), args.pol_lr)
+optim_vf = torch.optim.Adam(s_vf_net.parameters(), args.vf_lr)
+
+total_epi = 0
+total_step = 0
+max_rew = -1e6
+
+while args.max_episodes > total_epi:
+    with measure('sample'):
+        if args.sampling_policy == 'student':
+
+
+
+
+
+
+
+
+
+
+
