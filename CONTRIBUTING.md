@@ -11,3 +11,5 @@ We are welcome for any contibutions.
 # Coding style
 
 We use PEP8. Test script checks whether all scripts are passing PEP8 or not. You should apply `autopep8 -i edited_script` before committing.
+
+When we name variable which means number of hoge, we use `num_hoge`.
