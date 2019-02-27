@@ -379,16 +379,20 @@ class TestSAC(unittest.TestCase):
         pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
 
         qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
-        qf1 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net1)
+        qf1 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, qf_net1)
         targ_qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
         targ_qf_net1.load_state_dict(qf_net1.state_dict())
-        targ_qf1 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net1)
+        targ_qf1 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf_net1)
 
         qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
-        qf2 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net2)
+        qf2 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, qf_net2)
         targ_qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
         targ_qf_net2.load_state_dict(qf_net2.state_dict())
-        targ_qf2 = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf_net2)
+        targ_qf2 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf_net2)
 
         qfs = [qf1, qf2]
         targ_qfs = [targ_qf1, targ_qf2]
