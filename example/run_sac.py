@@ -17,7 +17,7 @@ import gym
 import machina as mc
 from machina.pols import GaussianPol
 from machina.algos import sac
-from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
+from machina.vfuncs import DeterministicSAVfunc
 from machina.envs import GymEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -40,13 +40,13 @@ parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--sampling', type=int, default=10)
+parser.add_argument('--sampling', type=int, default=1)
+parser.add_argument('--no_reparam', action='store_true', default=False)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--qf_lr', type=float, default=3e-4)
-parser.add_argument('--vf_lr', type=float, default=3e-4)
 
 parser.add_argument('--ent_alpha', type=float, default=1)
-parser.add_argument('--tau', type=float, default=0.001)
+parser.add_argument('--tau', type=float, default=5e-3)
 parser.add_argument('--gamma', type=float, default=0.99)
 args = parser.parse_args()
 
@@ -81,20 +81,33 @@ pol_net = PolNet(ob_space, ac_space)
 pol = GaussianPol(ob_space, ac_space, pol_net,
                   data_parallel=args.data_parallel, parallel_dim=0)
 
-qf_net = QNet(ob_space, ac_space)
-qf = DeterministicSAVfunc(ob_space, ac_space, qf_net,
-                          data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net = QNet(ob_space, ac_space)
-targ_qf_net.load_state_dict(qf_net.state_dict())
-targ_qf = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net, data_parallel=args.data_parallel, parallel_dim=0)
+qf_net1 = QNet(ob_space, ac_space)
+qf1 = DeterministicSAVfunc(ob_space, ac_space, qf_net1,
+                           data_parallel=args.data_parallel, parallel_dim=0)
+targ_qf_net1 = QNet(ob_space, ac_space)
+targ_qf_net1.load_state_dict(qf_net1.state_dict())
+targ_qf1 = DeterministicSAVfunc(
+    ob_space, ac_space, targ_qf_net1, data_parallel=args.data_parallel, parallel_dim=0)
+
+qf_net2 = QNet(ob_space, ac_space)
+qf2 = DeterministicSAVfunc(ob_space, ac_space, qf_net2,
+                           data_parallel=args.data_parallel, parallel_dim=0)
+targ_qf_net2 = QNet(ob_space, ac_space)
+targ_qf_net2.load_state_dict(qf_net2.state_dict())
+targ_qf2 = DeterministicSAVfunc(
+    ob_space, ac_space, targ_qf_net2, data_parallel=args.data_parallel, parallel_dim=0)
+
+qfs = [qf1, qf2]
+targ_qfs = [targ_qf1, targ_qf2]
 
 log_alpha = nn.Parameter(torch.zeros((), device=device))
 
 sampler = EpiSampler(env, pol, args.num_parallel, seed=args.seed)
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
-optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
+optim_qf1 = torch.optim.Adam(qf_net1.parameters(), args.qf_lr)
+optim_qf2 = torch.optim.Adam(qf_net2.parameters(), args.qf_lr)
+optim_qfs = [optim_qf1, optim_qf2]
 optim_alpha = torch.optim.Adam([log_alpha], args.pol_lr)
 
 off_traj = Traj()
@@ -126,10 +139,10 @@ while args.max_episodes > total_epi:
 
         result_dict = sac.train(
             off_traj,
-            pol, qf, targ_qf, log_alpha,
-            optim_pol, optim_qf, optim_alpha,
+            pol, qfs, targ_qfs, log_alpha,
+            optim_pol, optim_qfs, optim_alpha,
             step, args.batch_size,
-            args.tau, args.gamma, args.sampling,
+            args.tau, args.gamma, args.sampling, not args.no_reparam
         )
 
         if args.data_parallel:
@@ -146,21 +159,29 @@ while args.max_episodes > total_epi:
     if mean_rew > max_rew:
         torch.save(pol.state_dict(), os.path.join(
             args.log, 'models', 'pol_max.pkl'))
-        torch.save(qf.state_dict(), os.path.join(
-            args.log, 'models', 'qf_max.pkl'))
+        torch.save(qf1.state_dict(), os.path.join(
+            args.log, 'models', 'qf1_max.pkl'))
+        torch.save(qf2.state_dict(), os.path.join(
+            args.log, 'models', 'qf2_max.pkl'))
         torch.save(optim_pol.state_dict(), os.path.join(
             args.log, 'models', 'optim_pol_max.pkl'))
-        torch.save(optim_qf.state_dict(), os.path.join(
-            args.log, 'models', 'optim_qf_max.pkl'))
+        torch.save(optim_qf1.state_dict(), os.path.join(
+            args.log, 'models', 'optim_qf1_max.pkl'))
+        torch.save(optim_qf2.state_dict(), os.path.join(
+            args.log, 'models', 'optim_qf2_max.pkl'))
         max_rew = mean_rew
 
     torch.save(pol.state_dict(), os.path.join(
         args.log, 'models', 'pol_last.pkl'))
-    torch.save(qf.state_dict(), os.path.join(
-        args.log, 'models', 'qf_last.pkl'))
+    torch.save(qf1.state_dict(), os.path.join(
+        args.log, 'models', 'qf1_last.pkl'))
+    torch.save(qf2.state_dict(), os.path.join(
+        args.log, 'models', 'qf2_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(
         args.log, 'models', 'optim_pol_last.pkl'))
-    torch.save(optim_qf.state_dict(), os.path.join(
-        args.log, 'models', 'optim_qf_last.pkl'))
+    torch.save(optim_qf1.state_dict(), os.path.join(
+        args.log, 'models', 'optim_qf1_last.pkl'))
+    torch.save(optim_qf2.state_dict(), os.path.join(
+        args.log, 'models', 'optim_qf2_last.pkl'))
     del on_traj
 del sampler
