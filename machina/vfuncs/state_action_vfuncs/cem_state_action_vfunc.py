@@ -42,8 +42,14 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     def max(self, obs):
         """
-        :param ob:
-        :return:
+        Max and Argmax of Qfunc
+        Parameters
+        ----------
+        obs : torch.Tensor
+
+        Returns
+        -------
+        max_qs, max_acs
         """
         max_ac = torch.tensor(self.ac_space.high,
                               dtype=torch.float, device=get_device())
@@ -88,8 +94,14 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     def _fitting(self, fitting_samples):
         """
-        :param fitting_samples:
-        :return: fitted multivariate gaussian
+        fitting gaussian and sampling from it
+        Parameters
+        ----------
+        fitting_samples : torch.Tensor
+
+        Returns
+        -------
+        samples : torch.Tensor
         """
         mean = fitting_samples.mean(dim=0)
         fs_m = fitting_samples.sub(mean.expand_as(fitting_samples))
