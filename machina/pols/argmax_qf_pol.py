@@ -8,7 +8,7 @@ from machina.utils import get_device
 from torch.distributions import MultivariateNormal
 
 
-class ContinuousQfPol(BasePol):
+class ArgmaxQfPol(BasePol):
     """
     Policy with Continuous Qfunction.
 

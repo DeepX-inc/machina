@@ -6,4 +6,4 @@ from machina.pols.categorical_pol import CategoricalPol
 from machina.pols.multi_categorical_pol import MultiCategoricalPol
 from machina.pols.mpc_pol import MPCPol
 from machina.pols.random_pol import RandomPol
-from machina.pols.continuous_qf_pol import ContinuousQfPol
+from machina.pols.argmax_qf_pol import ArgmaxQfPol

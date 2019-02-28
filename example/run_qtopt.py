@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import gym
 
 import machina as mc
-from machina.pols import ContinuousQfPol
+from machina.pols import ArgmaxQfPol
 from machina.noise import OUActionNoise
 from machina.algos import qtopt
 from machina.vfuncs import DeterministicSAVfunc, CEMDeterministicSAVfunc
@@ -111,7 +111,7 @@ targ_qf1 = CEMDeterministicSAVfunc(ob_space, ac_space, targ_qf1_net, num_samplin
                                    num_best_sampling=args.num_best_sampling, num_iter=args.num_iter)
 targ_qf2 = DeterministicSAVfunc(ob_space, ac_space, targ_qf2_net)
 
-pol = ContinuousQfPol(ob_space, ac_space, targ_qf1)
+pol = ArgmaxQfPol(ob_space, ac_space, targ_qf1)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
