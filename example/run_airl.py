@@ -44,9 +44,9 @@ parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 
-parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
+parser.add_argument('--expert_dir', type=str, default='../data/expert_epis', help='Directory path storing file of expert trajectory.')
 parser.add_argument('--expert_fname', type=str,
-                    default='Pendulum-v0_100epis.pkl')
+                    default='Pendulum-v0_100epis.pkl', help='Name of pkl file of expert trajectory')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=50000,
                     help='Number of steps to use in an iteration.')
@@ -100,12 +100,12 @@ parser.add_argument('--kl_targ', type=float, default=0.01,
 parser.add_argument('--init_kl_beta', type=float,
                     default=1, help='Initial kl coefficient.')
 
+parser.add_argument('--pretrain', action='store_true', default=False, help='If True, policy is pretrained by behavioral cloning.')
 parser.add_argument('--bc_batch_size', type=int, default=256)
-parser.add_argument('--pretrain', action='store_true', default=False)
 parser.add_argument('--bc_epoch', type=int, default=1000)
 
-parser.add_argument('--irl_type', type=str,
-                    choices=['adv', 'rew'], default='rew')
+parser.add_argument('--rew_type', type=str,
+                    choices=['adv', 'rew'], default='rew', help='Choice for reward type.')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -154,7 +154,15 @@ else:
 vf_net = VNet(ob_space)
 vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
 
+<<<<<<< HEAD
 if args.irl_type == 'rew':
+=======
+discrim_net = DiscrimNet(
+    ob_space, ac_space, h1=args.discrim_h1, h2=args.discrim_h2)
+discrim = DeterministicSAVfunc(ob_space, ac_space, discrim_net)
+
+if args.rew_type == 'rew':
+>>>>>>> add help
     rewf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
     rewf = DeterministicSVfunc(ob_space, rewf_net, args.rnn)
     shaping_vf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
@@ -162,7 +170,7 @@ if args.irl_type == 'rew':
     optim_discrim = torch.optim.Adam(
         list(rewf_net.parameters()) + list(shaping_vf_net.parameters()), args.discrim_lr)
     advf = None
-elif args.irl_type == 'adv':
+elif args.rew_type == 'adv':
     advf_net = DiscrimNet(ob_space, ac_space,
                           h1=args.discrim_h1, h2=args.discrim_h2)
     advf = DeterministicSAVfunc(ob_space, ac_space, advf_net, args.rnn)
@@ -209,8 +217,8 @@ while args.max_episodes > total_epi:
         agent_traj = Traj()
         agent_traj.add_epis(epis)
         agent_traj = ef.add_next_obs(agent_traj)
-        agent_traj = ef.compute_pseudo_rews(agent_traj, rew_giver=rewf if args.irl_type ==
-                                            'rew' else advf, state_only=True if args.irl_type == 'rew' else False)
+        agent_traj = ef.compute_pseudo_rews(agent_traj, rew_giver=rewf if args.rew_type ==
+                                            'rew' else advf, state_only=True if args.rew_type == 'rew' else False)
         agent_traj = ef.compute_vs(agent_traj, vf)
         agent_traj = ef.compute_rets(agent_traj, args.gamma)
         agent_traj = ef.compute_advs(agent_traj, args.gamma, args.lam)
@@ -220,7 +228,7 @@ while args.max_episodes > total_epi:
 
         if args.rl_type == 'trpo':
             result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
-                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, irl_type=args.irl_type,
+                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, rew_type=args.rew_type,
                                      rl_type=args.rl_type,
                                      epoch=args.epoch_per_iter,
                                      batch_size=args.batch_size, discrim_batch_size=args.discrim_batch_size,
@@ -228,7 +236,7 @@ while args.max_episodes > total_epi:
                                      pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta, gamma=args.gamma)
         elif args.rl_type == 'ppo_clip':
             result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
-                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, irl_type=args.irl_type,
+                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, rew_type=args.rew_type,
                                      rl_type=args.rl_type,
                                      epoch=args.epoch_per_iter,
                                      batch_size=args.batch_size,
@@ -240,7 +248,7 @@ while args.max_episodes > total_epi:
 
         else:
             result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
-                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, irl_type=args.irl_type,
+                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, rew_type=args.rew_type,
                                      rl_type=args.rl_type,
                                      pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta,
                                      epoch=args.epoch_per_iter,
@@ -269,7 +277,7 @@ while args.max_episodes > total_epi:
             args.log, 'models', 'pol_max.pkl'))
         torch.save(vf.state_dict(), os.path.join(
             args.log, 'models', 'vf_max.pkl'))
-        if args.irl_type == 'rew':
+        if args.rew_type == 'rew':
             torch.save(rewf.state_dict(), os.path.join(
                 args.log, 'models', 'rewf_max.pkl'))
             torch.save(shaping_vf.state_dict(), os.path.join(
@@ -289,7 +297,13 @@ while args.max_episodes > total_epi:
         args.log, 'models', 'pol_last.pkl'))
     torch.save(vf.state_dict(), os.path.join(
         args.log, 'models', 'vf_last.pkl'))
+<<<<<<< HEAD
     if args.irl_type == 'rew':
+=======
+    torch.save(discrim.state_dict(), os.path.join(
+        args.log, 'models', 'discrim_last.pkl'))
+    if args.rew_type == 'rew':
+>>>>>>> add help
         torch.save(rewf.state_dict(), os.path.join(
             args.log, 'models', 'rewf_last.pkl'))
         torch.save(shaping_vf.state_dict(), os.path.join(

@@ -44,9 +44,9 @@ parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 
-parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
+parser.add_argument('--expert_dir', type=str, default='../data/expert_epis', help='Directory path storing file of expert trajectory.')
 parser.add_argument('--expert_fname', type=str,
-                    default='Pendulum-v0_100epis.pkl')
+                    default='Pendulum-v0_100epis.pkl', help='Name of pkl file of expert trajectory')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=50000,
                     help='Number of steps to use in an iteration.')
@@ -74,12 +74,18 @@ parser.add_argument('--rnn', action='store_true',
 parser.add_argument('--max_grad_norm', type=float, default=10,
                     help='Value of maximum gradient norm.')
 
-parser.add_argument('--pol_h1', type=int, default=100)
-parser.add_argument('--pol_h2', type=int, default=100)
-parser.add_argument('--vf_h1', type=int, default=32)
-parser.add_argument('--vf_h2', type=int, default=32)
-parser.add_argument('--discrim_h1', type=int, default=100)
-parser.add_argument('--discrim_h2', type=int, default=100)
+parser.add_argument('--pol_h1', type=int, default=100,
+                    help='Hidden size of layer1 of policy.')
+parser.add_argument('--pol_h2', type=int, default=100,
+                    help='Hidden size of layer2 of policy.')
+parser.add_argument('--vf_h1', type=int, default=32,
+                    help='Hidden size of layer1 of value function.')
+parser.add_argument('--vf_h2', type=int, default=32,
+                    help='Hidden size of layer2 of value function.')
+parser.add_argument('--discrim_h1', type=int, default=100,
+                    help='Hidden size of layer1 of discriminator.')
+parser.add_argument('--discrim_h2', type=int, default=100,
+                    help='Hidden size of layer2 of discriminator.')
 
 parser.add_argument('--rl_type', type=str,
                     choices=['trpo', 'ppo_clip', 'ppo_kl'], default='trpo')

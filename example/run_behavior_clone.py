@@ -61,10 +61,10 @@ parser.add_argument('--gamma', type=float, default=0.99,
 parser.add_argument('--lam', type=float, default=1,
                     help='Tradeoff value of bias variance.')
 
-parser.add_argument('--train_size', type=int, default=0.7)
-parser.add_argument('--check_rate', type=int, default=0.05)
+parser.add_argument('--train_size', type=int, default=0.7, help='Size of training data.')
+parser.add_argument('--check_rate', type=int, default=0.05, help='Rate of performance check per epoch.')
 parser.add_argument('--epoch', type=int, default=1000)
-parser.add_argument('--deterministic', action='store_true', default=False)
+parser.add_argument('--deterministic', action='store_true', default=False, help='If True, policy is deterministic.')
 args = parser.parse_args()
 
 device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
@@ -97,9 +97,9 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
+    pol_net = PolNetLSTM(ob_space, ac_space, h_size=args.h1, cell_size=256)
 else:
-    pol_net = PolNet(ob_space, ac_space)
+    pol_net = PolNet(ob_space, ac_space, h1=args.h1, h2=args.h2)
 if isinstance(ac_space, gym.spaces.Box):
     if args.deterministic:
         pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net)
