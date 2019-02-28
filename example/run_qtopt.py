@@ -28,6 +28,8 @@ from machina.utils import set_device, measure
 
 from simple_net import QNet
 
+import pybullet_envs
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage',
                     help='Directory name of log.')
@@ -113,7 +115,7 @@ targ_qf1 = CEMDeterministicSAVfunc(ob_space, ac_space, targ_qf1_net, num_samplin
                                    num_best_sampling=args.num_best_sampling, num_iter=args.num_iter)
 targ_qf2 = DeterministicSAVfunc(ob_space, ac_space, targ_qf2_net)
 
-pol = ArgmaxQfPol(ob_space, ac_space, targ_qf1, eps=args.eps, env=env)
+pol = ArgmaxQfPol(ob_space, ac_space, targ_qf1, eps=args.eps)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
