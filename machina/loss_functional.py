@@ -167,6 +167,7 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
         raise NotImplementedError(
             "Only Q function with continuous action space is supported now.")
 
+
 def clipped_double_bellman(qf, targ_qf1, targ_qf2, batch, gamma, loss_type='bce'):
     """
     Bellman loss of Clipped Double DQN.
@@ -209,6 +210,7 @@ def clipped_double_bellman(qf, targ_qf1, targ_qf2, batch, gamma, loss_type='bce'
     else:
         raise ValueError('Only bce and mse are supported')
     return ret
+
 
 def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, normalize=False, eps=1e-6):
     """

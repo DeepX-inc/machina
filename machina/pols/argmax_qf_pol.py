@@ -44,7 +44,8 @@ class ArgmaxQfPol(BasePol):
     def forward(self, obs):
         prob = random.uniform(0., 1.)
         if prob <= self.eps:
-            ac_real = ac = torch.tensor(self.env.action_space.sample(), dtype=torch.float, device=get_device())
+            ac_real = ac = torch.tensor(
+                self.env.action_space.sample(), dtype=torch.float, device=get_device())
         else:
             q, ac = self.qfunc.max(obs)
             ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
