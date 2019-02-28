@@ -61,7 +61,7 @@ parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--num_random_rollouts', type=int, default=60)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
-parser.add_argument('--n_samples', type=int, default=300)
+parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--horizon_of_samples', type=int, default=4)
 parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
@@ -69,6 +69,8 @@ parser.add_argument('--epoch_per_iter', type=int, default=60)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true', default=False)
+parser.add_argument('--deterministic', action='store_true', default=True)
+
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -131,11 +133,16 @@ del rand_sampler
 
 # initialize dynamics model and mpc policy
 if args.rnn:
-    dm_net = ModelNetLSTM(ob_space, ac_space)
+    dm_net = ModelNetLSTM(ob_space, ac_space, deterministic=args.deterministic)
 else:
-    dm_net = ModelNet(ob_space, ac_space)
-dm = DeterministicSModel(ob_space, ac_space, dm_net, args.rnn,
-                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+    dm_net = ModelNet(ob_space, ac_space, deterministic=args.deterministic)
+if args.deterministic:
+    dm = DeterministicSModel(ob_space, ac_space, dm_net, args.rnn,
+                             data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+else:
+    dm = GaussianSModel(ob_space, ac_space, dm_net, args.rnn,
+                        data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+
 mpc_pol = MPCPol(ob_space, ac_space, dm_net, rew_func,
                  args.n_samples, args.horizon_of_samples,
                  mean_obs, std_obs, mean_acs, std_acs, args.rnn)
