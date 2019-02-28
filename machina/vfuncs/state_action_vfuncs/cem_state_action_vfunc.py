@@ -8,6 +8,27 @@ import torch
 from torch.distributions import MultivariateNormal
 
 class CEMDeterministicSAVfunc(DeterministicSAVfunc):
+    """
+    Deterministic State Action Vfunction with Cross Entropy Method.
+    Parameters
+    ----------
+    ob_space : gym.Space
+    ac_space : gym.Space
+    net : torch.nn.Module
+    rnn : bool
+    data_parallel : bool
+        If True, network computation is executed in parallel.
+    parallel_dim : int
+        Splitted dimension in data parallel.
+    num_sampling : int
+        Number of samples sampled from Gaussian in CEM.
+    num_best_sampling : int
+        Number of best samples used for fitting Gaussian in CEM.
+    num_iter : int
+        Number of iteration of CEM.
+    eps : float
+        Coefficient used for making covariance matrix positive definite.
+    """
 
     def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64, num_best_sampling=6, num_iter=2, eps=1e-4):
         super().__init__(ob_space, ac_space, net, rnn, data_parallel, parallel_dim)

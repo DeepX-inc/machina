@@ -29,29 +29,46 @@ from machina.utils import set_device, measure
 from simple_net import QNet
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--record', action='store_true', default=False)
+parser.add_argument('--log', type=str, default='garbage',
+                    help='Directory name of log.')
+parser.add_argument('--env_name', type=str,
+                    default='Pendulum-v0', help='Name of environment.')
+parser.add_argument('--record', action='store_true',
+                    default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--num_parallel', type=int, default=4)
-parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--max_episodes', type=int,
+                    default=100000000, help='Number of episodes to run.')
+parser.add_argument('--num_parallel', type=int, default=4,
+                    help='Number of processes to sample.')
+parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 
-parser.add_argument('--max_steps_per_iter', type=int, default=10000)
-parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--pol_lr', type=float, default=1e-4)
-parser.add_argument('--qf_lr', type=float, default=1e-3)
-parser.add_argument('--h1', type=int, default=32)
-parser.add_argument('--h2', type=int, default=32)
+parser.add_argument('--max_steps_per_iter', type=int, default=4000,
+                    help='Number of steps to use in an iteration.')
+parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--pol_lr', type=float, default=1e-4,
+                    help='Policy learning rate.')
+parser.add_argument('--qf_lr', type=float, default=1e-3,
+                    help='Q function learning rate.')
+parser.add_argument('--h1', type=int, default=32,
+                    help='hidden size of layer1.')
+parser.add_argument('--h2', type=int, default=32,
+                    help='hidden size of layer2.')
+parser.add_argument('--tau', type=float, default=0.001,
+                    help='Coefficient of target function.')
+parser.add_argument('--gamma', type=float, default=0.995,
+                    help='Discount factor.')
 
-parser.add_argument('--tau', type=float, default=0.001)
-parser.add_argument('--gamma', type=float, default=0.99)
-parser.add_argument('--lag', type=int, default=6000)
-parser.add_argument('--num_iter', type=int, default=2)
-parser.add_argument('--num_sampling', type=int, default=60)
-parser.add_argument('--num_best_sampling', type=int, default=6)
+parser.add_argument('--lag', type=int, default=6000,
+                    help='Lag of gradient steps of target function2.')
+parser.add_argument('--num_iter', type=int, default=2,
+                    help='Number of iteration of CEM.')
+parser.add_argument('--num_sampling', type=int, default=60,
+                    help='Number of samples sampled from Gaussian in CEM.')
+parser.add_argument('--num_best_sampling', type=int, default=6,
+                    help='Number of best samples used for fitting Gaussian in CEM.')
 parser.add_argument('--loss_type', type=str,
-                    choices=['mse', 'bce'], default='mse')
+                    choices=['mse', 'bce'], default='mse',
+                    help='Type of belleman loss.')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -87,7 +104,7 @@ lagged_qf_net.load_state_dict(qf_net.state_dict())
 targ_qf1_net = QNet(ob_space, ac_space, args.h1, args.h2)
 targ_qf1_net.load_state_dict(qf_net.state_dict())
 targ_qf2_net = QNet(ob_space, ac_space, args.h1, args.h2)
-targ_qf2_net.load_state_dict(qf_net.state_dict())
+targ_qf2_net.load_state_dict(lagged_qf_net.state_dict())
 qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
 lagged_qf = DeterministicSAVfunc(ob_space, ac_space, lagged_qf_net)
 targ_qf1 = CEMDeterministicSAVfunc(ob_space, ac_space, targ_qf1_net, num_sampling=args.num_sampling,
