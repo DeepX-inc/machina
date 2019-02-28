@@ -15,7 +15,7 @@ import gym
 import pybullet as p
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-#Import the Distillation losses here
+from machina.algos import on_pol_teacher_distill
 from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
@@ -23,7 +23,6 @@ from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import measure, set_device
-
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
@@ -94,13 +93,9 @@ if args.pol:
     t_pol.load_state_dict(torch.load(args.pol, map_location = lambda storage, loc: storage))
 
 if args.rnn:
-    t_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
     s_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
 else:
-    t_vf_net = VNet(ob_space)
     s_vf_net = VNet(ob_space)
-
-#:TODO load teacher value function 
 
 if args.sampling_policy == 'student':
     sampler = EpiSampler(env, s_pol, num_parallel = args.num_parallel, seed = args.seed)
@@ -117,14 +112,37 @@ max_rew = -1e6
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.sampling_policy == 'student':
+            epis = sampler.sample(s_pol, max_episodes=args.max_episodes_per_iter)
+        else:
+            epis = sampler.sample(t_pol, max_episodes=args.max_episodes_per_iter)
+    with measuer('train'):
+        traj = Traj()
+        traj.add_epis(epis)
+        traj = ef.compute_h_masks(traj)
+        traj.register_epis()
 
+        result_dict = on_pol_teacher_distill.train(traj = traj, student_pol = s_pol, teacher_pol = t_pol, student_optim)
+    
+    logger.log('Testing Student-policy')
+    with measure('sample'):
+        epis_measure = sampler.sample(s_pol, max_episodes=args.max_episodes_per_iter)
+    
+    with measure('measure'):
+        traj_measure = Traj()
+        traj_measure.add_epis(epis_measure)
+        traj_measure = ef.compute_h_masks(traj_measure)
+        traj.register_epis()
 
+    total_epi += traj_measure.num_epi
+    step = traj_measure.num_step
+    total_step += step
+    rewards = [np.sum(epi['rews']) for epi in epis_measure]
+    mean_rew = np.mean(rewards)
+    logger.record_results(args.log, result_dict, score_file,
+            total_epi, step, total_epi, rewards,
+            plot_title='Policy Distillation')
 
-
-
-
-
-
-
-
+    del traj
+    del traj_measure
+del sampler
 
