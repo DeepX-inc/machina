@@ -51,46 +51,48 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         -------
         max_qs, max_acs
         """
-        max_ac = torch.tensor(self.ac_space.high,
-                              dtype=torch.float, device=obs.device)
-        min_ac = torch.tensor(
+        high = torch.tensor(self.ac_space.high,
+                            dtype=torch.float, device=obs.device)
+        low = torch.tensor(
             self.ac_space.low, dtype=torch.float, device=obs.device)
-        pd = MultivariateNormal((max_ac - min_ac)/2.,
+        pd = MultivariateNormal((high - low)/2.,
                                 torch.eye(self.ac_space.shape[0]))
         init_samples = pd.sample((self.num_sampling,))
         init_samples = self._clamp(init_samples)
 
         if obs.dim() == 1:
             # when sampling policy
-            max_qs, max_acs = self._cem(obs, init_samples)
-        else:
-            # when training policy
-            max_acs = []
-            max_qs = []
-            for ob in obs:
-                max_q, max_ac = self._cem(ob, init_samples)
-                max_qs.append(max_q)
-                max_acs.append(max_ac.unsqueeze(0))
-            max_qs = torch.tensor(
-                max_qs, dtype=torch.float, device=obs.device)
-            max_acs = torch.cat(max_acs, dim=0)
+            obs = obs.unsqueeze(0)
+        max_qs, max_acs = self._cem(obs, init_samples)
         return max_qs, max_acs
 
-    def _cem(self, ob, samples):
+    def _cem(self, obs, samples):
+        batch_size = obs.shape[0]
+        dim_ob = obs.shape[1]
+        obs = obs.repeat((1, self.num_sampling)).reshape(
+            (self.num_sampling * batch_size, dim_ob))
         for i in range(self.num_iter):
             with torch.no_grad():
-                qvals, _ = self.forward(
-                    ob.expand((self.num_sampling,  -1)), samples)
+                # shape (self.num_sampling * batch_size, dim_ac)
+                samples = samples.repeat((batch_size, 1))
+                qvals, _ = self.forward(obs, samples)
             if i != self.num_iter-1:
-                _, indices = torch.sort(qvals, descending=True)
-                best_indices = indices[:self.num_best_sampling]
+                qvals = qvals.reshape((batch_size, self.num_sampling))
+                _, indices = torch.sort(qvals, dim=1, descending=True)
+                best_indices = indices[:, :self.num_best_sampling]
+                best_indices = best_indices + \
+                    torch.arange(0, self.num_sampling*batch_size,
+                                 self.num_sampling).view(batch_size, 1)
+                best_indices = best_indices.view(
+                    (self.num_best_sampling * batch_size,))
                 best_samples = samples[best_indices, :]
                 samples = self._fitting(best_samples)
                 samples = self._clamp(samples)
-        max_q = torch.max(qvals)
-        ind = torch.argmax(qvals)
-        max_ac = samples[ind]
-        return max_q, max_ac
+        qvals = qvals.reshape((batch_size, self.num_sampling))
+        samples = samples.reshape((batch_size, self.num_sampling))
+        max_q, ind = torch.max(qvals, dim=1)
+        max_ac = samples[torch.arange(batch_size), ind]
+        return max_q, max_ac.view((batch_size, -1))
 
     def _fitting(self, fitting_samples):
         """
@@ -98,6 +100,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         Parameters
         ----------
         fitting_samples : torch.Tensor
+            shape (self.num_best_sampling, dim_ac)
 
         Returns
         -------
@@ -112,6 +115,10 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         return samples
 
     def _clamp(self, samples):
-        for i, (ac_high, ac_low) in enumerate(zip(self.ac_space.high, self.ac_space.low)):
-            samples[i] = torch.clamp(samples[i], ac_high, ac_low)
+        low = torch.tensor(self.ac_space.low,
+                           dtype=torch.float, device=samples.device)
+        high = torch.tensor(self.ac_space.high,
+                            dtype=torch.float, device=samples.device)
+        samples = (samples - low) / (high - low)
+        samples = torch.clamp(samples, 0, 1) * (high - low) + low
         return samples
