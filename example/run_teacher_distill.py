@@ -103,7 +103,6 @@ else:
     sampler = EpiSampler(env, t_pol, num_parallel = args.num_parallel, seed = args.seed)
 
 optim_pol = torch.optim.Adam(s_pol_net.parameters(), args.pol_lr)
-optim_vf = torch.optim.Adam(s_vf_net.parameters(), args.vf_lr)
 
 total_epi = 0
 total_step = 0
@@ -120,9 +119,8 @@ while args.max_episodes > total_epi:
         traj.add_epis(epis)
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
+        result_dict = on_pol_teacher_distill.train(traj = traj, student_pol = s_pol, teacher_pol = t_pol, student_optim = optim_pol, epoch = args.epoch_per_iter, batch_size = args.batch_size)
 
-        result_dict = on_pol_teacher_distill.train(traj = traj, student_pol = s_pol, teacher_pol = t_pol, student_optim)
-    
     logger.log('Testing Student-policy')
     with measure('sample'):
         epis_measure = sampler.sample(s_pol, max_episodes=args.max_episodes_per_iter)

@@ -29,7 +29,7 @@ def update_pol(student_pol, teacher_pol, optim_pol, batch):
         Loss of student policy
     """
 
-    pol_loss = dl.shanon_cross_entropy(student_pol. teacher_pol, batch)
+    pol_loss = dl.shanon_cross_entropy(student_pol, teacher_pol, batch)
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
