@@ -52,9 +52,9 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         max_qs, max_acs
         """
         max_ac = torch.tensor(self.ac_space.high,
-                              dtype=torch.float, device=get_device())
+                              dtype=torch.float, device=obs.device)
         min_ac = torch.tensor(
-            self.ac_space.low, dtype=torch.float, device=get_device())
+            self.ac_space.low, dtype=torch.float, device=obs.device)
         pd = MultivariateNormal((max_ac - min_ac)/2.,
                                 torch.eye(self.ac_space.shape[0]))
         init_samples = pd.sample((self.num_sampling,))
@@ -72,7 +72,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                 max_qs.append(max_q)
                 max_acs.append(max_ac.unsqueeze(0))
             max_qs = torch.tensor(
-                max_qs, dtype=torch.float, device=get_device())
+                max_qs, dtype=torch.float, device=obs.device)
             max_acs = torch.cat(max_acs, dim=0)
         return max_qs, max_acs
 
