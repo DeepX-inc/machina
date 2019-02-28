@@ -4,7 +4,7 @@ An example of Teacher and On-policy Distillation
 
 import argparse
 import json
-import os 
+import os
 from pprint import pprint
 
 import numpy as np
@@ -26,21 +26,27 @@ from machina.utils import measure, set_device
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log', type = str, default = 'garbage')
-parser.add_argument('--env_name', type = str, default = 'HalfCheetahBulletEnv-v0')
-parser.add_argument('--c2d', action = 'store_true', default = False)
-parser.add_argument('--record', action = 'store_true', default = False)
-parser.add_argument('--seed', type = int, default = 256)
-parser.add_argument('--max_episodes', type = int, default = 1000000)
-parser.add_argument('--num_parallel', type = int, default = 4)
-parser.add_argument('--cuda', type = int, default = -1)
-parser.add_argument('--data_parallel', action = 'store_true', default = False)
-parser.add_argument('--max_steps_per_iter', type = int, default = 10000)
-parser.add_argument('--epoch_per_iter', type = int, default = 10)
-parser.add_argument('--batch_size', default = int, default = 256)
-parser.add_argument('--gamma', type = float, default = 0.995)
-parser.add_argument('--lam', type = float, default = 1)
-parser.add_argument('--sampling_pol', type = str, choices = ['student', 'teacher'], default = 'teacher')
+parser.add_argument('--log', type=str, default='garbage')
+parser.add_argument('--env_name', type=str, default='HalfCheetahBulletEnv-v0')
+parser.add_argument('--c2d', action='store_true', default=False)
+parser.add_argument('--record', action='store_true', default=False)
+parser.add_argument('--seed', type=int, default=256)
+parser.add_argument('--max_episodes', type=int, default=1000000)
+parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--data_parallel', action='store_true', default=False)
+parser.add_argument('--max_steps_per_iter', type=int, default=10000)
+parser.add_argument('--epoch_per_iter', type=int, default=10)
+parser.add_argument('--batch_size', default=int, default=256)
+parser.add_argument('--gamma', type=float, default=0.995)
+parser.add_argument('--lam', type=float, default=1)
+parser.add_argument(
+    '--sampling_pol',
+    type=str,
+    choices=[
+        'student',
+        'teacher'],
+    default='teacher')
 
 if not os.path.exists(args.log):
     os.mkdir(args.log)
@@ -62,7 +68,12 @@ set_device(device)
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
-env = GymEnv(args.env_name, log_dir=os.path.join(args.log, 'movie'), record_video=args.record)
+env = GymEnv(
+    args.env_name,
+    log_dir=os.path.join(
+        args.log,
+        'movie'),
+    record_video=args.record)
 env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
@@ -70,7 +81,7 @@ if args.c2d:
 ob_space = env.observation_space
 ac_space = env.action_space
 
-#Generate teacher (t) policy and student (s) policy and load teacher policy
+# Generate teacher (t) policy and student (s) policy and load teacher policy
 if args.rnn:
     t_pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
     s_pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
@@ -90,7 +101,11 @@ else:
     raise ValueError('Only Box, Discrete and Multidiscrete are supported')
 
 if args.pol:
-    t_pol.load_state_dict(torch.load(args.pol, map_location = lambda storage, loc: storage))
+    t_pol.load_state_dict(
+        torch.load(
+            args.pol,
+            map_location=lambda storage,
+            loc: storage))
 
 if args.rnn:
     s_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
@@ -98,9 +113,17 @@ else:
     s_vf_net = VNet(ob_space)
 
 if args.sampling_policy == 'student':
-    sampler = EpiSampler(env, s_pol, num_parallel = args.num_parallel, seed = args.seed)
+    sampler = EpiSampler(
+        env,
+        s_pol,
+        num_parallel=args.num_parallel,
+        seed=args.seed)
 else:
-    sampler = EpiSampler(env, t_pol, num_parallel = args.num_parallel, seed = args.seed)
+    sampler = EpiSampler(
+        env,
+        t_pol,
+        num_parallel=args.num_parallel,
+        seed=args.seed)
 
 optim_pol = torch.optim.Adam(s_pol_net.parameters(), args.pol_lr)
 
@@ -111,20 +134,29 @@ max_rew = -1e6
 while args.max_episodes > total_epi:
     with measure('sample'):
         if args.sampling_policy == 'student':
-            epis = sampler.sample(s_pol, max_episodes=args.max_episodes_per_iter)
+            epis = sampler.sample(
+                s_pol, max_episodes=args.max_episodes_per_iter)
         else:
-            epis = sampler.sample(t_pol, max_episodes=args.max_episodes_per_iter)
+            epis = sampler.sample(
+                t_pol, max_episodes=args.max_episodes_per_iter)
     with measuer('train'):
         traj = Traj()
         traj.add_epis(epis)
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
-        result_dict = on_pol_teacher_distill.train(traj = traj, student_pol = s_pol, teacher_pol = t_pol, student_optim = optim_pol, epoch = args.epoch_per_iter, batch_size = args.batch_size)
+        result_dict = on_pol_teacher_distill.train(
+            traj=traj,
+            student_pol=s_pol,
+            teacher_pol=t_pol,
+            student_optim=optim_pol,
+            epoch=args.epoch_per_iter,
+            batch_size=args.batch_size)
 
     logger.log('Testing Student-policy')
     with measure('sample'):
-        epis_measure = sampler.sample(s_pol, max_episodes=args.max_episodes_per_iter)
-    
+        epis_measure = sampler.sample(
+            s_pol, max_episodes=args.max_episodes_per_iter)
+
     with measure('measure'):
         traj_measure = Traj()
         traj_measure.add_epis(epis_measure)
@@ -137,10 +169,9 @@ while args.max_episodes > total_epi:
     rewards = [np.sum(epi['rews']) for epi in epis_measure]
     mean_rew = np.mean(rewards)
     logger.record_results(args.log, result_dict, score_file,
-            total_epi, step, total_epi, rewards,
-            plot_title='Policy Distillation')
+                          total_epi, step, total_epi, rewards,
+                          plot_title='Policy Distillation')
 
     del traj
     del traj_measure
 del sampler
-
