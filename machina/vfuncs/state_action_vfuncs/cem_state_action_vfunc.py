@@ -7,6 +7,7 @@ from machina.utils import get_device
 import torch
 from torch.distributions import MultivariateNormal
 
+
 class CEMDeterministicSAVfunc(DeterministicSAVfunc):
     """
     Deterministic State Action Vfunction with Cross Entropy Method.
