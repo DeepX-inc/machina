@@ -114,8 +114,8 @@ class ModelNet(nn.Module):
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(weight_init)
-        self.log_std_param = nn.Parameter(
-            torch.randn(ob_space.shape[0])*1e-10 - 1)
+        self.log_std_param = torch.full(
+            (ob_space.shape[0],), 0.01, dtype=torch.float)
 
     def forward(self, ob, ac):
         h = torch.cat([ob, ac], dim=-1)
@@ -241,8 +241,8 @@ class ModelNetLSTM(nn.Module):
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
         self.output_layer = nn.Linear(self.cell_size, ob_space.shape[0])
         self.output_layer.apply(weight_init)
-        self.log_std_param = nn.Parameter(
-            torch.randn(ob_space.shape[0])*1e-10 - 1)
+        self.log_std_param = torch.full(
+            (ob_space.shape[0],), 0.01, dtype=torch.float)
 
     def init_hs(self, batch_size=1):
         new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(
