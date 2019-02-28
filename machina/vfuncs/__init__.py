@@ -1,2 +1,2 @@
 from machina.vfuncs.state_vfuncs import BaseSVfunc, DeterministicSVfunc, NormalizedDeterministicSVfunc
-from machina.vfuncs.state_action_vfuncs import BaseSAVfunc, DeterministicSAVfunc
+from machina.vfuncs.state_action_vfuncs import BaseSAVfunc, DeterministicSAVfunc, CEMDeterministicSAVfunc
