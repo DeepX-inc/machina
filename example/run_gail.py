@@ -44,7 +44,8 @@ parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 
-parser.add_argument('--expert_dir', type=str, default='../data/expert_epis', help='Directory path storing file of expert trajectory.')
+parser.add_argument('--expert_dir', type=str, default='../data/expert_epis',
+                    help='Directory path storing file of expert trajectory.')
 parser.add_argument('--expert_fname', type=str,
                     default='Pendulum-v0_100epis.pkl', help='Name of pkl file of expert trajectory')
 

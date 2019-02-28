@@ -44,7 +44,8 @@ parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 
-parser.add_argument('--expert_dir', type=str, default='../data/expert_epis', help='Directory path storing file of expert trajectory.')
+parser.add_argument('--expert_dir', type=str, default='../data/expert_epis',
+                    help='Directory path storing file of expert trajectory.')
 parser.add_argument('--expert_fname', type=str,
                     default='Pendulum-v0_100epis.pkl', help='Name of pkl file of expert trajectory')
 
@@ -100,7 +101,8 @@ parser.add_argument('--kl_targ', type=float, default=0.01,
 parser.add_argument('--init_kl_beta', type=float,
                     default=1, help='Initial kl coefficient.')
 
-parser.add_argument('--pretrain', action='store_true', default=False, help='If True, policy is pretrained by behavioral cloning.')
+parser.add_argument('--pretrain', action='store_true', default=False,
+                    help='If True, policy is pretrained by behavioral cloning.')
 parser.add_argument('--bc_batch_size', type=int, default=256)
 parser.add_argument('--bc_epoch', type=int, default=1000)
 

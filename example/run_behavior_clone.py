@@ -61,10 +61,13 @@ parser.add_argument('--gamma', type=float, default=0.99,
 parser.add_argument('--lam', type=float, default=1,
                     help='Tradeoff value of bias variance.')
 
-parser.add_argument('--train_size', type=int, default=0.7, help='Size of training data.')
-parser.add_argument('--check_rate', type=int, default=0.05, help='Rate of performance check per epoch.')
+parser.add_argument('--train_size', type=int, default=0.7,
+                    help='Size of training data.')
+parser.add_argument('--check_rate', type=int, default=0.05,
+                    help='Rate of performance check per epoch.')
 parser.add_argument('--epoch', type=int, default=1000)
-parser.add_argument('--deterministic', action='store_true', default=False, help='If True, policy is deterministic.')
+parser.add_argument('--deterministic', action='store_true',
+                    default=False, help='If True, policy is deterministic.')
 args = parser.parse_args()
 
 device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)

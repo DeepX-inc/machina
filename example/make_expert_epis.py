@@ -25,10 +25,14 @@ from machina.utils import measure, set_device
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--pol_dir', type=str, default='../data/expert_pols', help='Directory path storing file of expert policy model.')
-parser.add_argument('--pol_fname', type=str, default='pol_max.pkl', help='File name of expert policy model.')
-parser.add_argument('--epis_dir', type=str, default='../data/expert_epis', help='Directory path to store file of expert trajectory.')
-parser.add_argument('--epis_fname', type=str, default='', help='File name of expert trajectory.')
+parser.add_argument('--pol_dir', type=str, default='../data/expert_pols',
+                    help='Directory path storing file of expert policy model.')
+parser.add_argument('--pol_fname', type=str, default='pol_max.pkl',
+                    help='File name of expert policy model.')
+parser.add_argument('--epis_dir', type=str, default='../data/expert_epis',
+                    help='Directory path to store file of expert trajectory.')
+parser.add_argument('--epis_fname', type=str, default='',
+                    help='File name of expert trajectory.')
 parser.add_argument('--c2d', action='store_true',
                     default=False, help='If True, action is discretized.')
 parser.add_argument('--record', action='store_true',
@@ -46,8 +50,10 @@ parser.add_argument('--pol_h1', type=int, default=100,
 parser.add_argument('--pol_h2', type=int, default=100,
                     help='Hidden size of layer2 of policy.')
 
-parser.add_argument('--num_epis', type=int, default=100, help='Number of episodes of expert trajectories.')
-parser.add_argument('--ddpg', action='store_true', default=False, help='If True, policy for DDPG is used.')
+parser.add_argument('--num_epis', type=int, default=100,
+                    help='Number of episodes of expert trajectories.')
+parser.add_argument('--ddpg', action='store_true',
+                    default=False, help='If True, policy for DDPG is used.')
 args = parser.parse_args()
 
 if not os.path.exists(args.pol_dir):
@@ -77,7 +83,8 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 if args.ddpg:
-    pol_net = PolNet(ob_space, ac_space, args.pol_h1, args.pol_h2, deterministic=True)
+    pol_net = PolNet(ob_space, ac_space, args.pol_h1,
+                     args.pol_h2, deterministic=True)
     noise = OUActionNoise(ac_space.shape)
     pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net, noise)
 else:
