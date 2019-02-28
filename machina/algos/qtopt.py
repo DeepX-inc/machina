@@ -14,6 +14,38 @@ def train(traj,
           tau=0.9999, gamma=0.9,  # advantage estimation
           loss_type='mse'
           ):
+    """
+    Train function for qtopt
+
+    Parameters
+    ----------
+    traj : Traj
+        Off policy trajectory.
+    qf : SAVfunction
+        Q function.
+    lagged_qf : SAVfunction
+        Lagged Q function.
+    targ_qf1 : CEMSAVfunction
+        Target Q function.
+    targ_qf2 : CEMSAVfunction
+        Lagged Target Q function.
+    optim_qf : torch.optim.Optimizer
+        Optimizer for Q function.
+    epoch : int
+        Number of iteration.
+    batch_size : int
+        Number of batches.
+    tau : float
+        Target updating rate.
+    gamma : float
+        Discounting rate.
+    loss_type : string
+        Type of belleman loss.
+    Returns
+    -------
+    result_dict : dict
+        Dictionary which contains losses information.
+    """
 
     qf_losses = []
     logger.log("Optimizing...")

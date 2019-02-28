@@ -169,14 +169,25 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
 
 def clipped_double_bellman(qf, targ_qf1, targ_qf2, batch, gamma, loss_type='bce'):
     """
-    Loss function for clipped double dqn
-    :param qf:
-    :param targ_qf1:
-    :param targ_qf2:
-    :param batch:
-    :param gamma:
-    :param loss_type:
-    :return:
+    Bellman loss of Clipped Double DQN.
+    Mean Squared Error of left hand side and right hand side of Bellman Equation.
+    or
+    Binary Cross Entropy of left hand side and right hand side of Bellman Equation.
+
+    Parameters
+    ----------
+    qf : SAVfunction
+    targ_qf1 : SAVfunction
+    targ_qf2 : SAVfunction
+    batch : dict of torch.Tensor
+    gamma : float
+    loss type : str
+      This argument takes only bce and mse.
+      Loss shape is pytorch's manner.
+
+    Returns
+    -------
+    ret : torch.Tensor
     """
     obs = batch['obs']
     acs = batch['acs']

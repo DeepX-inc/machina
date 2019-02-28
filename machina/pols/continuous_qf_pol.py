@@ -10,7 +10,7 @@ from torch.distributions import MultivariateNormal
 
 class ContinuousQfPol(BasePol):
     """
-    Policy with Qfunction.
+    Policy with Continuous Qfunction.
 
     Parameters
     ----------
