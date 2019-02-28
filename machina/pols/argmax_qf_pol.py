@@ -20,7 +20,7 @@ class ArgmaxQfPol(BasePol):
     ac_space : gym.Space
         action's space
         This should be gym.spaces.Box
-    net : torch.nn.Module
+    qfunc : SAVfunc
     rnn : bool
     normalize_ac : bool
         If True, the output of network is spreaded for ac_space.
