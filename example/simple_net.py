@@ -104,20 +104,27 @@ class QNet(nn.Module):
 
 
 class ModelNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=500, h2=500):
+    def __init__(self, ob_space, ac_space, h1=500, h2=500, deterministic=True):
         super(ModelNet, self).__init__()
+        self.deterministic = deterministic
+
         self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, ob_space.shape[0])
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(weight_init)
+        self.log_std_param = nn.Parameter(
+            torch.randn(ob_space.shape[0])*1e-10 - 1)
 
     def forward(self, ob, ac):
         h = torch.cat([ob, ac], dim=-1)
         h = F.relu(self.fc1(h))
         h = F.relu(self.fc2(h))
-        return self.output_layer(h)
+        if self.deterministic:
+            return self.output_layer(h)
+        else:
+            return self.output_layer(h), self.log_std_param
 
 
 class PolNetLSTM(nn.Module):
@@ -222,17 +229,20 @@ class VNetLSTM(nn.Module):
 
 
 class ModelNetLSTM(nn.Module):
-    def __init__(self, ob_space, ac_space, h_size=1024, cell_size=512):
+    def __init__(self, ob_space, ac_space, h_size=1024, cell_size=512, deterministic=True):
         super(ModelNetLSTM, self).__init__()
         self.h_size = h_size
         self.cell_size = cell_size
         self.rnn = True
+        self.deterministic = deterministic
 
         self.input_layer = nn.Linear(
             ob_space.shape[0] + ac_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
         self.output_layer = nn.Linear(self.cell_size, ob_space.shape[0])
         self.output_layer.apply(weight_init)
+        self.log_std_param = nn.Parameter(
+            torch.randn(ob_space.shape[0])*1e-10 - 1)
 
     def init_hs(self, batch_size=1):
         new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(
@@ -257,6 +267,10 @@ class ModelNetLSTM(nn.Module):
         outs = self.output_layer(hiddens)
 
         return outs, hs
+        if self.deterministic:
+            return outs, hs
+        else:
+            return outs, self.log_std_param, hs
 
 
 class DiscrimNet(nn.Module):
