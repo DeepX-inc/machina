@@ -68,7 +68,7 @@ parser.add_argument('--num_best_sampling', type=int, default=6,
                     help='Number of best samples used for fitting Gaussian in CEM.')
 parser.add_argument('--loss_type', type=str,
                     choices=['mse', 'bce'], default='mse',
-                    help='Type of belleman loss.')
+                    help='Choice for type of belleman loss.')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
