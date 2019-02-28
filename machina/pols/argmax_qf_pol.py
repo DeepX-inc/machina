@@ -49,4 +49,4 @@ class ArgmaxQfPol(BasePol):
         else:
             q, ac = self.qfunc.max(obs)
             ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
-        return ac_real, ac, dict(q=q)
+        return ac_real, ac, dict()

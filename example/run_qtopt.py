@@ -28,8 +28,6 @@ from machina.utils import set_device, measure
 
 from simple_net import QNet
 
-import pybullet_envs
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage',
                     help='Directory name of log.')
