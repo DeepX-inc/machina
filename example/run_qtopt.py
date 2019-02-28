@@ -53,9 +53,9 @@ parser.add_argument('--h1', type=int, default=32,
                     help='hidden size of layer1.')
 parser.add_argument('--h2', type=int, default=32,
                     help='hidden size of layer2.')
-parser.add_argument('--tau', type=float, default=0.001,
+parser.add_argument('--tau', type=float, default=0.0001,
                     help='Coefficient of target function.')
-parser.add_argument('--gamma', type=float, default=0.995,
+parser.add_argument('--gamma', type=float, default=0.9,
                     help='Discount factor.')
 
 parser.add_argument('--lag', type=int, default=6000,
@@ -66,6 +66,8 @@ parser.add_argument('--num_sampling', type=int, default=60,
                     help='Number of samples sampled from Gaussian in CEM.')
 parser.add_argument('--num_best_sampling', type=int, default=6,
                     help='Number of best samples used for fitting Gaussian in CEM.')
+parser.add_argument('--eps', type=float, default=0.2,
+                    help='Probability of random action in epsilon-greedy policy.')
 parser.add_argument('--loss_type', type=str,
                     choices=['mse', 'bce'], default='mse',
                     help='Choice for type of belleman loss.')
@@ -111,7 +113,7 @@ targ_qf1 = CEMDeterministicSAVfunc(ob_space, ac_space, targ_qf1_net, num_samplin
                                    num_best_sampling=args.num_best_sampling, num_iter=args.num_iter)
 targ_qf2 = DeterministicSAVfunc(ob_space, ac_space, targ_qf2_net)
 
-pol = ArgmaxQfPol(ob_space, ac_space, targ_qf1)
+pol = ArgmaxQfPol(ob_space, ac_space, targ_qf1, eps=args.eps, env=env)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 

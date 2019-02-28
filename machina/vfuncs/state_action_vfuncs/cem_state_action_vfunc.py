@@ -26,14 +26,14 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         Number of best samples used for fitting Gaussian in CEM.
     num_iter : int
         Number of iteration of CEM.
-    eps : float
+    delta : float
         Coefficient used for making covariance matrix positive definite.
     """
 
-    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64, num_best_sampling=6, num_iter=2, eps=1e-4):
+    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64, num_best_sampling=6, num_iter=2, delta=1e-4):
         super().__init__(ob_space, ac_space, net, rnn, data_parallel, parallel_dim)
         self.num_sampling = num_sampling
-        self.eps = eps
+        self.delta = delta
         self.num_best_sampling = num_best_sampling
         self.num_iter = num_iter
         self.net = net
@@ -93,7 +93,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         mean = fitting_samples.mean(dim=0)
         fs_m = fitting_samples.sub(mean.expand_as(fitting_samples))
         cov_mat = fs_m.transpose(0, 1).mm(fs_m) / (self.num_sampling - 1)
-        cov_mat = cov_mat + self.eps * torch.eye(cov_mat.shape[0])
+        cov_mat = cov_mat + self.delta * torch.eye(cov_mat.shape[0])
         pd = MultivariateNormal(mean, cov_mat)
         samples = pd.sample((self.num_sampling,))
         return samples
