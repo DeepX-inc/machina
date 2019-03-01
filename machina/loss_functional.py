@@ -435,13 +435,12 @@ def density_ratio_adv_cross_ent(advf, pol, batch, expert_or_agent):
     return discrim_loss
 
 
-def shannon_cross_entropy(student_pol, teacher_pol, batch):
+def shannon_cross_entropy(student_pol, teacher_pol, batch, num_sample_actions=100):
     """
     Shannon-cross-entropy for policy distillation
     See https://arxiv.org/abs/1902.02186
     """
     obs = batch['obs']
-    acs = batch['acs']
     if teacher_pol.rnn:
         h_masks = batch['h_masks']
         out_masks = batch['out_masks']
@@ -455,9 +454,13 @@ def shannon_cross_entropy(student_pol, teacher_pol, batch):
     _, _, s_params = student_pol(obs, h_masks=h_masks)
     with torch.no_grad():
         _, _, t_params = teacher_pol(obs, h_masks=h_masks)
-    s_llh = s_pd(acs, s_params)
-    t_llh = t_pd(acs, t_params)
-    : TODO Calculate correctly the cross-entropy over the full action-space
-    pol_loss = 0
+    pol_losses = []
+    for i in range(num_sample_action):
+        ac = t_pd.sample(params=t_params)
+        t_llh = t_pd(ac, t_params)
+        t_lh = torch.exp(t_llh)
+        s_llh = s_pd(ac_, s_params)
+        pol_loss = torch.mean(t_lh*s_llh)
+        pol_losses.append(pol_loss)
     pol_loss = torch.mean(poll_loss*out_masks)
     return pol_loss
