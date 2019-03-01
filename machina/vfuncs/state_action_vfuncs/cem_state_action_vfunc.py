@@ -7,6 +7,7 @@ from machina.utils import get_device
 import torch
 from torch.distributions import Normal, MultivariateNormal
 
+
 class CEMDeterministicSAVfunc(DeterministicSAVfunc):
     """
     Deterministic State Action Vfunction with Cross Entropy Method.
@@ -61,7 +62,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                             dtype=torch.float, device=obs.device)
         low = torch.tensor(
             self.ac_space.low, dtype=torch.float, device=obs.device)
-        init_samples = torch.linspace(0, 1, self.num_sampling).reshape(self.num_sampling, -1) * (high - low) + low # (self.num_sampling, dim_ac)
+        init_samples = torch.linspace(0, 1, self.num_sampling).reshape(
+            self.num_sampling, -1) * (high - low) + low  # (self.num_sampling, dim_ac)
         init_samples = self._clamp(init_samples)
         max_qs, max_acs = self._cem(obs, init_samples)
         return max_qs, max_acs
@@ -93,11 +95,16 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                                  self.num_sampling).reshape(self.batch_size, 1)
                 best_indices = best_indices.reshape(
                     (self.num_best_sampling * self.batch_size,))
-                best_samples = samples[best_indices, :] # (self.num_best_sampling * self.batch_size,  self.dim_ac)
-                best_samples = best_samples.reshape((self.batch_size, self.num_best_sampling, self.dim_ac)) # (self.batch_size, self.num_best_sampling, self.dim_ac)
-                samples = self._fitting_diag(best_samples) if not self.multivari else self._fitting_multivari(best_samples)
+                # (self.num_best_sampling * self.batch_size,  self.dim_ac)
+                best_samples = samples[best_indices, :]
+                # (self.batch_size, self.num_best_sampling, self.dim_ac)
+                best_samples = best_samples.reshape(
+                    (self.batch_size, self.num_best_sampling, self.dim_ac))
+                samples = self._fitting_diag(
+                    best_samples) if not self.multivari else self._fitting_multivari(best_samples)
         qvals = qvals.reshape((self.batch_size, self.num_sampling))
-        samples = samples.reshape((self.batch_size, self.num_sampling, self.dim_ac))
+        samples = samples.reshape(
+            (self.batch_size, self.num_sampling, self.dim_ac))
         max_q, ind = torch.max(qvals, dim=1)
         max_ac = samples[torch.arange(self.batch_size), ind]
         max_ac = self._check_acs_shape(max_ac)
@@ -115,14 +122,17 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         -------
         samples : torch.Tensor
         """
-        mean = torch.mean(best_samples, dim=1)  # (self.batch_size, self.dim_ac)
+        mean = torch.mean(
+            best_samples, dim=1)  # (self.batch_size, self.dim_ac)
         std = torch.std(best_samples, dim=1)  # (self.batch_size, self.dim_ac)
         samples = Normal(loc=mean, scale=std).rsample(
             torch.Size((self.num_sampling,)))  # (self.num_best_sampling, self.batch_size, , self.dim_ac)
-        samples = samples.transpose(1, 0)  # (self.num_best_sampling, self.batch_size, self.dim_ac)
+        # (self.num_best_sampling, self.batch_size, self.dim_ac)
+        samples = samples.transpose(1, 0)
         samples = samples.reshape((self.num_sampling * self.batch_size,
-                                             self.dim_ac))  # (self.num_best_sampling * self.batch_size,  self.dim_ac)
-        samples = self._clamp(samples)  # (self.num_best_sampling * self.batch_size,  self.dim_ac)
+                                   self.dim_ac))  # (self.num_best_sampling * self.batch_size,  self.dim_ac)
+        # (self.num_best_sampling * self.batch_size,  self.dim_ac)
+        samples = self._clamp(samples)
         return samples
 
     def _fitting_multivari(self, best_samples):
@@ -145,7 +155,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
             pd = MultivariateNormal(mean, cov_mat)
             samples = pd.sample((self.num_sampling,))
             return samples
-        samples = torch.cat([fitting(best_sample) for best_sample in best_samples], dim=0)
+        samples = torch.cat([fitting(best_sample)
+                             for best_sample in best_samples], dim=0)
         return samples
 
     def _clamp(self, samples):
