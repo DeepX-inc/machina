@@ -12,10 +12,10 @@ import gym
 
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-from machina.pols import DeterministicActionNoisePol
+from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg
-from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt
+from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc, CEMDeterministicSAVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -421,6 +421,51 @@ class TestSAC(unittest.TestCase):
             optim_pol, optim_qfs, optim_alpha,
             2, 32,
             0.01, 0.99, 2,
+        )
+
+        del sampler
+
+
+class TestQTOPT(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+        qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        lagged_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        lagged_qf_net.load_state_dict(qf_net.state_dict())
+        targ_qf1_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        targ_qf1_net.load_state_dict(qf_net.state_dict())
+        targ_qf2_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        targ_qf2_net.load_state_dict(lagged_qf_net.state_dict())
+        qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
+        lagged_qf = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, lagged_qf_net)
+        targ_qf1 = CEMDeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf1_net, num_sampling=60,
+                                           num_best_sampling=6, num_iter=2,
+                                           multivari=False)
+        targ_qf2 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf2_net)
+
+        pol = ArgmaxQfPol(self.env.ob_space,
+                          self.env.ac_space, targ_qf1, eps=0.2)
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_qf = torch.optim.Adam(qf_net.parameters(), 3e-4)
+
+        epis = sampler.sample(pol, max_steps=32)
+
+        traj = Traj()
+        traj.add_epis(epis)
+
+        traj = ef.add_next_obs(traj)
+        traj.register_epis()
+
+        result_dict = qtopt.train(
+            traj, qf, lagged_qf, targ_qf1, targ_qf2,
+            optim_qf, 1000, 32,
+            0.9999, 0.995, 'mse'
         )
 
         del sampler
