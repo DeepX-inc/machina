@@ -50,7 +50,7 @@ class BaseSAVfunc(nn.Module):
             additional_shape = 1
         if len(obs.shape) < additional_shape + len(self.ob_space.shape):
             for _ in range(additional_shape + len(self.ob_space.shape) - len(obs.shape)):
-                obs.unsqueeze(0)
+                obs = obs.unsqueeze(0)
         return obs
 
     def _check_acs_shape(self, acs):
@@ -63,5 +63,5 @@ class BaseSAVfunc(nn.Module):
             additional_shape = 1
         if len(acs.shape) < additional_shape + len(self.ac_space.shape):
             for _ in range(additional_shape + len(self.ac_space.shape) - len(acs.shape)):
-                acs.unsqueeze(0)
+                acs = acs.unsqueeze(0)
         return acs
