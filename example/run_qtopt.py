@@ -28,6 +28,8 @@ from machina.utils import set_device, measure
 
 from simple_net import QNet
 
+import pybullet_envs
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage',
                     help='Directory name of log.')
@@ -66,6 +68,8 @@ parser.add_argument('--num_sampling', type=int, default=60,
                     help='Number of samples sampled from Gaussian in CEM.')
 parser.add_argument('--num_best_sampling', type=int, default=6,
                     help='Number of best samples used for fitting Gaussian in CEM.')
+parser.add_argument('--multivari', action='store_true',
+                    help='If true, Gaussian with diagonal covarince instead of Multivariate Gaussian matrix is used in CEM.')
 parser.add_argument('--eps', type=float, default=0.2,
                     help='Probability of random action in epsilon-greedy policy.')
 parser.add_argument('--loss_type', type=str,
@@ -110,7 +114,7 @@ targ_qf2_net.load_state_dict(lagged_qf_net.state_dict())
 qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
 lagged_qf = DeterministicSAVfunc(ob_space, ac_space, lagged_qf_net)
 targ_qf1 = CEMDeterministicSAVfunc(ob_space, ac_space, targ_qf1_net, num_sampling=args.num_sampling,
-                                   num_best_sampling=args.num_best_sampling, num_iter=args.num_iter)
+                                   num_best_sampling=args.num_best_sampling, num_iter=args.num_iter, multivari=args.multivari)
 targ_qf2 = DeterministicSAVfunc(ob_space, ac_space, targ_qf2_net)
 
 pol = ArgmaxQfPol(ob_space, ac_space, targ_qf1, eps=args.eps)
