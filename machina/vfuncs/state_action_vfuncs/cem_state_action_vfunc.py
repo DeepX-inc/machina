@@ -38,6 +38,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         self.num_best_sampling = num_best_sampling
         self.num_iter = num_iter
         self.net = net
+        self.rollout = False
         self.to(get_device())
 
     def max(self, obs):
@@ -60,21 +61,34 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         init_samples = pd.sample((self.num_sampling,))
         init_samples = self._clamp(init_samples)
 
-        if obs.dim() == 1:
-            # when sampling policy
+        self.rollout = (obs.dim() == 1)
+        if self.rollout:
             obs = obs.unsqueeze(0)
         max_qs, max_acs = self._cem(obs, init_samples)
+        # if self.rollout:
+        #     max_acs = max_acs.squeeze(0)
         return max_qs, max_acs
 
-    def _cem(self, obs, samples):
+    def _cem(self, obs, init_samples):
+        """
+
+        Parameters
+        ----------
+        obs : torch.Tensor
+        init_samples : torch.Tensor
+            shape (self.num_sampling, dim_ac)
+        Returns
+        -------
+
+        """
         batch_size = obs.shape[0]
         dim_ob = obs.shape[1]
+        dim_ac = self.ac_space.shape[0]
         obs = obs.repeat((1, self.num_sampling)).reshape(
             (self.num_sampling * batch_size, dim_ob))
+        samples = init_samples.repeat((batch_size, 1))
         for i in range(self.num_iter):
             with torch.no_grad():
-                # shape (self.num_sampling * batch_size, dim_ac)
-                samples = samples.repeat((batch_size, 1))
                 qvals, _ = self.forward(obs, samples)
             if i != self.num_iter-1:
                 qvals = qvals.reshape((batch_size, self.num_sampling))
@@ -85,12 +99,17 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                                  self.num_sampling).view(batch_size, 1)
                 best_indices = best_indices.view(
                     (self.num_best_sampling * batch_size,))
+                # (self.num_best_sampling * batch_size,  dim_ac)
                 best_samples = samples[best_indices, :]
-                samples = self._fitting(best_samples)
+                # (batch_size, self.num_best_sampling, dim_ac)
+                best_samples = best_samples.view(
+                    (batch_size, self.num_best_sampling, dim_ac))
+                samples = torch.cat([self._fitting(best_sample)
+                                     for best_sample in best_samples], dim=0)
+                # (self.num_best_sampling * batch_size,  dim_ac)
                 samples = self._clamp(samples)
         qvals = qvals.reshape((batch_size, self.num_sampling))
-        samples = samples.reshape(
-            (batch_size, self.num_sampling, self.ac_space.shape[0]))
+        samples = samples.reshape((batch_size, self.num_sampling, dim_ac))
         max_q, ind = torch.max(qvals, dim=1)
         max_ac = samples[torch.arange(batch_size), ind]
         return max_q, max_ac.view((batch_size, -1))
