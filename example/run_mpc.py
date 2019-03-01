@@ -61,7 +61,7 @@ parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--num_random_rollouts', type=int, default=60)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
-parser.add_argument('--n_samples', type=int, default=1000)
+parser.add_argument('--n_samples', type=int, default=300)
 parser.add_argument('--horizon_of_samples', type=int, default=4)
 parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
