@@ -168,6 +168,50 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
             "Only Q function with continuous action space is supported now.")
 
 
+def clipped_double_bellman(qf, targ_qf1, targ_qf2, batch, gamma, loss_type='bce'):
+    """
+    Bellman loss of Clipped Double DQN.
+    Mean Squared Error of left hand side and right hand side of Bellman Equation.
+    or
+    Binary Cross Entropy of left hand side and right hand side of Bellman Equation.
+
+    Parameters
+    ----------
+    qf : SAVfunction
+    targ_qf1 : SAVfunction
+    targ_qf2 : SAVfunction
+    batch : dict of torch.Tensor
+    gamma : float
+    loss type : str
+      This argument takes only bce and mse.
+      Loss shape is pytorch's manner.
+
+    Returns
+    -------
+    ret : torch.Tensor
+    """
+    obs = batch['obs']
+    acs = batch['acs']
+    rews = batch['rews']
+    next_obs = batch['next_obs']
+    dones = batch['dones']
+
+    targ_q1, next_acs = targ_qf1.max(next_obs)
+    targ_q2, _ = targ_qf2(next_obs, next_acs)
+    targ_q = torch.min(targ_q1, targ_q2)
+    targ = rews + gamma * targ_q * (1 - dones)
+    targ = targ.detach()
+    q, _ = qf(obs, acs)
+    if loss_type == 'bce':
+        loss = nn.BCELoss()
+        ret = loss(q, targ)
+    elif loss_type == 'mse':
+        ret = torch.mean(0.5 * (q - targ) ** 2)
+    else:
+        raise ValueError('Only bce and mse are supported')
+    return ret
+
+
 def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, normalize=False, eps=1e-6):
     """
     Loss for soft actor critic.
