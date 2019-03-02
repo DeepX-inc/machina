@@ -10,6 +10,8 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 
+from machina.utils import cpu_mode
+
 
 LARGE_NUMBER = 100000000
 
@@ -30,59 +32,60 @@ def one_epi(env, pol, deterministic=False, prepro=None):
     -------
     epi_length, epi : int, dict
     """
-    if prepro is None:
-        def prepro(x): return x
-    obs = []
-    acs = []
-    rews = []
-    dones = []
-    a_is = []
-    e_is = []
-    o = env.reset()
-    pol.reset()
-    done = False
-    epi_length = 0
-    while not done:
-        o = prepro(o)
-        if not deterministic:
-            ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float))
-        else:
-            ac_real, ac, a_i = pol.deterministic_ac_real(
-                torch.tensor(o, dtype=torch.float))
-        ac_real = ac_real.reshape(pol.ac_space.shape)
-        next_o, r, done, e_i = env.step(np.array(ac_real))
-        obs.append(o)
-        rews.append(r)
-        dones.append(done)
-        acs.append(ac.squeeze().detach().cpu(
-        ).numpy().reshape(pol.ac_space.shape))
-        _a_i = dict()
-        for key in a_i.keys():
-            if a_i[key] is None:
-                continue
-            if isinstance(a_i[key], tuple):
-                _a_i[key] = tuple([h.squeeze().detach().cpu().numpy()
-                                   for h in a_i[key]])
+    with cpu_mode():
+        if prepro is None:
+            def prepro(x): return x
+        obs = []
+        acs = []
+        rews = []
+        dones = []
+        a_is = []
+        e_is = []
+        o = env.reset()
+        pol.reset()
+        done = False
+        epi_length = 0
+        while not done:
+            o = prepro(o)
+            if not deterministic:
+                ac_real, ac, a_i = pol(torch.tensor(o, dtype=torch.float))
             else:
-                _a_i[key] = a_i[key].squeeze().detach(
-                ).cpu().numpy().reshape(pol.pd_shape)
-        a_i = _a_i
-        a_is.append(a_i)
-        e_is.append(e_i)
-        epi_length += 1
-        if done:
-            break
-        o = next_o
-    return epi_length, dict(
-        obs=np.array(obs, dtype='float32'),
-        acs=np.array(acs, dtype='float32'),
-        rews=np.array(rews, dtype='float32'),
-        dones=np.array(dones, dtype='float32'),
-        a_is=dict([(key, np.array([a_i[key] for a_i in a_is], dtype='float32'))
-                   for key in a_is[0].keys()]),
-        e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32'))
-                   for key in e_is[0].keys()])
-    )
+                ac_real, ac, a_i = pol.deterministic_ac_real(
+                    torch.tensor(o, dtype=torch.float))
+            ac_real = ac_real.reshape(pol.ac_space.shape)
+            next_o, r, done, e_i = env.step(np.array(ac_real))
+            obs.append(o)
+            rews.append(r)
+            dones.append(done)
+            acs.append(ac.squeeze().detach().cpu(
+            ).numpy().reshape(pol.ac_space.shape))
+            _a_i = dict()
+            for key in a_i.keys():
+                if a_i[key] is None:
+                    continue
+                if isinstance(a_i[key], tuple):
+                    _a_i[key] = tuple([h.squeeze().detach().cpu().numpy()
+                                       for h in a_i[key]])
+                else:
+                    _a_i[key] = a_i[key].squeeze().detach(
+                    ).cpu().numpy().reshape(pol.pd_shape)
+            a_i = _a_i
+            a_is.append(a_i)
+            e_is.append(e_i)
+            epi_length += 1
+            if done:
+                break
+            o = next_o
+        return epi_length, dict(
+            obs=np.array(obs, dtype='float32'),
+            acs=np.array(acs, dtype='float32'),
+            rews=np.array(rews, dtype='float32'),
+            dones=np.array(dones, dtype='float32'),
+            a_is=dict([(key, np.array([a_i[key] for a_i in a_is], dtype='float32'))
+                       for key in a_is[0].keys()]),
+            e_is=dict([(key, np.array([e_i[key] for e_i in e_is], dtype='float32'))
+                       for key in e_is[0].keys()])
+        )
 
 
 def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
