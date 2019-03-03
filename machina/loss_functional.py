@@ -448,19 +448,10 @@ def shannon_cross_entropy(student_pol, teacher_pol, batch, num_sample_actions=10
         h_masks = None
         out_masks = torch.ones_like(batch['rews'])
     s_pd = student_pol.pd
-    t_pd = teacher_pol.pd
     student_pol.reset()
     teacher_pol.reset()
     _, _, s_params = student_pol(obs, h_masks=h_masks)
     with torch.no_grad():
         _, _, t_params = teacher_pol(obs, h_masks=h_masks)
-    pol_losses = []
-    for i in range(num_sample_action):
-        ac = t_pd.sample(params=t_params)
-        t_llh = t_pd(ac, t_params)
-        t_lh = torch.exp(t_llh)
-        s_llh = s_pd(ac_, s_params)
-        pol_loss = torch.mean(t_lh*s_llh)
-        pol_losses.append(pol_loss)
-    pol_loss = torch.mean(poll_loss*out_masks)
-    return pol_loss
+    cross_entropy_loss = s_pd.kl_pq(t_params, s_params) - s_pd.ent(t_params)
+    return torch.mean(cross_entropy_loss)

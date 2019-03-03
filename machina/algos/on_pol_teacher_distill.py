@@ -5,7 +5,7 @@ Implementation of On-policy and Teacher distillation technique
 import torch
 import torch.nn as nn
 
-from machina import distillation_loss as dl
+from machina import loss_functional as lf
 from machina import logger
 
 
@@ -30,7 +30,7 @@ def update_pol(student_pol, teacher_pol, optim_pol, batch):
         Loss of student policy
     """
 
-    pol_loss = dl.shanon_cross_entropy(student_pol, teacher_pol, batch)
+    pol_loss = lf.shannon_cross_entropy(student_pol, teacher_pol, batch)
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
@@ -40,10 +40,10 @@ def update_pol(student_pol, teacher_pol, optim_pol, batch):
 def train(traj, student_pol, teacher_pol, student_optim, epoch, batchsize, num_epi_per_seq=1):
     s_pol_losses = []
     logger.log("Optimizing...")
-    iterator = traj.iterate(batchsize, epoch) if not pol.rnn else traj.iterate_rnn(
+    iterator = traj.iterate(batchsize, epoch) if not student_pol.rnn else traj.iterate_rnn(
         batchsize=batchsize, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
-        s_pol_loss = update_pol(student_pol=student_pol, teacher_pol=teacher_pol, optim_pol=student_optim, batch)
+        s_pol_loss = update_pol(student_pol=student_pol, teacher_pol=teacher_pol, optim_pol=student_optim, batch=batch)
         s_pol_losses.append(s_pol_loss)
 
     logger.log('Optimization finished')
