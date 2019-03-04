@@ -29,7 +29,8 @@ class GaussianSModel(BaseModel):
 
     def forward(self, obs, acs, hs=None, h_masks=None):
         obs = self._check_obs_shape(obs)
-        acs = self._check_acs_shape(acs)
+        if acs is not None:
+            acs = self._check_acs_shape(acs)
 
         if self.rnn:
             time_seq, batch_size, *_ = obs.shape
@@ -43,34 +44,16 @@ class GaussianSModel(BaseModel):
                 h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
             h_masks = h_masks.reshape(time_seq, batch_size, 1)
 
-            mean, log_std, hs = self.net(obs, acs, hs, h_masks)
+            if acs is None:
+                mean, log_std, hs = self.net(obs, hs, h_masks)
+            else:
+                mean, log_std, hs = self.net(obs, acs, hs, h_masks)
             self.hs = hs
         else:
-            mean, log_std = self.net(obs, acs)
-        log_std = log_std.expand_as(mean)
-        pred = self.pd.sample(dict(mean=mean, log_std=log_std))
-
-        return pred, dict(mean=mean, log_std=log_std)
-
-    def forward(self, obs, hs=None, h_masks=None):
-        obs = self._check_obs_shape(obs)
-
-        if self.rnn:
-            time_seq, batch_size, *_ = obs.shape
-
-            if hs is None:
-                if self.hs is None:
-                    self.hs = self.net.init_hs(batch_size)
-                hs = self.hs
-
-            if h_masks is None:
-                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
-            h_masks = h_masks.reshape(time_seq, batch_size, 1)
-
-            mean, log_std, hs = self.net(obs, hs, h_masks)
-            self.hs = hs
-        else:
-            mean, log_std = self.net(obs)
+            if acs is None:
+                mean, log_std = self.net(obs)
+            else:
+                mean, log_std = self.net(obs, acs)
         log_std = log_std.expand_as(mean)
         pred = self.pd.sample(dict(mean=mean, log_std=log_std))
 
