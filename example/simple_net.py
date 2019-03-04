@@ -276,6 +276,8 @@ class DiscrimNet(nn.Module):
 class MLP(nn.Module):
     def __init__(self, in_features, out_features, h1=200, h2=200, deterministic=True):
         nn.Module.__init__(self)
+        self.deterministic = deterministic
+
         self.fc1 = nn.Linear(in_features, h1)
         self.fc2 = nn.Linear(h1, h2)
         if deterministic:
@@ -289,7 +291,7 @@ class MLP(nn.Module):
     def forward(self, x):
         h = torch.relu(self.fc1(x))
         h = torch.relu(self.fc2(h))
-        if deterministic:
+        if self.deterministic:
             return self.output_layer(h)
         else:
             mean = self.mean_layer(h)
