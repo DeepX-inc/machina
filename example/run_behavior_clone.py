@@ -38,7 +38,7 @@ parser.add_argument('--num_parallel', type=int, default=4)
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
 parser.add_argument('--expert_fname', type=str,
-                    default='Pendulum-v0_100trajs.pkl')
+                    default='Pendulum-v0_100epis.pkl')
 
 parser.add_argument('--max_episodes_per_iter', type=int, default=10)
 parser.add_argument('--batch_size', type=int, default=256)
