@@ -271,3 +271,17 @@ class DiscrimNet(nn.Module):
         h = torch.tanh(self.fc1(torch.cat([ob, ac], dim=1)))
         h = torch.tanh(self.fc2(h))
         return self.output_layer(h)
+
+
+class MLP(nn.Module):
+    def __init__(self, in_features, out_features, h1=200, h2=200):
+        super(MLP, self).__init__()
+        self.fc1 = nn.Linear(in_features, h1)
+        self.fc2 = nn.Linear(h1, h2)
+        self.output_layer = nn.Linear(h2, out_features)
+        self.apply(weight_init)
+
+    def forward(self, x):
+        h = F.relu(self.fc1(x))
+        h = F.relu(self.fc2(h))
+        return self.output_layer(h)
