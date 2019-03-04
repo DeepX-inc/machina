@@ -42,7 +42,7 @@ parser.add_argument('--num_parallel', type=int, default=4)
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
 parser.add_argument('--expert_fname', type=str,
-                    default='Pendulum-v0_100trajs.pkl')
+                    default='Pendulum-v0_100epis.pkl')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=50000)
 parser.add_argument('--batch_size', type=int, default=50000)
@@ -131,10 +131,6 @@ else:
 vf_net = VNet(ob_space)
 vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
 
-discrim_net = DiscrimNet(
-    ob_space, ac_space, h1=args.discrim_h1, h2=args.discrim_h2)
-discrim = DeterministicSAVfunc(ob_space, ac_space, discrim_net)
-
 if args.irl_type == 'rew':
     rewf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
     rewf = DeterministicSVfunc(ob_space, rewf_net, args.rnn)
@@ -157,7 +153,6 @@ sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
-optim_discrim = torch.optim.Adam(discrim_net.parameters(), args.discrim_lr)
 
 with open(os.path.join(args.expert_dir, args.expert_fname), 'rb') as f:
     expert_epis = pickle.load(f)
@@ -271,8 +266,6 @@ while args.max_episodes > total_epi:
         args.log, 'models', 'pol_last.pkl'))
     torch.save(vf.state_dict(), os.path.join(
         args.log, 'models', 'vf_last.pkl'))
-    torch.save(discrim.state_dict(), os.path.join(
-        args.log, 'models', 'discrim_last.pkl'))
     if args.irl_type == 'rew':
         torch.save(rewf.state_dict(), os.path.join(
             args.log, 'models', 'rewf_last.pkl'))
