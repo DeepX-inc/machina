@@ -67,7 +67,7 @@ class GaussianSModel(BaseModel):
                 h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
             h_masks = h_masks.reshape(time_seq, batch_size, 1)
 
-            mean, log_std, hs = self.net(obs hs, h_masks)
+            mean, log_std, hs = self.net(obs, hs, h_masks)
             self.hs = hs
         else:
             mean, log_std = self.net(obs)

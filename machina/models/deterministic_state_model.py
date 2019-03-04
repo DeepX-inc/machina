@@ -63,7 +63,7 @@ class DeterministicSModel(BaseModel):
                 h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
             h_masks = h_masks.reshape(time_seq, batch_size, 1)
 
-            pred, hs = self.net(obs hs, h_masks)
+            pred, hs = self.net(obs, hs, h_masks)
             self.hs = hs
         else:
             pred = self.net(obs)
