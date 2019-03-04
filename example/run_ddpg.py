@@ -47,7 +47,6 @@ parser.add_argument('--h2', type=int, default=32)
 
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
-parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
