@@ -42,8 +42,29 @@ class DeterministicSModel(BaseModel):
                 h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
             h_masks = h_masks.reshape(time_seq, batch_size, 1)
 
-            d_ob, hs = self.net(obs, acs, hs, h_masks)
+            pred, hs = self.net(obs, acs, hs, h_masks)
             self.hs = hs
         else:
-            d_ob = self.net(obs, acs)
-        return d_ob, dict(mean=d_ob)
+            pred = self.net(obs, acs)
+        return pred, dict(mean=pred)
+
+    def forward(self, obs, hs=None, h_masks=None):
+        obs = self._check_obs_shape(obs)
+
+        if self.rnn:
+            time_seq, batch_size, *_ = obs.shape
+
+            if hs is None:
+                if self.hs is None:
+                    self.hs = self.net.init_hs(batch_size)
+                hs = self.hs
+
+            if h_masks is None:
+                h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
+            h_masks = h_masks.reshape(time_seq, batch_size, 1)
+
+            pred, hs = self.net(obs hs, h_masks)
+            self.hs = hs
+        else:
+            pred = self.net(obs)
+        return pred, dict(mean=pred)
