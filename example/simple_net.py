@@ -293,5 +293,5 @@ class MLP(nn.Module):
             return self.output_layer(h)
         else:
             mean = self.mean_layer(h)
-            std = self.softplus(self.std_layer(h))
-            return mean, std
+            log_std = torch.log(self.softplus(self.std_layer(h)))
+            return mean, log_std
