@@ -43,7 +43,8 @@ def train(traj, student_pol, teacher_pol, student_optim, epoch, batchsize, num_e
     iterator = traj.iterate(batchsize, epoch) if not student_pol.rnn else traj.iterate_rnn(
         batchsize=batchsize, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
-        s_pol_loss = update_pol(student_pol=student_pol, teacher_pol=teacher_pol, optim_pol=student_optim, batch=batch)
+        s_pol_loss = update_pol(
+            student_pol=student_pol, teacher_pol=teacher_pol, optim_pol=student_optim, batch=batch)
         s_pol_losses.append(s_pol_loss)
 
     logger.log('Optimization finished')
