@@ -435,11 +435,22 @@ def density_ratio_adv_cross_ent(advf, pol, batch, expert_or_agent):
     return discrim_loss
 
 
-def shannon_cross_entropy(student_pol, teacher_pol, batch, num_sample_actions=100):
+def shannon_cross_entropy(student_pol, teacher_pol, batch):
     """
     Shannon-cross-entropy for policy distillation
     See https://arxiv.org/abs/1902.02186
+
+    Parameters
+    ----------
+    student_pol : Student Policy
+    teacher_pol : Teacher Policy
+    batch : data containing the observations, actions and rewards
+
+    Returns
+    -------
+    cross_entropy_loss : Cross entropy loss between teacher and student policy
     """
+
     obs = batch['obs']
     if teacher_pol.rnn:
         h_masks = batch['h_masks']
