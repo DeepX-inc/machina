@@ -274,14 +274,24 @@ class DiscrimNet(nn.Module):
 
 
 class MLP(nn.Module):
-    def __init__(self, in_features, out_features, h1=200, h2=200):
-        super(MLP, self).__init__()
+    def __init__(self, in_features, out_features, h1=200, h2=200, deterministic=True):
+        nn.Module.__init__(self)
         self.fc1 = nn.Linear(in_features, h1)
         self.fc2 = nn.Linear(h1, h2)
-        self.output_layer = nn.Linear(h2, out_features)
+        if deterministic:
+            self.output_layer = nn.Linear(h2, out_features)
+        else:
+            self.mean_layer = nn.Linear(h2, out_features)
+            self.std_layer = nn.Linear(h2, out_features)
+            self.softplus = nn.Softplus()
         self.apply(weight_init)
 
     def forward(self, x):
-        h = F.relu(self.fc1(x))
-        h = F.relu(self.fc2(h))
-        return self.output_layer(h)
+        h = torch.relu(self.fc1(x))
+        h = torch.relu(self.fc2(h))
+        if deterministic:
+            return self.output_layer(h)
+        else:
+            mean = self.mean_layer(h)
+            std = self.softplus(self.std_layer(h))
+            return mean, std
