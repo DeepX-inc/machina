@@ -125,7 +125,7 @@ while args.max_episodes > total_epi:
             off_traj,
             pol, targ_pol, qf, targ_qf,
             optim_pol, optim_qf, step, args.batch_size,
-            args.tau, args.gamma, args.lam
+            args.tau, args.gamma
         )
 
     rewards = [np.sum(epi['rews']) for epi in epis]
