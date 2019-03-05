@@ -36,17 +36,17 @@ parser.add_argument('--num_parallel', type=int, default=4)
 parser.add_argument('--cuda', type=int, default=-1)
 parser.add_argument('--data_parallel', action='store_true', default=False)
 parser.add_argument('--max_steps_per_iter', type=int, default=10000)
-parser.add_argument('--max-episodes-per-iter', type=int, default=256)
+parser.add_argument('--max_episodes_per_iter', type=int, default=256)
 parser.add_argument('--epoch_per_iter', type=int, default=10)
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
 parser.add_argument('--sampling_policy', type=str,
                     choices=['student', 'teacher'], default='teacher')
-parser.add_argument('--teacher-pol', type=str,
+parser.add_argument('--teacher_pol', type=str,
                     default='teacher_pol_pendulum/models/pol_max.pkl')
 parser.add_argument('--rnn', action='store_true', default=False)
-parser.add_argument('--pol-lr', type=float, default=3e-4)
+parser.add_argument('--pol_lr', type=float, default=3e-4)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
