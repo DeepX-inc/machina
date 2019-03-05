@@ -47,7 +47,6 @@ parser.add_argument('--h2', type=int, default=32)
 
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--gamma', type=float, default=0.99)
-parser.add_argument('--lam', type=float, default=1)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -125,7 +124,7 @@ while args.max_episodes > total_epi:
             off_traj,
             pol, targ_pol, qf, targ_qf,
             optim_pol, optim_qf, step, args.batch_size,
-            args.tau, args.gamma, args.lam
+            args.tau, args.gamma
         )
 
     rewards = [np.sum(epi['rews']) for epi in epis]
