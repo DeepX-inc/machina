@@ -52,12 +52,12 @@ class Traj(object):
     def add_epis(self, epis):
         self.current_epis = epis
 
-    def _concat_data_map(self, data_map, del_index=None):
+    def _concat_data_map(self, data_map, remain_index=None):
         if self.data_map:
             for key in data_map:
-                if del_index is not None:
+                if remain_index is not None:
                     self.data_map[key] = torch.cat(
-                        [self.data_map[key][~del_index], data_map[key]], dim=0)
+                        [data_map[key], self.data_map[key][:remain_index]], dim=0)
                 else:
                     self.data_map[key] = torch.cat(
                         [self.data_map[key], data_map[key]], dim=0)
@@ -93,18 +93,19 @@ class Traj(object):
 
     def add_traj(self, traj):
         epis_index = traj._epis_index
-        last_index = len(self._epis_index) + len(epis_index)
-        if last_index <= self.max_episodes:
+        num_over_episodes = self.num_epi + traj.num_epi - self.max_episodes
+        if num_over_episodes <= 0:
             self._concat_data_map(traj.data_map)
 
             epis_index = epis_index + self._epis_index[-1]
             self._epis_index = np.concatenate(
                 [self._epis_index, epis_index[1:]])
         else:
-            del_index = np.arange(self.max_episodes - last_index)
-            self._concat_data_map(traj.data_map, del_index)
-
-            self._epis_index = np.arange(self.max_episodes)
+            remain_index = self._epis_index[-num_over_episodes-1]
+            self._concat_data_map(traj.data_map, remain_index)
+            self._epis_index = self._epis_index[1:-
+                                                num_over_episodes] + epis_index[-1]
+            self._epis_index = np.concatenate([epis_index, self._epis_index])
 
     def _shuffled_indices(self, indices):
         return indices[torch.randperm(len(indices), device=get_device())]
