@@ -15,10 +15,11 @@ import gym
 
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol
+from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol, MPCPol, RandomPol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill, behavior_clone, gail, airl
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill, behavior_clone, gail, airl, mpc
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc, CEMDeterministicSAVfunc
+from machina.models import DeterministicSModel
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -26,7 +27,7 @@ from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import measure, set_device
 
-from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM, QNet, DiscrimNet
+from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM, ModelNetLSTM, QNet, DiscrimNet
 
 
 class TestPPOContinuous(unittest.TestCase):
@@ -646,6 +647,122 @@ class TestAIRL(unittest.TestCase):
                                  pol_ent_beta=1e-3, discrim_ent_beta=1e-5, gamma=0.99)
 
         del sampler
+
+
+class TestMPC(unittest.TestCase):
+    def setUp(self):
+        import pybullet_envs
+        self.env = GymEnv('HalfCheetahBulletEnv-v0')
+
+    def add_noise_to_init_obs(self, epis, std):
+        with torch.no_grad():
+            for epi in epis:
+                epi['obs'][0] += np.random.normal(0, std, epi['obs'][0].shape)
+        return epis
+
+    def rew_func(self, next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+        next_obs = next_obs * std_obs + mean_obs
+        acs = acs * std_acs + mean_acs
+        index_of_velx = 3
+        rews = next_obs[:, index_of_velx] - 0.01 * \
+            torch.sum(acs**2, dim=1)
+        rews = rews.squeeze(0)
+
+        return rews
+
+    def test_learning(self):
+        # sample with random policy
+        random_pol = RandomPol(self.env.ob_space, self.env.ac_space)
+        rand_sampler = EpiSampler(
+            self.env, random_pol, num_parallel=1)
+
+        epis = rand_sampler.sample(random_pol, max_episodes=60)
+        epis = self.add_noise_to_init_obs(epis, 0.001)
+        traj = Traj()
+        traj.add_epis(epis)
+        traj = ef.add_next_obs(traj)
+        traj = ef.compute_h_masks(traj)
+        traj, mean_obs, std_obs, mean_acs, std_acs = ef.normalize_obs_and_acs(
+            traj)
+        traj.register_epis()
+
+        # init models
+        dm_net = ModelNet(self.env.ob_space, self.env.ac_space)
+        dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=False,
+                                 data_parallel=1, parallel_dim=0)
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, self.rew_func,
+                         10, 4, mean_obs, std_obs, mean_acs, std_acs, False)
+        optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
+
+        # sample with mpc policy
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm.net, self.rew_func,
+                         10, 4, mean_obs, std_obs, mean_acs, std_acs, False)
+        rl_sampler = EpiSampler(
+            self.env, mpc_pol, num_parallel=1)
+        epis = rl_sampler.sample(
+            mpc_pol, max_episodes=9)
+
+        curr_traj = Traj()
+        curr_traj.add_epis(epis)
+        curr_traj = ef.add_next_obs(curr_traj)
+        curr_traj = ef.compute_h_masks(curr_traj)
+        traj = ef.normalize_obs_and_acs(
+            curr_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
+        curr_traj.register_epis()
+        traj.add_traj(curr_traj)
+
+        # train
+        result_dict = mpc.train_dm(
+            traj, dm, optim_dm, epoch=1, batch_size=32)
+
+        del rand_sampler, rl_sampler
+
+    def test_learning_rnn(self):
+        # sample with random policy
+        random_pol = RandomPol(self.env.ob_space, self.env.ac_space)
+        rand_sampler = EpiSampler(
+            self.env, random_pol, num_parallel=1)
+
+        epis = rand_sampler.sample(random_pol, max_episodes=60)
+        epis = self.add_noise_to_init_obs(epis, 0.001)
+        traj = Traj()
+        traj.add_epis(epis)
+        traj = ef.add_next_obs(traj)
+        traj = ef.compute_h_masks(traj)
+        traj, mean_obs, std_obs, mean_acs, std_acs = ef.normalize_obs_and_acs(
+            traj)
+        traj.register_epis()
+
+        # init models
+        dm_net = ModelNetLSTM(self.env.ob_space, self.env.ac_space)
+        dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=True,
+                                 data_parallel=1, parallel_dim=0)
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, self.rew_func,
+                         10, 4, mean_obs, std_obs, mean_acs, std_acs, True)
+        optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
+
+        # sample with mpc policy
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm.net, self.rew_func,
+                         10, 4, mean_obs, std_obs, mean_acs, std_acs, True)
+        rl_sampler = EpiSampler(
+            self.env, mpc_pol, num_parallel=1)
+        epis = rl_sampler.sample(
+            mpc_pol, max_episodes=9)
+
+        curr_traj = Traj()
+        curr_traj.add_epis(epis)
+        curr_traj = ef.add_next_obs(curr_traj)
+        curr_traj = ef.compute_h_masks(curr_traj)
+        traj = ef.normalize_obs_and_acs(
+            curr_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
+        curr_traj.register_epis()
+        traj.add_traj(curr_traj)
+
+        # train
+        result_dict = mpc.train_dm(
+            traj, dm, optim_dm, epoch=1, batch_size=32)
+
+        del rand_sampler, rl_sampler
 
 
 if __name__ == '__main__':
