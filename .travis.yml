@@ -11,6 +11,9 @@ install:
     - curl -sc /tmp/cookie "https://drive.google.com/uc?export=download&id=1zODylHjXq2d3R8jY20yP3aOOZFqHgVRn" > /dev/null
     - CODE="$(awk '/_warning_/ {print $NF}' /tmp/cookie)"
     - curl -Lb /tmp/cookie "https://drive.google.com/uc?export=download&confirm=${CODE}&id=1zODylHjXq2d3R8jY20yP3aOOZFqHgVRn" -o data/expert_pols/Pendulum-v0_pol_max.pkl
+    - curl -sc /tmp/cookie "https://drive.google.com/uc?export=download&id=1oZ6buPdpFxsp33HY3BVaS2pBHY-1p7OT" > /dev/null
+    - CODE="$(awk '/_warning_/ {print $NF}' /tmp/cookie)"
+    - curl -Lb /tmp/cookie "https://drive.google.com/uc?export=download&confirm=${CODE}&id=1oZ6buPdpFxsp33HY3BVaS2pBHY-1p7OT" -o data/expert_epis/Pendulum-v0_100epis.pkl
 script:
     - autopep8 -r . --diff | tee check_autopep8
     - test ! -s check_autopep8
