@@ -651,8 +651,7 @@ class TestAIRL(unittest.TestCase):
 
 class TestMPC(unittest.TestCase):
     def setUp(self):
-        import pybullet_envs
-        self.env = GymEnv('HalfCheetahBulletEnv-v0')
+        self.env = GymEnv('Pendulum-v0')
 
     def add_noise_to_init_obs(self, epis, std):
         with torch.no_grad():
