@@ -1,3 +1,4 @@
 from machina.models.base import BaseModel
 from machina.models.deterministic_state_model import DeterministicSModel
 from machina.models.gaussian_state_model import GaussianSModel
+from machina.models.recurrent_state_space_model import RecurrentSSpaceModel
