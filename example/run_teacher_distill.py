@@ -26,27 +26,37 @@ from machina.utils import measure, set_device
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--c2d', action='store_true', default=False)
-parser.add_argument('--record', action='store_true', default=False)
+parser.add_argument('--teacher_dir', type=str, default='garbage',
+                    help='Directory path storing file of expert policy model')
+parser.add_argument('--teacher_fname', type=str,
+                    default='../data/expert_pols', help='File name of expert policy model')
+parser.add_argument('--env_name', type=str,
+                    default='Pendulum-v0', help='Name of environment')
+parser.add_argument('--c2d', action='store_true',
+                    default=False, help='If True, action is discretized')
+parser.add_argument('--record', action='store_true',
+                    default=False, help='If True, movie is saved')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--num_parallel', type=int, default=4)
-parser.add_argument('--cuda', type=int, default=-1)
-parser.add_argument('--data_parallel', action='store_true', default=False)
-parser.add_argument('--max_steps_per_iter', type=int, default=10000)
-parser.add_argument('--max_episodes_per_iter', type=int, default=256)
-parser.add_argument('--epoch_per_iter', type=int, default=10)
+parser.add_argument('--max_episodes', type=int,
+                    default=1000000, help='Number of episodes to run')
+parser.add_argument('--num_parallel', type=int, default=4,
+                    help='Number of processes used to sample')
+parser.add_argument('--cuda', type=int, default=-1, help='Cuda device number')
+parser.add_argument('--max_steps_per_iter', type=int,
+                    default=10000, help='Maximum steps per iteration')
+parser.add_argument('--max_episodes_per_iter', type=int,
+                    default=256, help='Maximum episodes per iteration')
+parser.add_argument('--epoch_per_iter', type=int, default=10,
+                    help='Number of epochs per optimization iteration')
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
 parser.add_argument('--sampling_policy', type=str,
-                    choices=['student', 'teacher'], default='teacher')
-parser.add_argument('--teacher_pol', type=str,
-                    default='teacher_pol_pendulum/models/pol_max.pkl')
-parser.add_argument('--rnn', action='store_true', default=False)
-parser.add_argument('--pol_lr', type=float, default=3e-4)
+                    choices=['student', 'teacher'], default='teacher', help='Policy from which episodes get sampled')
+parser.add_argument('--rnn', action='store_true', default=False,
+                    help='If True, network becomes recurrent')
+parser.add_argument('--pol_lr', type=float, default=3e-4,
+                    help='Learning rate of the optimizer')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -104,11 +114,8 @@ else:
     raise ValueError('Only Box, Discrete and Multidiscrete are supported')
 
 if args.teacher_pol:
-    t_pol.load_state_dict(
-        torch.load(
-            args.teacher_pol,
-            map_location=lambda storage,
-            loc: storage))
+    t_pol.load_state_dict(torch.load(
+        os.path.join(args.teacher_dir, args.teacher_fname)))
 
 if args.rnn:
     s_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
