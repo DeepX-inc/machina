@@ -35,9 +35,7 @@ class Traj(object):
 
     @property
     def num_step(self):
-        if self.data_map:
-            return list(self.data_map.values())[0].size(0)
-        return 0
+        return self._epis_index[-1]
 
     @property
     def num_epi(self):
