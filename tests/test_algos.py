@@ -456,7 +456,7 @@ class TestOnpolicyDistillation(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    t = TestPPOContinuous()
+    t = TestDDPG()
     t.setUp()
     t.test_learning()
     t.tearDown()
