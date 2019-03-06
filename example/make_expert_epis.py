@@ -1,3 +1,6 @@
+"""
+Script for making file of expert epis.
+"""
 import argparse
 import json
 import os
