@@ -426,12 +426,13 @@ class TestSAC(unittest.TestCase):
 
         del sampler
 
+
 class TestQTOPT(unittest.TestCase):
   def setUp(self):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-      qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
         lagged_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
         lagged_qf_net.load_state_dict(qf_net.state_dict())
         targ_qf1_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
