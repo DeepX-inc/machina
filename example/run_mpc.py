@@ -67,14 +67,18 @@ parser.add_argument('--data_parallel', action='store_true', default=False,
                     help='If True, inference is done in parallel on gpus.')
 parser.add_argument('--pybullet_env', action='store_true', default=True)
 
-parser.add_argument('--num_random_rollouts', type=int, default=60)
-parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
-parser.add_argument('--n_samples', type=int, default=300)
-parser.add_argument('--horizon_of_samples', type=int, default=4)
-parser.add_argument('--num_aggregation_iters', type=int, default=1000)
-parser.add_argument('--max_episodes_per_iter', type=int, default=9)
+parser.add_argument('--num_random_rollouts', type=int, default=60,
+                    help='Number of random rollouts for collecting initial dataset.')
+parser.add_argument('--noise_to_init_obs', type=float, default=0.001,
+                    help='Standard deviation of noise to initial observation in initial dataset.')
+parser.add_argument('--n_samples', type=int, default=300,
+                    help='Number of samples of action sequence in MPC.')
+parser.add_argument('--horizon_of_samples', type=int, default=4,
+                    help='Length of horizon of samples of action sequence in MPC.')
+parser.add_argument('--max_episodes_per_iter', type=int, default=9,
+                    help='Number of episodes in an iteration.')
 parser.add_argument('--epoch_per_iter', type=int, default=60,
-                    help='Number of epoch in an iteration')
+                    help='Number of epochs in an iteration.')
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true',
@@ -159,7 +163,7 @@ total_epi = 0
 total_step = 0
 counter_agg_iters = 0
 max_rew = -1e+6
-while args.num_aggregation_iters > counter_agg_iters:
+while args.max_episodes > total_epi:
     with measure('train model'):
         result_dict = mpc.train_dm(
             traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size)
@@ -202,6 +206,5 @@ while args.num_aggregation_iters > counter_agg_iters:
     torch.save(optim_dm.state_dict(), os.path.join(
         args.log, 'models', 'optim_dm_last.pkl'))
 
-    counter_agg_iters += 1
     del curr_traj
 del rl_sampler
