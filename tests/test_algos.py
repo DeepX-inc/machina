@@ -416,7 +416,7 @@ class TestSAC(unittest.TestCase):
 
 class TestOnpolicyDistillation(unittest.TestCase):
     def setUp(self):
-        self.env = GymEng('Pendulum-v0')
+        self.env = GymEnv('Pendulum-v0')
         self.env = C2DEnv(self.env)
 
     def test_learning(self):
@@ -456,7 +456,7 @@ class TestOnpolicyDistillation(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    t = TestDDPG()
+    t = TestPPOContinuous()
     t.setUp()
     t.test_learning()
     t.tearDown()
