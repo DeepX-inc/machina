@@ -8,7 +8,9 @@ install:
   - pip install --upgrade pip setuptools wheel
   - pip install --default-timeout=2000 -q -e .
   - pip install autopep8
-
+  - curl -sc /tmp/cookie "https://drive.google.com/uc?export=download&id=1zODylHjXq2d3R8jY20yP3aOOZFqHgVRn" > /dev/null
+  - CODE="$(awk '/_warning_/ {print $NF}' /tmp/cookie)"
+  - export=download&confirm=${CODE}&id=1zODylHjXq2d3R8jY20yP3aOOZFqHgVRn" -o data/expert_epis/Pendulum-v0_100epis.pkl
 script:
   - autopep8 -r . --diff | tee check_autopep8
   - test ! -s check_autopep8

@@ -417,21 +417,20 @@ class TestSAC(unittest.TestCase):
 class TestOnpolicyDistillation(unittest.TestCase):
     def setUp(self):
         self.env = GymEnv('Pendulum-v0')
-        self.env = C2DEnv(self.env)
 
     def test_learning(self):
         t_pol_net = PolNet(self.env.ob_space,
                            self.env.ac_space, h1=200, h2=100)
         s_pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=190, h2=90)
 
-        t_pol = MultiCategoricalPol(
+        t_pol = GaussianPol(
             self.env.ob_space, self.env.ac_space, t_pol_net)
-        s_pol = MultiCategoricalPol(
+        s_pol = GaussianPol(
             self.env.ob_space, self.env.ac_space, s_pol_net)
 
         # Please import your own teacher-policy here
         t_pol.load_state_dict(torch.load(
-            os.path('../example/teacher_pol_pendulum/models/pol_max.pkl')))
+            os.path.abspath('data/expert_pols/Pendulum-v0_pol_max.pkl')))
 
         student_sampler = EpiSampler(self.env, s_pol, num_parallel=1)
 
@@ -444,7 +443,7 @@ class TestOnpolicyDistillation(unittest.TestCase):
 
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
-        result_dict = on_pol_teacher_distill(
+        result_dict = on_pol_teacher_distill.train(
             traj=traj,
             student_pol=s_pol,
             teacher_pol=t_pol,
@@ -452,7 +451,7 @@ class TestOnpolicyDistillation(unittest.TestCase):
             epoch=1,
             batchsize=32)
 
-        del sampler
+        del student_sampler
 
 
 if __name__ == '__main__':
