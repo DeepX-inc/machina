@@ -13,8 +13,8 @@ from machina.algos import trpo, ppo_kl, ppo_clip
 from machina.utils import get_device
 
 
-def update_discrim(rewf, shaping_vf, advf, pol, irl_type, optim_discrim, agent_batch, expert_batch, gamma):
-    if irl_type == 'rew':
+def update_discrim(rewf, shaping_vf, advf, pol, rew_type, optim_discrim, agent_batch, expert_batch, gamma):
+    if rew_type == 'rew':
         discrim_loss = lf.density_ratio_rew_cross_ent(
             rewf, shaping_vf, pol, agent_batch, expert_or_agent=0, gamma=gamma)
         discrim_loss += lf.density_ratio_rew_cross_ent(
@@ -33,7 +33,7 @@ def update_discrim(rewf, shaping_vf, advf, pol, irl_type, optim_discrim, agent_b
 
 def train(agent_traj, expert_traj, pol, vf,
           optim_vf, optim_discim,
-          rewf=None, shaping_vf=None, advf=None, irl_type='rew',
+          rewf=None, shaping_vf=None, advf=None, rew_type='rew',
           rl_type='trpo',
           pol_ent_beta=0, discrim_ent_beta=0,
           epoch=1,
@@ -122,7 +122,7 @@ def train(agent_traj, expert_traj, pol, vf,
         batch_size=discrim_batch_size, step=discrim_step)
     for agent_batch, expert_batch in zip(agent_iterator, expert_iterator):
         discrim_loss = update_discrim(
-            rewf, shaping_vf, advf, pol, irl_type, optim_discim, agent_batch, expert_batch, gamma)
+            rewf, shaping_vf, advf, pol, rew_type, optim_discim, agent_batch, expert_batch, gamma)
         discrim_losses.append(discrim_loss)
     logger.log("Optimization finished!")
 

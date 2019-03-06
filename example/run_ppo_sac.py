@@ -29,31 +29,51 @@ from simple_net import PolNet, QNet, VNet
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--record', action='store_true', default=False)
+parser.add_argument('--log', type=str, default='garbage',
+                    help='Directory name of log.')
+parser.add_argument('--env_name', type=str,
+                    default='Pendulum-v0', help='Name of environment.')
+parser.add_argument('--c2d', action='store_true',
+                    default=False, help='If True, action is discretized.')
+parser.add_argument('--record', action='store_true',
+                    default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--num_parallel', type=int, default=4)
-parser.add_argument('--cuda', type=int, default=-1)
-parser.add_argument('--data_parallel', action='store_true', default=False)
+parser.add_argument('--max_episodes', type=int,
+                    default=1000000, help='Number of episodes to run.')
+parser.add_argument('--num_parallel', type=int, default=4,
+                    help='Number of processes to sample.')
+parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
+parser.add_argument('--data_parallel', action='store_true', default=False,
+                    help='If True, inference is done in parallel on gpus.')
 
-parser.add_argument('--max_steps_per_iter', type=int, default=10000)
-parser.add_argument('--epoch_per_iter', type=int, default=10)
+parser.add_argument('--max_steps_per_iter', type=int, default=10000,
+                    help='Number of steps to use in an iteration.')
+parser.add_argument('--epoch_per_iter', type=int, default=10,
+                    help='Number of epoch in an iteration')
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--sampling', type=int, default=10)
-parser.add_argument('--pol_lr', type=float, default=3e-4)
-parser.add_argument('--qf_lr', type=float, default=3e-4)
-parser.add_argument('--vf_lr', type=float, default=3e-4)
+parser.add_argument('--sampling', type=int, default=10,
+                    help='Number of sampling in calculation of expectation.')
+parser.add_argument('--pol_lr', type=float, default=3e-4,
+                    help='Policy learning rate')
+parser.add_argument('--qf_lr', type=float, default=3e-4,
+                    help='Q function learning rate')
+parser.add_argument('--vf_lr', type=float, default=3e-4,
+                    help='Value function learning rate')
 
-parser.add_argument('--max_grad_norm', type=float, default=10)
+parser.add_argument('--max_grad_norm', type=float, default=10,
+                    help='Value of maximum gradient norm.')
 
-parser.add_argument('--clip_param', type=float, default=0.2)
+parser.add_argument('--clip_param', type=float, default=0.2,
+                    help='Value of clipping liklihood ratio.')
 
-parser.add_argument('--ent_alpha', type=float, default=1)
-parser.add_argument('--tau', type=float, default=0.001)
-parser.add_argument('--gamma', type=float, default=0.99)
-parser.add_argument('--lam', type=float, default=0.95)
+parser.add_argument('--ent_alpha', type=float, default=1,
+                    help='Entropy coefficient.')
+parser.add_argument('--tau', type=float, default=0.001,
+                    help='Coefficient of target function.')
+parser.add_argument('--gamma', type=float, default=0.995,
+                    help='Discount factor.')
+parser.add_argument('--lam', type=float, default=1,
+                    help='Tradeoff value of bias variance.')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
