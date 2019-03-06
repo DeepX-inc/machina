@@ -428,7 +428,7 @@ class TestSAC(unittest.TestCase):
 
 
 class TestQTOPT(unittest.TestCase):
-  def setUp(self):
+    def setUp(self):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
