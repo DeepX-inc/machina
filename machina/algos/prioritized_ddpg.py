@@ -15,7 +15,7 @@ def train(traj,
           pol, targ_pol, qf, targ_qf,
           optim_pol, optim_qf,
           epoch, batch_size,  # optimization hypers
-          tau, gamma, lam  # advantage estimation
+          tau, gamma
           ):
 
     pol_losses = []
