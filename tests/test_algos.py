@@ -639,7 +639,7 @@ class TestAIRL(unittest.TestCase):
         agent_traj.register_epis()
 
         result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
-                                 rewf=rewf, shaping_vf=shaping_vf, irl_type='rew',
+                                 rewf=rewf, shaping_vf=shaping_vf, rew_type='rew',
                                  rl_type='trpo',
                                  epoch=1,
                                  batch_size=32, discrim_batch_size=32,
