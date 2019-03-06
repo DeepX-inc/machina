@@ -431,7 +431,7 @@ class TestOnpolicyDistillation(unittest.TestCase):
 
         # Please import your own teacher-policy here
         t_pol.load_state_dict(torch.load(
-            os.pathi('../example/teacher_pol_pendulum/models/pol_max.pkl')))
+            os.path('../example/teacher_pol_pendulum/models/pol_max.pkl')))
 
         student_sampler = EpiSampler(self.env, s_pol, num_parallel=1)
 
