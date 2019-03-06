@@ -95,6 +95,9 @@ class Traj(object):
         add_num_step = traj.num_step
         if pre_num_step + add_num_step <= self.max_steps:
             self._concat_data_map(traj.data_map)
+            epis_index = epis_index + self._epis_index[-1]
+            self._epis_index = np.concatenate(
+                [self._epis_index, epis_index[1:]])
         elif add_num_step <= self.max_steps:
             remain_index = 0
             while self.max_steps < pre_num_step + add_num_step - self._epis_index[remain_index]:
@@ -102,12 +105,20 @@ class Traj(object):
             self._concat_data_map(traj.data_map, remain_index)
             self._epis_index = self._epis_index[remain_index:] - \
                 self._epis_index[remain_index]
+            epis_index = epis_index + self._epis_index[-1]
+            self._epis_index = np.concatenate(
+                [self._epis_index, epis_index[1:]])
         else:
-            raise ValueError(
-                'max_steps should be larger than the steps sampled in one interation.')
-
-        epis_index = epis_index + self._epis_index[-1]
-        self._epis_index = np.concatenate([self._epis_index, epis_index[1:]])
+            remain_index = 1
+            while epis_index[remain_index] < self.max_steps:
+                remain_index += 1
+            if 2 <= remain_index:
+                for key in traj.data_map:
+                    self.data_map[key] = traj.data_map[key][:epis_index[remain_index - 1]]
+                self._epis_index = traj._epis_index[:remain_index]
+            else:
+                raise ValueError(
+                    'max_steps should be larger than the number of steps in one episode.')
 
     def _shuffled_indices(self, indices):
         return indices[torch.randperm(len(indices), device=get_device())]
