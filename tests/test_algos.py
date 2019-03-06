@@ -456,7 +456,7 @@ class TestQTOPT(unittest.TestCase):
         optim_qf = torch.optim.Adam(qf_net.parameters(), 3e-4)
 
         epis = sampler.sample(pol, max_steps=32)
-        
+
         traj = Traj()
         traj.add_epis(epis)
         traj = ef.add_next_obs(traj)
@@ -469,6 +469,7 @@ class TestQTOPT(unittest.TestCase):
         )
 
         del sampler
+
 
 class TestOnpolicyDistillation(unittest.TestCase):
     def setUp(self):
