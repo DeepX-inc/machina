@@ -33,6 +33,8 @@ parser.add_argument('--epis_dir', type=str, default='../data/expert_epis',
                     help='Directory path to store file of expert trajectory.')
 parser.add_argument('--epis_fname', type=str, default='',
                     help='File name of expert trajectory.')
+parser.add_argument('--env_name', type=str,
+                    default='Pendulum-v0', help='Name of environment.')
 parser.add_argument('--c2d', action='store_true',
                     default=False, help='If True, action is discretized.')
 parser.add_argument('--record', action='store_true',
