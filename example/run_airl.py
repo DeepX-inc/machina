@@ -156,15 +156,7 @@ else:
 vf_net = VNet(ob_space)
 vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
 
-<<<<<<< HEAD
 if args.irl_type == 'rew':
-=======
-discrim_net = DiscrimNet(
-    ob_space, ac_space, h1=args.discrim_h1, h2=args.discrim_h2)
-discrim = DeterministicSAVfunc(ob_space, ac_space, discrim_net)
-
-if args.rew_type == 'rew':
->>>>>>> add help
     rewf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
     rewf = DeterministicSVfunc(ob_space, rewf_net, args.rnn)
     shaping_vf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
@@ -299,13 +291,7 @@ while args.max_episodes > total_epi:
         args.log, 'models', 'pol_last.pkl'))
     torch.save(vf.state_dict(), os.path.join(
         args.log, 'models', 'vf_last.pkl'))
-<<<<<<< HEAD
     if args.irl_type == 'rew':
-=======
-    torch.save(discrim.state_dict(), os.path.join(
-        args.log, 'models', 'discrim_last.pkl'))
-    if args.rew_type == 'rew':
->>>>>>> add help
         torch.save(rewf.state_dict(), os.path.join(
             args.log, 'models', 'rewf_last.pkl'))
         torch.save(shaping_vf.state_dict(), os.path.join(
