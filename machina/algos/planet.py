@@ -46,6 +46,11 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
     rews_losses = []
     recun_losses = []
     kl_losses = []
+
+    reward_loss_scale = 10.0
+    # overshooting_reward_loss_scale = 100.0
+    # global_divergence_scale = 0.1
+
     logger.log("Optimizing...")
 
     iterator = traj.iterate_rnn(
@@ -115,7 +120,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
             obs_loss = -1 * rssm.pd.llh(batch['embedded_obs'][t], obs_dict)
             rews_loss = -1 * rssm.pd.llh(batch['rews'][t], rews_dict)
             obs_loss = torch.mean(obs_loss)
-            rews_loss = torch.mean(rews_loss)
+            rews_loss = torch.mean(rews_loss) * reward_loss_scale
             recun_loss = obs_loss + rews_loss
 
             # latent overshooting loss
