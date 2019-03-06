@@ -22,14 +22,14 @@ curl -Lb /tmp/cookie "https://drive.google.com/uc?export=download&confirm=${CODE
 ### Download Expert Pols
 Download data of expert pols from [here](https://drive.google.com/open?id=181I8jwlfRtK5yx2M95c7zZisrEfwfgLw) into `../data/expert_pols`.
 
-Or running RL script for learning expert pol and place pickle file of expert pol into `../data/expert_pols`.
+Or run RL scripts for learning expert pol and place pickle file of expert pol into `../data/expert_pols`.
 
 Then, run the following script for making expert epis.
 ```
 python make_expert_epis.py --env_name Pendulum-v0 --pol_fname Pendulum-v0_pol_max.pkl
 ```
-## Step 2:
-Run script of imitation.
+## Step 2: Run script of imitation.
+run the following scripts
 ```
 python run_behavior_clone.py
 ```
