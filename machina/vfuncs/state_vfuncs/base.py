@@ -48,5 +48,5 @@ class BaseSVfunc(nn.Module):
             additional_shape = 1
         if len(obs.shape) < additional_shape + len(self.ob_space.shape):
             for _ in range(additional_shape + len(self.ob_space.shape) - len(obs.shape)):
-                obs.unsqueeze(0)
+                obs = obs.unsqueeze(0)
         return obs

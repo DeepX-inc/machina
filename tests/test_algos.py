@@ -13,10 +13,10 @@ import gym
 
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-from machina.pols import DeterministicActionNoisePol
+from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, on_pol_teacher_distill
-from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill
+from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc, CEMDeterministicSAVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -379,20 +379,33 @@ class TestSAC(unittest.TestCase):
         pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
         pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
 
-        qf_net = QNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
-        qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
+        qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
+        qf1 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, qf_net1)
+        targ_qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
+        targ_qf_net1.load_state_dict(qf_net1.state_dict())
+        targ_qf1 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf_net1)
 
-        targ_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
-        targ_qf_net.load_state_dict(targ_qf_net.state_dict())
-        targ_qf = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, targ_qf_net)
+        qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
+        qf2 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, qf_net2)
+        targ_qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
+        targ_qf_net2.load_state_dict(qf_net2.state_dict())
+        targ_qf2 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf_net2)
+
+        qfs = [qf1, qf2]
+        targ_qfs = [targ_qf1, targ_qf2]
 
         log_alpha = nn.Parameter(torch.zeros(()))
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
         optim_pol = torch.optim.Adam(pol_net.parameters(), 3e-4)
-        optim_qf = torch.optim.Adam(qf_net.parameters(), 3e-4)
+        optim_qf1 = torch.optim.Adam(qf_net1.parameters(), 3e-4)
+        optim_qf2 = torch.optim.Adam(qf_net2.parameters(), 3e-4)
+        optim_qfs = [optim_qf1, optim_qf2]
         optim_alpha = torch.optim.Adam([log_alpha], 3e-4)
 
         epis = sampler.sample(pol, max_steps=32)
@@ -405,14 +418,56 @@ class TestSAC(unittest.TestCase):
 
         result_dict = sac.train(
             traj,
-            pol, qf, targ_qf, log_alpha,
-            optim_pol, optim_qf, optim_alpha,
+            pol, qfs, targ_qfs, log_alpha,
+            optim_pol, optim_qfs, optim_alpha,
             2, 32,
             0.01, 0.99, 2,
         )
 
         del sampler
 
+class TestQTOPT(unittest.TestCase):
+  def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+      qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        lagged_qf_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        lagged_qf_net.load_state_dict(qf_net.state_dict())
+        targ_qf1_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        targ_qf1_net.load_state_dict(qf_net.state_dict())
+        targ_qf2_net = QNet(self.env.ob_space, self.env.ac_space, 32, 32)
+        targ_qf2_net.load_state_dict(lagged_qf_net.state_dict())
+        qf = DeterministicSAVfunc(self.env.ob_space, self.env.ac_space, qf_net)
+        lagged_qf = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, lagged_qf_net)
+        targ_qf1 = CEMDeterministicSAVfunc(self.env.ob_space, self.env.ac_space, targ_qf1_net, num_sampling=60,
+                                           num_best_sampling=6, num_iter=2,
+                                           multivari=False)
+        targ_qf2 = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, targ_qf2_net)
+
+        pol = ArgmaxQfPol(self.env.ob_space,
+                          self.env.ac_space, targ_qf1, eps=0.2)
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_qf = torch.optim.Adam(qf_net.parameters(), 3e-4)
+
+        epis = sampler.sample(pol, max_steps=32)
+        
+        traj = Traj()
+        traj.add_epis(epis)
+        traj = ef.add_next_obs(traj)
+        traj.register_epis()
+
+        result_dict = qtopt.train(
+            traj, qf, lagged_qf, targ_qf1, targ_qf2,
+            optim_qf, 1000, 32,
+            0.9999, 0.995, 'mse'
+        )
+
+        del sampler
 
 class TestOnpolicyDistillation(unittest.TestCase):
     def setUp(self):

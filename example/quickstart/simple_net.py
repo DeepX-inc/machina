@@ -51,7 +51,7 @@ class PolNet(nn.Module):
             if self.multi:
                 self.output_layers = nn.ModuleList(
                     [nn.Linear(h2, vec) for vec in ac_space.nvec])
-                map(lambda x: x.apply(mini_weight_init), self.output_layers)
+                list(map(lambda x: x.apply(mini_weight_init), self.output_layers))
             else:
                 self.output_layer = nn.Linear(h2, ac_space.n)
                 self.output_layer.apply(mini_weight_init)
@@ -131,7 +131,7 @@ class PolNetLSTM(nn.Module):
             if self.multi:
                 self.output_layers = nn.ModuleList(
                     [nn.Linear(self.cell_size, vec) for vec in ac_space.nvec])
-                map(lambda x: x.apply(mini_weight_init), self.output_layers)
+                list(map(lambda x: x.apply(mini_weight_init), self.output_layers))
             else:
                 self.output_layer = nn.Linear(self.cell_size, ac_space.n)
                 self.output_layer.apply(mini_weight_init)

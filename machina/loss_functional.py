@@ -168,20 +168,66 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
             "Only Q function with continuous action space is supported now.")
 
 
-def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling, normalize=False, eps=1e-6):
+def clipped_double_bellman(qf, targ_qf1, targ_qf2, batch, gamma, loss_type='bce'):
+    """
+    Bellman loss of Clipped Double DQN.
+    Mean Squared Error of left hand side and right hand side of Bellman Equation.
+    or
+    Binary Cross Entropy of left hand side and right hand side of Bellman Equation.
+
+    Parameters
+    ----------
+    qf : SAVfunction
+    targ_qf1 : SAVfunction
+    targ_qf2 : SAVfunction
+    batch : dict of torch.Tensor
+    gamma : float
+    loss type : str
+      This argument takes only bce and mse.
+      Loss shape is pytorch's manner.
+
+    Returns
+    -------
+    ret : torch.Tensor
+    """
+    obs = batch['obs']
+    acs = batch['acs']
+    rews = batch['rews']
+    next_obs = batch['next_obs']
+    dones = batch['dones']
+
+    targ_q1, next_acs = targ_qf1.max(next_obs)
+    targ_q2, _ = targ_qf2(next_obs, next_acs)
+    targ_q = torch.min(targ_q1, targ_q2)
+    targ = rews + gamma * targ_q * (1 - dones)
+    targ = targ.detach()
+    q, _ = qf(obs, acs)
+    if loss_type == 'bce':
+        loss = nn.BCELoss()
+        ret = loss(q, targ)
+    elif loss_type == 'mse':
+        ret = torch.mean(0.5 * (q - targ) ** 2)
+    else:
+        raise ValueError('Only bce and mse are supported')
+    return ret
+
+
+def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, normalize=False, eps=1e-6):
     """
     Loss for soft actor critic.
 
     Parameters
     ----------
     pol : Pol
-    qf : SAVfunction
-    targ_qf : SAVfunction
+    qfs : list of SAVfunction
+    targ_qfs : list of SAVfunction
     log_alpha : torch.Tensor
     batch : dict of torch.Tensor
     gamma : float
     sampling : int
         Number of samping in calculating expectation.
+    reparam : bool
+        Reparameterization trick is used or not.
     normalize : bool
         If True, normalize value of log likelihood.
     eps : float
@@ -213,29 +259,41 @@ def sac(pol, qf, targ_qf, log_alpha, batch, gamma, sampling, normalize=False, ep
     sampled_llh = pd.llh(sampled_acs.detach(), pd_params)
     sampled_next_llh = pd.llh(sampled_next_acs, next_pd_params)
 
-    sampled_q, _ = qf(sampled_obs, sampled_acs)
-    sampled_next_targ_q, _ = targ_qf(sampled_next_obs, sampled_next_acs)
+    sampled_qs = [qf(sampled_obs, sampled_acs)[0] for qf in qfs]
+    sampled_next_targ_qs = [targ_qf(sampled_next_obs, sampled_next_acs)[
+        0] for targ_qf in targ_qfs]
 
-    next_v = torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
+    next_vs = [torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
+               for sampled_next_targ_q in sampled_next_targ_qs]
+    next_v = torch.min(*next_vs)
 
     q_targ = rews + gamma * next_v * (1 - dones)
     q_targ = q_targ.detach()
 
-    q, _ = qf(obs, acs)
+    qs = [qf(obs, acs)[0] for qf in qfs]
 
-    qf_loss = 0.5 * torch.mean((q - q_targ)**2)
+    qf_losses = [0.5 * torch.mean((q - q_targ)**2) for q in qs]
 
-    pg_weight = (alpha * sampled_llh - sampled_q).detach()
+    if reparam:
+        pol_losses = [torch.mean(alpha * sampled_llh - sampled_q, dim=0)
+                      for sampled_q in sampled_qs]
+        pol_loss = torch.max(*pol_losses)
+        pol_loss = torch.mean(pol_loss)
+    else:
+        pg_weights = [torch.mean(
+            alpha * sampled_llh - sampled_q, dim=0).detach() for sampled_q in sampled_qs]
+        pg_weight = torch.max(*pg_weights)
 
-    if normalize:
-        pg_weight = (pg_weight - pg_weight.mean()) / (pg_weight.std() + eps)
+        if normalize:
+            pg_weight = (pg_weight - pg_weight.mean()) / \
+                (pg_weight.std() + eps)
 
-    pol_loss = torch.mean(sampled_llh * pg_weight)
+        pol_loss = torch.mean(torch.mean(sampled_llh, dim=0) * pg_weight)
 
     alpha_loss = - torch.mean(log_alpha * (sampled_llh -
                                            np.prod(pol.ac_space.shape).item()).detach())
 
-    return pol_loss, qf_loss, alpha_loss
+    return pol_loss, qf_losses, alpha_loss
 
 
 def ag(pol, qf, batch, sampling=1):

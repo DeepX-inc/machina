@@ -1,3 +1,6 @@
+"""
+Script for making file of expert epis.
+"""
 import argparse
 import json
 import os
@@ -31,7 +34,7 @@ parser.add_argument('--num_parallel', type=int, default=8)
 parser.add_argument('--h1', type=int, default=32)
 parser.add_argument('--h2', type=int, default=32)
 parser.add_argument('--num_epis', type=int, default=100)
-parser.add_argument('--env_name', type=str, default='HalfCheetah-v1')
+parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--seed', type=int, default='256')
 parser.add_argument('--cuda', type=int, default='-1')
 parser.add_argument('--c2d', action='store_true', default=False)
@@ -94,7 +97,7 @@ with open(os.path.join(args.pol_dir, args.pol_fname), 'rb') as f:
 epis = sampler.sample(pol, max_episodes=args.num_epis)
 
 filename = args.epis_fname if len(
-    args.epis_fname) != 0 else env.env.spec.id + '_{}trajs.pkl'.format(len(epis))
+    args.epis_fname) != 0 else env.env.spec.id + '_{}epis.pkl'.format(len(epis))
 with open(os.path.join(args.epis_dir, filename), 'wb') as f:
     pickle.dump(epis, f)
 rewards = [np.sum(epi['rews']) for epi in epis]
