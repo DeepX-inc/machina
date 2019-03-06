@@ -25,36 +25,49 @@ from machina.utils import measure, set_device
 from simple_net import PolNet, PolNetLSTM, VNet, DiscrimNet
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--c2d', action='store_true', default=False)
-parser.add_argument('--rnn', action='store_true', default=False)
-parser.add_argument('--roboschool', action='store_true', default=False)
-parser.add_argument('--record', action='store_true', default=False)
-parser.add_argument('--episode', type=int, default=1000000)
+parser.add_argument('--log', type=str, default='garbage',
+                    help='Directory name of log.')
+parser.add_argument('--env_name', type=str,
+                    default='Pendulum-v0', help='Name of environment.')
+parser.add_argument('--c2d', action='store_true',
+                    default=False, help='If True, action is discretized.')
+parser.add_argument('--record', action='store_true',
+                    default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--max_episodes', type=int,
+                    default=100000000, help='Number of episodes to run.')
+parser.add_argument('--num_parallel', type=int, default=4,
+                    help='Number of processes to sample.')
+parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
+parser.add_argument('--rnn', action='store_true',
+                    default=False, help='If True, network is reccurent.')
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
 parser.add_argument('--expert_fname', type=str,
                     default='Pendulum-v0_100epis.pkl')
 
-parser.add_argument('--max_episodes_per_iter', type=int, default=10)
+parser.add_argument('--max_episodes_per_iter', type=int,
+                    default=10, help='Number of episodes in an iteration.')
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--pol_lr', type=float, default=1e-4)
-parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--pol_lr', type=float, default=1e-4,
+                    help='Policy learning rate.')
 parser.add_argument('--h1', type=int, default=32)
 parser.add_argument('--h2', type=int, default=32)
 
-parser.add_argument('--tau', type=float, default=0.001)
-parser.add_argument('--gamma', type=float, default=0.99)
-parser.add_argument('--lam', type=float, default=1)
+parser.add_argument('--tau', type=float, default=0.001,
+                    help='Coefficient of target function.')
+parser.add_argument('--gamma', type=float, default=0.99,
+                    help='Discount factor.')
+parser.add_argument('--lam', type=float, default=1,
+                    help='Tradeoff value of bias variance.')
 
-parser.add_argument('--train_size', type=int, default=0.7)
-parser.add_argument('--check_rate', type=int, default=0.05)
+parser.add_argument('--train_size', type=int, default=0.7,
+                    help='Size of training data.')
+parser.add_argument('--check_rate', type=int, default=0.05,
+                    help='Rate of performance check per epoch.')
 parser.add_argument('--epoch', type=int, default=1000)
-parser.add_argument('--deterministic', action='store_true', default=False)
+parser.add_argument('--deterministic', action='store_true',
+                    default=False, help='If True, policy is deterministic.')
 args = parser.parse_args()
 
 device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
@@ -74,9 +87,6 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
-if args.roboschool:
-    import roboschool
-
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
@@ -90,9 +100,9 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
+    pol_net = PolNetLSTM(ob_space, ac_space, h_size=args.h1, cell_size=256)
 else:
-    pol_net = PolNet(ob_space, ac_space)
+    pol_net = PolNet(ob_space, ac_space, h1=args.h1, h2=args.h2)
 if isinstance(ac_space, gym.spaces.Box):
     if args.deterministic:
         pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net)

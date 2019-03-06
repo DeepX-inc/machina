@@ -29,9 +29,14 @@ from simple_net import PolNet, QNet, VNet
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--record', action='store_true', default=False)
+parser.add_argument('--log', type=str, default='garbage',
+                    help='Directory name of log.')
+parser.add_argument('--env_name', type=str,
+                    default='Pendulum-v0', help='Name of environment.')
+parser.add_argument('--c2d', action='store_true',
+                    default=False, help='If True, action is discretized.')
+parser.add_argument('--record', action='store_true',
+                    default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
 parser.add_argument('--max_steps_off', type=int,
@@ -42,14 +47,19 @@ parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--sampling', type=int, default=1)
-parser.add_argument('--no_reparam', action='store_true', default=False)
-parser.add_argument('--pol_lr', type=float, default=1e-4)
-parser.add_argument('--qf_lr', type=float, default=3e-4)
+parser.add_argument('--sampling', type=int, default=1,
+                    help='Number of sampling in calculation of expectation.')
+parser.add_argument('--pol_lr', type=float, default=1e-4,
+                    help='Policy learning rate')
+parser.add_argument('--qf_lr', type=float, default=3e-4,
+                    help='Q function learning rate')
 
-parser.add_argument('--ent_alpha', type=float, default=1)
-parser.add_argument('--tau', type=float, default=5e-3)
-parser.add_argument('--gamma', type=float, default=0.99)
+parser.add_argument('--ent_alpha', type=float, default=1,
+                    help='Entropy coefficient.')
+parser.add_argument('--tau', type=float, default=5e-3,
+                    help='Coefficient of target function.')
+parser.add_argument('--gamma', type=float, default=0.99,
+                    help='Discount factor.')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
