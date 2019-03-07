@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import copy
 
 from machina.pds import DeterministicPd
 from machina.pols import BasePol
@@ -59,10 +60,10 @@ class MPCPol(BasePol):
             std_acs, dtype=torch.float).repeat(n_samples, 1)
 
     def __deepcopy__(self, memo):
-        mpc_pol = MPCPol(self.ob_space, self.ac_space, self.net, self.rew_func, self.n_samples, self.horizon,
+        mpc_pol = MPCPol(self.ob_space, self.ac_space, copy.deepcopy(self.net), self.rew_func, self.n_samples, self.horizon,
                          rnn=self.rnn, normalize_ac=self.normalize_ac, data_parallel=self.data_parallel, parallel_dim=0)
         for sp, p in zip(mpc_pol.parameters(), self.parameters()):
-            sp.data.copy_(p.data.to('cpu'))
+            sp.data.copy_(p.data)
         mpc_pol.mean_obs = self.mean_obs
         mpc_pol.std_obs = self.std_obs
         mpc_pol.mean_acs = self.mean_acs
