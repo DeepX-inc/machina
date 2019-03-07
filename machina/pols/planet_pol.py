@@ -97,6 +97,9 @@ class PlanetPol(BasePol):
                 # randomly sample N candidate action sequences
                 candidate_acs = torch.randn(
                     self.horizon, self.n_samples, self.ac_space.shape[0]) * std.unsqueeze(1) + mean.unsqueeze(1)
+                for i in range(candidate_acs.size()[-1]):
+                    candidate_acs[:, :, i] = candidate_acs[:, :, i].clamp(
+                        min=self.ac_space.low[i], max=self.ac_space.high[i])
 
                 # Evaluate action sequences frin the current belief
                 posterior_state = self.rssm.posterior(
