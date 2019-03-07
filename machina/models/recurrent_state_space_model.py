@@ -67,7 +67,7 @@ class RecurrentSSpaceModel(BaseModel):
         hidden = torch.relu(self.encoder1(obs))
         hidden = torch.relu(self.encoder2(hidden))
         embedded_obs = self.encoder3(hidden)
-        return sembedded_obs
+        return embedded_obs
 
     def prior(self, prev_state, prev_action, hs=None):
         """Compute prior next state by applying the transition dynamics."""
