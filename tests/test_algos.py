@@ -658,17 +658,17 @@ class TestMPC(unittest.TestCase):
                 epi['obs'][0] += np.random.normal(0, std, epi['obs'][0].shape)
         return epis
 
-    def rew_func(self, next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
-        next_obs = next_obs * std_obs + mean_obs
-        acs = acs * std_acs + mean_acs
-        # Pendulum
-        rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
-                 0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
-        rews = rews.squeeze(0)
-
-        return rews
-
     def test_learning(self):
+        def rew_func(self, next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+            next_obs = next_obs * std_obs + mean_obs
+            acs = acs * std_acs + mean_acs
+            # Pendulum
+            rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
+                     0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+            rews = rews.squeeze(0)
+
+            return rews
+
         # sample with random policy
         random_pol = RandomPol(self.env.ob_space, self.env.ac_space)
         rand_sampler = EpiSampler(
@@ -716,6 +716,15 @@ class TestMPC(unittest.TestCase):
         del rand_sampler, rl_sampler
 
     def test_learning_rnn(self):
+        def rew_func(self, next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+            next_obs = next_obs * std_obs + mean_obs
+            acs = acs * std_acs + mean_acs
+            # Pendulum
+            rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
+                     0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+            rews = rews.squeeze(0)
+
+            return rews
         # sample with random policy
         random_pol = RandomPol(self.env.ob_space, self.env.ac_space)
         rand_sampler = EpiSampler(
