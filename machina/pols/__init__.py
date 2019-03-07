@@ -5,5 +5,6 @@ from machina.pols.deterministic_action_noise_pol import DeterministicActionNoise
 from machina.pols.categorical_pol import CategoricalPol
 from machina.pols.multi_categorical_pol import MultiCategoricalPol
 from machina.pols.mpc_pol import MPCPol
+from machina.pols.planet_pol import PlanetPol
 from machina.pols.random_pol import RandomPol
 from machina.pols.argmax_qf_pol import ArgmaxQfPol
