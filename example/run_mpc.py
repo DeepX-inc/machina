@@ -70,15 +70,15 @@ parser.add_argument('--num_random_rollouts', type=int, default=60,
                     help='Number of random rollouts for collecting initial dataset.')
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001,
                     help='Standard deviation of noise to initial observation in initial dataset.')
-parser.add_argument('--n_samples', type=int, default=300,
+parser.add_argument('--n_samples', type=int, default=1000,
                     help='Number of samples of action sequence in MPC.')
-parser.add_argument('--horizon_of_samples', type=int, default=4,
+parser.add_argument('--horizon_of_samples', type=int, default=20,
                     help='Length of horizon of samples of action sequence in MPC.')
 parser.add_argument('--max_episodes_per_iter', type=int, default=9,
                     help='Number of episodes in an iteration.')
 parser.add_argument('--epoch_per_iter', type=int, default=60,
                     help='Number of epochs in an iteration.')
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true',
                     default=False, help='If True, network is reccurent.')
