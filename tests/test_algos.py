@@ -659,7 +659,7 @@ class TestMPC(unittest.TestCase):
         return epis
 
     def test_learning(self):
-        def rew_func(self, next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+        def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
             next_obs = next_obs * std_obs + mean_obs
             acs = acs * std_acs + mean_acs
             # Pendulum
@@ -688,13 +688,11 @@ class TestMPC(unittest.TestCase):
         dm_net = ModelNet(self.env.ob_space, self.env.ac_space)
         dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=False,
                                  data_parallel=1, parallel_dim=0)
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, self.rew_func,
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, rew_func,
                          10, 4, mean_obs, std_obs, mean_acs, std_acs, False)
         optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
 
         # sample with mpc policy
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm.net, self.rew_func,
-                         10, 4, mean_obs, std_obs, mean_acs, std_acs, False)
         rl_sampler = EpiSampler(
             self.env, mpc_pol, num_parallel=1)
         epis = rl_sampler.sample(
@@ -716,7 +714,7 @@ class TestMPC(unittest.TestCase):
         del rand_sampler, rl_sampler
 
     def test_learning_rnn(self):
-        def rew_func(self, next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+        def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
             next_obs = next_obs * std_obs + mean_obs
             acs = acs * std_acs + mean_acs
             # Pendulum
@@ -744,13 +742,11 @@ class TestMPC(unittest.TestCase):
         dm_net = ModelNetLSTM(self.env.ob_space, self.env.ac_space)
         dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=True,
                                  data_parallel=1, parallel_dim=0)
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, self.rew_func,
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, rew_func,
                          10, 4, mean_obs, std_obs, mean_acs, std_acs, True)
         optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
 
         # sample with mpc policy
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm.net, self.rew_func,
-                         10, 4, mean_obs, std_obs, mean_acs, std_acs, True)
         rl_sampler = EpiSampler(
             self.env, mpc_pol, num_parallel=1)
         epis = rl_sampler.sample(
@@ -773,7 +769,7 @@ class TestMPC(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    t = TestDDPG()
+    t = TestMPC()
     t.setUp()
-    t.test_learning()
+    t.test_learning_rnn()
     t.tearDown()
