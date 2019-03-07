@@ -53,9 +53,11 @@ class PlanetPol(BasePol):
         self.count_repeat_ac = 0
         self.hs = None
         self.prev_state = torch.zeros(
-            self.n_samples, self.rssm.state_size, dtype=torch.float)
+            1, self.rssm.state_size, dtype=torch.float)
         self.prev_acs = torch.zeros(
-            self.n_samples, self.ac_space.shape[0], dtype=torch.float)
+            1, self.ac_space.shape[0], dtype=torch.float)
+        self.hs = torch.zeros(
+            1, self.rssm.belief_size, dtype=torch.float)
         self.to(get_device())
 
     def to(self, device):
@@ -66,9 +68,11 @@ class PlanetPol(BasePol):
         super(PlanetPol, self).reset()
         self.rssm.reset()
         self.prev_state = torch.zeros(
-            self.n_samples, self.rssm.state_size, dtype=torch.float)
+            1, self.rssm.state_size, dtype=torch.float)
         self.prev_acs = torch.zeros(
-            self.n_samples, self.ac_space.shape[0], dtype=torch.float)
+            1, self.ac_space.shape[0], dtype=torch.float)
+        self.hs = torch.zeros(
+            1, self.rssm.belief_size, dtype=torch.float)
 
     def forward(self, obs, hs=None, h_masks=None):
         if self.count_repeat_ac == self.n_repeat_ac:
@@ -84,15 +88,15 @@ class PlanetPol(BasePol):
             self.horizon, self.ac_space.shape[0], dtype=torch.float)
         std = torch.ones(
             self.horizon, self.ac_space.shape[0], dtype=torch.float)
-        prev_state = self.prev_state
-        prev_acs = self.prev_acs
+        prev_state = self.prev_state.repeat(self.n_samples, 1)
+        prev_acs = self.prev_acs.repeat(self.n_samples, 1)
         obs = obs.unsqueeze(0)
         embedded_obs = self.rssm.encode(obs).repeat(self.n_samples, 1)
 
         with torch.no_grad():
             for iters in range(self.n_optim_iters):
                 sum_rews = 0
-                hs = self.hs
+                hs = self.hs.repeat(self.n_samples, 1)
 
                 # randomly sample N candidate action sequences
                 candidate_acs = torch.randn(
@@ -102,6 +106,7 @@ class PlanetPol(BasePol):
                         min=self.ac_space.low[i], max=self.ac_space.high[i])
 
                 # Evaluate action sequences frin the current belief
+
                 posterior_state = self.rssm.posterior(
                     prev_state, prev_acs, embedded_obs, hs)
                 hs = posterior_state['belief']
@@ -127,9 +132,11 @@ class PlanetPol(BasePol):
         ac = mean[0]
         ac_real = ac.cpu().numpy()
 
-        prior_state = self.rssm.prior(prev_state, prev_acs, self.hs)
+        # Actual latent transition
+        prior_state = self.rssm.prior(
+            self.prev_state, ac.unsqueeze(0), self.hs)
         self.prev_state = prior_state['sample']
-        self.prev_acs = ac.unsqueeze(0).repeat(self.n_samples, 1)
+        self.prev_acs = ac.unsqueeze(0)
         self.hs = prior_state['belief']
 
         return ac_real, ac, dict(mean=ac)
