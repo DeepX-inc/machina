@@ -669,98 +669,59 @@ class TestMPC(unittest.TestCase):
         return rews
 
     def test_learning(self):
-        # sample with random policy
-        random_pol = RandomPol(self.env.ob_space, self.env.ac_space)
-        rand_sampler = EpiSampler(
-            self.env, random_pol, num_parallel=1)
-
-        epis = rand_sampler.sample(random_pol, max_episodes=60)
-        epis = self.add_noise_to_init_obs(epis, 0.001)
-        traj = Traj()
-        traj.add_epis(epis)
-        traj = ef.add_next_obs(traj)
-        traj = ef.compute_h_masks(traj)
-        traj, mean_obs, std_obs, mean_acs, std_acs = ef.normalize_obs_and_acs(
-            traj)
-        traj.register_epis()
-
         # init models
         dm_net = ModelNet(self.env.ob_space, self.env.ac_space)
         dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=False,
                                  data_parallel=1, parallel_dim=0)
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, self.rew_func,
-                         10, 4, mean_obs, std_obs, mean_acs, std_acs, False)
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space,
+                         dm_net, self.rew_func, 1, 1)
         optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
 
         # sample with mpc policy
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm.net, self.rew_func,
-                         10, 4, mean_obs, std_obs, mean_acs, std_acs, False)
-        rl_sampler = EpiSampler(
+        sampler = EpiSampler(
             self.env, mpc_pol, num_parallel=1)
-        epis = rl_sampler.sample(
-            mpc_pol, max_episodes=9)
+        epis = sampler.sample(
+            mpc_pol, max_episodes=1)
 
-        curr_traj = Traj()
-        curr_traj.add_epis(epis)
-        curr_traj = ef.add_next_obs(curr_traj)
-        curr_traj = ef.compute_h_masks(curr_traj)
-        traj = ef.normalize_obs_and_acs(
-            curr_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
-        curr_traj.register_epis()
-        traj.add_traj(curr_traj)
-
-        # train
-        result_dict = mpc.train_dm(
-            traj, dm, optim_dm, epoch=1, batch_size=32)
-
-        del rand_sampler, rl_sampler
-
-    def test_learning_rnn(self):
-        # sample with random policy
-        random_pol = RandomPol(self.env.ob_space, self.env.ac_space)
-        rand_sampler = EpiSampler(
-            self.env, random_pol, num_parallel=1)
-
-        epis = rand_sampler.sample(random_pol, max_episodes=60)
-        epis = self.add_noise_to_init_obs(epis, 0.001)
         traj = Traj()
         traj.add_epis(epis)
         traj = ef.add_next_obs(traj)
         traj = ef.compute_h_masks(traj)
-        traj, mean_obs, std_obs, mean_acs, std_acs = ef.normalize_obs_and_acs(
-            traj)
         traj.register_epis()
 
+        # train
+        result_dict = mpc.train_dm(
+            traj, dm, optim_dm, epoch=1, batch_size=1)
+
+        del sampler
+
+    def test_learning_rnn(self):
         # init models
         dm_net = ModelNetLSTM(self.env.ob_space, self.env.ac_space)
         dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=True,
                                  data_parallel=1, parallel_dim=0)
         mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, self.rew_func,
-                         10, 4, mean_obs, std_obs, mean_acs, std_acs, True)
+                         1, 1, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=True)
         optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
 
         # sample with mpc policy
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm.net, self.rew_func,
-                         10, 4, mean_obs, std_obs, mean_acs, std_acs, True)
-        rl_sampler = EpiSampler(
+        sampler = EpiSampler(
             self.env, mpc_pol, num_parallel=1)
-        epis = rl_sampler.sample(
-            mpc_pol, max_episodes=9)
+        epis = sampler.sample(
+            mpc_pol, max_episodes=1)
 
-        curr_traj = Traj()
-        curr_traj.add_epis(epis)
-        curr_traj = ef.add_next_obs(curr_traj)
-        curr_traj = ef.compute_h_masks(curr_traj)
-        traj = ef.normalize_obs_and_acs(
-            curr_traj, mean_obs, std_obs, mean_acs, std_acs, return_statistic=False)
-        curr_traj.register_epis()
-        traj.add_traj(curr_traj)
+        traj = Traj()
+        traj.add_epis(epis)
+        traj = ef.add_next_obs(traj)
+        traj = ef.compute_h_masks(traj)
+        traj.register_epis()
+        traj.add_traj(traj)
 
         # train
         result_dict = mpc.train_dm(
-            traj, dm, optim_dm, epoch=1, batch_size=32)
+            traj, dm, optim_dm, epoch=1, batch_size=1)
 
-        del rand_sampler, rl_sampler
+        del sampler
 
 
 if __name__ == '__main__':
