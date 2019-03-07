@@ -474,7 +474,6 @@ class TestQTOPT(unittest.TestCase):
         del sampler
 
 
-
 class TestOnpolicyDistillation(unittest.TestCase):
     def setUp(self):
         self.env = GymEnv('Pendulum-v0')
