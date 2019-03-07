@@ -58,7 +58,7 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_o
         iterator = traj.iterate_rnn(
             batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     else:
-        iterator = traj.iterate(batch_size, epoch)
+        iterator = traj.random_batch(batch_size, epoch)
 
     for batch in iterator:
         dm_loss = update_dm(
