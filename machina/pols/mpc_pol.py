@@ -59,7 +59,7 @@ class MPCPol(BasePol):
         self.std_acs = torch.tensor(
             std_acs, dtype=torch.float).repeat(n_samples, 1)
 
-    #def __deepcopy__(self, memo):
+    # def __deepcopy__(self, memo):
     #    mpc_pol = MPCPol(self.ob_space, self.ac_space, copy.deepcopy(self.net), self.rew_func, self.n_samples, self.horizon,
     #                     rnn=self.rnn, normalize_ac=self.normalize_ac, data_parallel=self.data_parallel, parallel_dim=0)
     #    for sp, p in zip(mpc_pol.parameters(), self.parameters()):
