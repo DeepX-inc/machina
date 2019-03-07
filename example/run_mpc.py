@@ -39,10 +39,9 @@ def add_noise_to_init_obs(epis, std):
 def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
     next_obs = next_obs * std_obs + mean_obs
     acs = acs * std_acs + mean_acs
-    # HarfCheetah
-    index_of_velx = 3
-    rews = next_obs[:, index_of_velx] - 0.01 * \
-        torch.sum(acs**2, dim=1)
+    # Pendulum
+    rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
+             0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
     rews = rews.squeeze(0)
 
     return rews
