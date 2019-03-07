@@ -12,7 +12,7 @@ with open('README.md', 'r') as f:
 
 install_requires = [
     'cached_property',
-    'torch>=0.4.1',
+    'torch>=1.0.1',
     'joblib>=0.11',
     'gym==0.10.5',
     'numpy>=1.13.3',
