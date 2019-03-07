@@ -39,13 +39,18 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
+parser.add_argument('--max_episodes', type=int,
+                    default=1000000, help='Number of episodes to run.')
 parser.add_argument('--max_steps_off', type=int,
                     default=1000000000000, help='Number of episodes stored in off traj.')
-parser.add_argument('--num_parallel', type=int, default=4)
-parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--num_parallel', type=int, default=4,
+                    help='Number of processes to sample.')
+parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
+parser.add_argument('--data_parallel', action='store_true', default=False,
+                    help='If True, inference is done in parallel on gpus.')
 
-parser.add_argument('--max_steps_per_iter', type=int, default=10000)
+parser.add_argument('--max_steps_per_iter', type=int, default=10000,
+                    help='Number of steps to use in an iteration.')
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4,
                     help='Policy learning rate.')
