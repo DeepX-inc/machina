@@ -29,44 +29,64 @@ from machina.utils import measure, set_device
 from simple_net import PolNet, PolNetLSTM, VNet, DiscrimNet
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log', type=str, default='garbage')
-parser.add_argument('--env_name', type=str, default='Pendulum-v0')
-parser.add_argument('--c2d', action='store_true', default=False)
-parser.add_argument('--rnn', action='store_true', default=False)
-parser.add_argument('--roboschool', action='store_true', default=False)
-parser.add_argument('--record', action='store_true', default=False)
-parser.add_argument('--cuda', type=int, default=-1)
+parser.add_argument('--log', type=str, default='garbage',
+                    help='Directory name of log.')
+parser.add_argument('--env_name', type=str,
+                    default='Pendulum-v0', help='Name of environment.')
+parser.add_argument('--c2d', action='store_true',
+                    default=False, help='If True, action is discretized.')
+parser.add_argument('--record', action='store_true',
+                    default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=100000000)
-parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--max_episodes', type=int,
+                    default=100000000, help='Number of episodes to run.')
+parser.add_argument('--num_parallel', type=int, default=4,
+                    help='Number of processes to sample.')
+parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 
-parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
+parser.add_argument('--expert_dir', type=str, default='../data/expert_epis',
+                    help='Directory path storing file of expert trajectory.')
 parser.add_argument('--expert_fname', type=str,
-                    default='Pendulum-v0_100epis.pkl')
+                    default='Pendulum-v0_100epis.pkl', help='Name of pkl file of expert trajectory')
 
-parser.add_argument('--max_steps_per_iter', type=int, default=50000)
+parser.add_argument('--max_steps_per_iter', type=int, default=50000,
+                    help='Number of steps to use in an iteration.')
 parser.add_argument('--batch_size', type=int, default=50000)
 parser.add_argument('--discrim_batch_size', type=int, default=32)
 parser.add_argument('--pol_lr', type=float, default=1e-4)
 parser.add_argument('--vf_lr', type=float, default=1e-3)
 parser.add_argument('--discrim_lr', type=float, default=3e-4)
 
-parser.add_argument('--epoch_per_iter', type=int, default=50)
+parser.add_argument('--epoch_per_iter', type=int, default=50,
+                    help='Number of epoch in an iteration')
 parser.add_argument('--discrim_step', type=int, default=10)
 
-parser.add_argument('--gamma', type=float, default=0.995)
-parser.add_argument('--lam', type=float, default=0.97)
-parser.add_argument('--pol_ent_beta', type=float, default=0)
-parser.add_argument('--discrim_ent_beta', type=float, default=0)
+parser.add_argument('--gamma', type=float, default=0.995,
+                    help='Discount factor.')
+parser.add_argument('--lam', type=float, default=0.97,
+                    help='Tradeoff value of bias variance.')
+parser.add_argument('--pol_ent_beta', type=float, default=0,
+                    help='Entropy coefficient for policy.')
+parser.add_argument('--discrim_ent_beta', type=float, default=0,
+                    help='Entropy coefficient for discriminator.')
 
-parser.add_argument('--max_grad_norm', type=float, default=10)
+parser.add_argument('--rnn', action='store_true',
+                    default=False, help='If True, network is reccurent.')
+parser.add_argument('--max_grad_norm', type=float, default=10,
+                    help='Value of maximum gradient norm.')
 
-parser.add_argument('--pol_h1', type=int, default=100)
-parser.add_argument('--pol_h2', type=int, default=100)
-parser.add_argument('--vf_h1', type=int, default=32)
-parser.add_argument('--vf_h2', type=int, default=32)
-parser.add_argument('--discrim_h1', type=int, default=100)
-parser.add_argument('--discrim_h2', type=int, default=100)
+parser.add_argument('--pol_h1', type=int, default=100,
+                    help='Hidden size of layer1 of policy.')
+parser.add_argument('--pol_h2', type=int, default=100,
+                    help='Hidden size of layer2 of policy.')
+parser.add_argument('--vf_h1', type=int, default=32,
+                    help='Hidden size of layer1 of value function.')
+parser.add_argument('--vf_h2', type=int, default=32,
+                    help='Hidden size of layer2 of value function.')
+parser.add_argument('--discrim_h1', type=int, default=100,
+                    help='Hidden size of layer1 of discriminator.')
+parser.add_argument('--discrim_h2', type=int, default=100,
+                    help='Hidden size of layer2 of discriminator.')
 
 parser.add_argument('--rl_type', type=str,
                     choices=['trpo', 'ppo_clip', 'ppo_kl'], default='trpo')
@@ -96,9 +116,6 @@ device_name = 'cpu' if args.cuda < 0 or args.rl_type == 'trpo' else "cuda:{}".fo
     args.cuda)
 device = torch.device(device_name)
 set_device(device)
-
-if args.roboschool:
-    import roboschool
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
