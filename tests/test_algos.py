@@ -3,6 +3,7 @@ Test script for algorithms.
 """
 
 import unittest
+import os
 
 import numpy as np
 import torch
@@ -14,7 +15,7 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
 from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc, CEMDeterministicSAVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
@@ -458,7 +459,6 @@ class TestQTOPT(unittest.TestCase):
 
         traj = Traj()
         traj.add_epis(epis)
-
         traj = ef.add_next_obs(traj)
         traj.register_epis()
 
@@ -469,6 +469,46 @@ class TestQTOPT(unittest.TestCase):
         )
 
         del sampler
+
+
+class TestOnpolicyDistillation(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+        t_pol_net = PolNet(self.env.ob_space,
+                           self.env.ac_space, h1=200, h2=100)
+        s_pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=190, h2=90)
+
+        t_pol = GaussianPol(
+            self.env.ob_space, self.env.ac_space, t_pol_net)
+        s_pol = GaussianPol(
+            self.env.ob_space, self.env.ac_space, s_pol_net)
+
+        # Please import your own teacher-policy here
+        t_pol.load_state_dict(torch.load(
+            os.path.abspath('data/expert_pols/Pendulum-v0_pol_max.pkl')))
+
+        student_sampler = EpiSampler(self.env, s_pol, num_parallel=1)
+
+        optim_pol = torch.optim.Adam(s_pol.parameters(), 3e-4)
+
+        epis = student_sampler.sample(s_pol, max_steps=32)
+
+        traj = Traj()
+        traj.add_epis(epis)
+
+        traj = ef.compute_h_masks(traj)
+        traj.register_epis()
+        result_dict = on_pol_teacher_distill.train(
+            traj=traj,
+            student_pol=s_pol,
+            teacher_pol=t_pol,
+            student_optim=optim_pol,
+            epoch=1,
+            batchsize=32)
+
+        del student_sampler
 
 
 if __name__ == '__main__':
