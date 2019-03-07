@@ -106,9 +106,10 @@ class PlanetPol(BasePol):
                     prev_state, prev_acs, embedded_obs, hs)
                 hs = posterior_state['belief']
                 for acs in candidate_acs:
-                    prior_state = self.rssm.prior(prev_state, prev_acs, hs)
+                    prior_state = self.rssm.prior(prev_state, acs, hs)
                     rews, _ = self.rew_model(prior_state['sample'], acs=None)
                     sum_rews += rews
+                    prev_state = prior_state['sample']
                     hs = prior_state['belief']
 
                 # re-fit belief to the K(n_refit_samples) best action sequence
