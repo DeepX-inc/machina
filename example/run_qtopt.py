@@ -28,7 +28,6 @@ from machina.utils import set_device, measure
 
 from simple_net import QNet
 
-import pybullet_envs
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage',
@@ -40,6 +39,8 @@ parser.add_argument('--record', action='store_true',
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int,
                     default=100000000, help='Number of episodes to run.')
+parser.add_argument('--max_steps_off', type=int,
+                    default=1000000000000, help='Number of episodes stored in off traj.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
@@ -123,7 +124,7 @@ sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 
-off_traj = Traj()
+off_traj = Traj(args.max_steps_off)
 
 total_epi = 0
 total_step = 0

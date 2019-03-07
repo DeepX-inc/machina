@@ -40,6 +40,8 @@ parser.add_argument('--record', action='store_true',
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int,
                     default=1000000, help='Number of episodes to run.')
+parser.add_argument('--max_steps_off', type=int,
+                    default=1000000000000, help='Number of episodes stored in off traj.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
@@ -124,7 +126,7 @@ optim_qf2 = torch.optim.Adam(qf_net2.parameters(), args.qf_lr)
 optim_qfs = [optim_qf1, optim_qf2]
 optim_alpha = torch.optim.Adam([log_alpha], args.pol_lr)
 
-off_traj = Traj()
+off_traj = Traj(args.max_steps_off)
 
 total_epi = 0
 total_step = 0

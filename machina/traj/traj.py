@@ -12,6 +12,8 @@ import torch.utils.data
 from machina import loss_functional as lf
 from machina.utils import get_device
 
+LARGE_NUMBER = 1000000000000
+
 
 class Traj(object):
     """
@@ -22,18 +24,18 @@ class Traj(object):
     This class provides batch methods.
     """
 
-    def __init__(self):
+    def __init__(self, max_steps=None):
         self.data_map = dict()
         self._next_id = 0
 
         self.current_epis = None
         self._epis_index = np.array([0])
 
+        self.max_steps = max_steps if max_steps is not None else LARGE_NUMBER
+
     @property
     def num_step(self):
-        if self.data_map:
-            return list(self.data_map.values())[0].size(0)
-        return 0
+        return self._epis_index[-1]
 
     @property
     def num_epi(self):
@@ -48,11 +50,15 @@ class Traj(object):
     def add_epis(self, epis):
         self.current_epis = epis
 
-    def _concat_data_map(self, data_map):
+    def _concat_data_map(self, data_map, remain_index=None):
         if self.data_map:
             for key in data_map:
-                self.data_map[key] = torch.cat(
-                    [self.data_map[key], data_map[key]], dim=0)
+                if remain_index is not None:
+                    self.data_map[key] = torch.cat(
+                        [self.data_map[key][self._epis_index[remain_index]:], data_map[key]], dim=0)
+                else:
+                    self.data_map[key] = torch.cat(
+                        [self.data_map[key], data_map[key]], dim=0)
         else:
             self.data_map = data_map
 
@@ -84,18 +90,42 @@ class Traj(object):
         self.current_epis = None
 
     def add_traj(self, traj):
-        self._concat_data_map(traj.data_map)
-
         epis_index = traj._epis_index
-        epis_index = epis_index + self._epis_index[-1]
-        self._epis_index = np.concatenate([self._epis_index, epis_index[1:]])
+        pre_num_step = self.num_step
+        add_num_step = traj.num_step
+        if pre_num_step + add_num_step <= self.max_steps:
+            self._concat_data_map(traj.data_map)
+            epis_index = epis_index + self._epis_index[-1]
+            self._epis_index = np.concatenate(
+                [self._epis_index, epis_index[1:]])
+        elif add_num_step <= self.max_steps:
+            remain_index = 0
+            while self.max_steps < pre_num_step + add_num_step - self._epis_index[remain_index]:
+                remain_index += 1
+            self._concat_data_map(traj.data_map, remain_index)
+            self._epis_index = self._epis_index[remain_index:] - \
+                self._epis_index[remain_index]
+            epis_index = epis_index + self._epis_index[-1]
+            self._epis_index = np.concatenate(
+                [self._epis_index, epis_index[1:]])
+        else:  # self.max_steps < add_step
+            remain_index = -1
+            while self.max_steps < epis_index[remain_index]:
+                if remain_index == - len(epis_index):
+                    raise ValueError(
+                        'max_steps should be larger than the number of steps in one episode.')
+                remain_index -= 1
+            for key in traj.data_map:
+                self.data_map[key] = traj.data_map[key][:epis_index[remain_index]]
+            self._epis_index = traj._epis_index[:remain_index+1]
 
     def _shuffled_indices(self, indices):
         return indices[torch.randperm(len(indices), device=get_device())]
 
     def _get_indices(self, indices=None, shuffle=True):
         if indices is None:
-            indices = torch.arange(self.num_step, device=get_device())
+            indices = torch.arange(
+                self.num_step, device=get_device(), dtype=torch.long)
         if shuffle:
             indices = self._shuffled_indices(indices)
         return indices
@@ -295,8 +325,7 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]
-                    :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
