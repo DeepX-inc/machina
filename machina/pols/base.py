@@ -53,6 +53,7 @@ class BasePol(nn.Module):
                 self.pd_shape = (len(nvec), nvec[0])
             elif isinstance(ac_space, gym.spaces.Discrete):
                 self.pd_shape = (ac_space.n, )
+        self.a_i_shape = self.pd_shape
 
     def convert_ac_for_real(self, x):
         """
