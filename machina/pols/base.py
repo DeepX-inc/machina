@@ -45,14 +45,14 @@ class BasePol(nn.Module):
         self.multi = isinstance(ac_space, gym.spaces.MultiDiscrete)
 
         if not self.discrete:
-            self.pd_shape = ac_space.shape
+            self.a_i_shape = ac_space.shape
         else:
             if isinstance(ac_space, gym.spaces.MultiDiscrete):
                 nvec = ac_space.nvec
                 assert any([nvec[0] == nv for nv in nvec])
-                self.pd_shape = (len(nvec), nvec[0])
+                self.a_i_shape = (len(nvec), nvec[0])
             elif isinstance(ac_space, gym.spaces.Discrete):
-                self.pd_shape = (ac_space.n, )
+                self.a_i_shape = (ac_space.n, )
 
     def convert_ac_for_real(self, x):
         """
