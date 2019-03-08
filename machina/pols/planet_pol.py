@@ -40,7 +40,7 @@ class PlanetPol(BasePol):
     """
 
     def __init__(self, ob_space, ac_space, rssm, rew_model, horizon=12, n_optim_iters=10, n_samples=1000,
-                 n_refit_samples=100, n_repeat_ac=4, data_parallel=False, parallel_dim=0):
+                 n_refit_samples=100, data_parallel=False, parallel_dim=0):
         BasePol.__init__(self, ob_space, ac_space, net=None, rnn=True, normalize_ac=True,
                          data_parallel=data_parallel, parallel_dim=parallel_dim)
         self.rssm = rssm
@@ -49,9 +49,6 @@ class PlanetPol(BasePol):
         self.n_optim_iters = n_optim_iters
         self.n_samples = n_samples
         self.n_refit_samples = n_refit_samples
-        self.n_repeat_ac = n_repeat_ac
-        self.count_repeat_ac = 0
-        self.hs = None
         self.prev_state = torch.zeros(
             1, self.rssm.state_size, dtype=torch.float)
         self.prev_acs = torch.zeros(
@@ -75,14 +72,6 @@ class PlanetPol(BasePol):
             1, self.rssm.belief_size, dtype=torch.float)
 
     def forward(self, obs, hs=None, h_masks=None):
-        if self.count_repeat_ac == self.n_repeat_ac:
-            self.count_repeat_ac = 1
-        else:
-            self.count_repeat_ac += 1
-            ac = self.prev_acs[0]
-            ac_real = ac.cpu().numpy()
-            return ac_real, ac, dict(mean=ac)
-
         # initialize action distribution
         mean = torch.zeros(
             self.horizon, self.ac_space.shape[0], dtype=torch.float)

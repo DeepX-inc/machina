@@ -61,6 +61,7 @@ parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--num_random_rollouts', type=int, default=60)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
+parser.add_argument('--n_repeat', type=int, default=4)
 parser.add_argument('--horizon', type=int, default=12)
 parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--n_refit_samples', type=int, default=100)
@@ -121,7 +122,7 @@ random_pol = RandomPol(ob_space, ac_space)
 
 # Performing rollouts to collect training data
 rand_sampler = EpiSampler(
-    env, random_pol, num_parallel=args.num_parallel, seed=args.seed)
+    env, random_pol, num_parallel=args.num_parallel, seed=args.seed, n_repeat=args.n_repeat)
 
 epis = rand_sampler.sample(random_pol, max_episodes=args.num_random_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
@@ -156,7 +157,7 @@ planet_pol = PlanetPol(ob_space, ac_space, rssm, rew_model, args.horizon,
                        args.n_optim_iters, args.n_samples, args.n_refit_samples,
                        data_parallel=False, parallel_dim=0)
 rl_sampler = EpiSampler(
-    env, planet_pol, num_parallel=args.num_parallel, seed=args.seed)
+    env, planet_pol, num_parallel=args.num_parallel, seed=args.seed, n_repeat=args.n_repeat)
 
 ### Train Models ###
 

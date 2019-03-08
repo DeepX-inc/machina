@@ -16,7 +16,7 @@ from machina.utils import cpu_mode
 LARGE_NUMBER = 100000000
 
 
-def one_epi(env, pol, deterministic=False, prepro=None):
+def one_epi(env, pol, deterministic=False, prepro=None, n_repeat=1):
     """
     Sampling an episode.
 
@@ -27,6 +27,8 @@ def one_epi(env, pol, deterministic=False, prepro=None):
     deterministic : bool
         If True, policy is deterministic.
     prepro : Prepro
+    n_repeat : int
+        Number of action repeat
 
     Returns
     -------
@@ -53,9 +55,14 @@ def one_epi(env, pol, deterministic=False, prepro=None):
                 ac_real, ac, a_i = pol.deterministic_ac_real(
                     torch.tensor(o, dtype=torch.float))
             ac_real = ac_real.reshape(pol.ac_space.shape)
-            next_o, r, done, e_i = env.step(np.array(ac_real))
+            total_r = 0
+            repeat_count = 0
+            while repeat_count < n_repeat and not done:
+                next_o, r, done, e_i = env.step(np.array(ac_real))
+                total_r += r
+                repeat_count += 1
             obs.append(o)
-            rews.append(r)
+            rews.append(total_r)
             dones.append(done)
             acs.append(ac.squeeze().detach().cpu(
             ).numpy().reshape(pol.ac_space.shape))
@@ -88,7 +95,7 @@ def one_epi(env, pol, deterministic=False, prepro=None):
         )
 
 
-def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
+def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256, n_repeat=1):
     """
     Multiprocess sample.
     Sampling episodes until max_steps or max_episodes is achieved.
@@ -113,6 +120,8 @@ def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_glob
     process_id : int
     prepro : Prepro
     seed : int
+    n_repeat : int
+        Number of action repeat
     """
 
     np.random.seed(seed + process_id)
@@ -123,7 +132,8 @@ def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_glob
         time.sleep(0.1)
         if exec_flags[process_id] > 0:
             while max_steps > n_steps_global and max_episodes > n_episodes_global:
-                l, epi = one_epi(env, pol, deterministic_flag, prepro)
+                l, epi = one_epi(env, pol, deterministic_flag,
+                                 prepro, n_repeat)
                 n_steps_global += l
                 n_episodes_global += 1
                 epis.append(epi)
@@ -142,9 +152,11 @@ class EpiSampler(object):
         Number of processes
     prepro : Prepro
     seed : int
+    n_repeat : int
+        Number of action repeat
     """
 
-    def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256):
+    def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256, n_repeat=1):
         self.env = env
         self.pol = copy.deepcopy(pol)
         self.pol.to('cpu')
@@ -167,7 +179,7 @@ class EpiSampler(object):
         self.processes = []
         for ind in range(self.num_parallel):
             p = mp.Process(target=mp_sample, args=(self.pol, env, self.max_steps, self.max_episodes, self.n_steps_global,
-                                                   self.n_episodes_global, self.epis, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
+                                                   self.n_episodes_global, self.epis, self.exec_flags, self.deterministic_flag, ind, prepro, seed, n_repeat))
             p.start()
             self.processes.append(p)
 
