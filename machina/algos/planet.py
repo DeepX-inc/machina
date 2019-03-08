@@ -59,9 +59,9 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
     for full_length_batch in iterator:
         # sample sequence chunks uniformly at random from the trajectory
         batch = dict()
+        start = np.random.randint(
+            0, len(full_length_batch['obs']) - pred_steps)
         for key in full_length_batch.keys():
-            start = np.random.randint(
-                0, len(full_length_batch['obs']) - pred_steps)
             batch[key] = full_length_batch[key][start:start + pred_steps]
 
         # embed obs
@@ -99,7 +99,6 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
         for t in range(pred_steps-1):
             posteriors[t+1] = rssm.posterior(posteriors[t]['sample'], batch['acs']
                                              [t], batch['embedded_obs'][t], hs=posteriors[t]['belief'])
-
             priors[t][t+1] = rssm.prior(posteriors[t]['sample'],
                                         batch['acs'][t], hs=posteriors[t]['belief'])
             for prior_index in range(t):
