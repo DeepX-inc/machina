@@ -68,7 +68,7 @@ def one_epi(env, pol, deterministic=False, prepro=None):
                                        for h in a_i[key]])
                 else:
                     _a_i[key] = a_i[key].squeeze().detach(
-                    ).cpu().numpy().reshape(pol.pd_shape)
+                    ).cpu().numpy().reshape(pol.a_i_shape)
             a_i = _a_i
             a_is.append(a_i)
             e_is.append(e_i)

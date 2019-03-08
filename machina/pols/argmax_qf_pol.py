@@ -1,12 +1,8 @@
-import numpy as np
 import random
 import torch
-import torch.nn as nn
 
 from machina.pols import BasePol
-from machina.pds.gaussian_pd import GaussianPd
 from machina.utils import get_device
-from torch.distributions import MultivariateNormal
 
 
 class ArgmaxQfPol(BasePol):
@@ -38,6 +34,7 @@ class ArgmaxQfPol(BasePol):
                          normalize_ac, data_parallel, parallel_dim)
         self.qfunc = qfunc
         self.eps = eps
+        self.a_i_shape = (1, )
         self.to(get_device())
 
     def forward(self, obs):
@@ -45,7 +42,8 @@ class ArgmaxQfPol(BasePol):
         if prob <= self.eps:
             ac_real = ac = torch.tensor(
                 self.ac_space.sample(), dtype=torch.float, device=obs.device)
+            q, _ = self.qfunc(obs, ac)
         else:
-            _, ac = self.qfunc.max(obs)
+            q, ac = self.qfunc.max(obs)
             ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
-        return ac_real, ac, dict()
+        return ac_real, ac, dict(q=q)
