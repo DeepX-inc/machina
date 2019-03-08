@@ -98,7 +98,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
 
         for t in range(pred_steps-1):
             posteriors[t+1] = rssm.posterior(posteriors[t]['sample'], batch['acs']
-                                             [t], batch['embedded_obs'][0], hs=posteriors[t]['belief'])
+                                             [t], batch['embedded_obs'][t], hs=posteriors[t]['belief'])
 
             priors[t][t+1] = rssm.prior(posteriors[t]['sample'],
                                         batch['acs'][t], hs=posteriors[t]['belief'])
@@ -114,9 +114,9 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
         sum_divergence_loss = 0
         for t in range(pred_steps-1):
             # zero step recunstruction loss
-            pred_obs, obs_dict = ob_model(posteriors[t+1]['sample'], acs=None)
+            pred_obs, obs_dict = ob_model(posteriors[t]['sample'], acs=None)
             pred_rews, rews_dict = rew_model(
-                posteriors[t+1]['sample'], acs=None)
+                posteriors[t]['sample'], acs=None)
             obs_loss = -1 * rssm.pd.llh(batch['embedded_obs'][t], obs_dict)
             rews_loss = -1 * rssm.pd.llh(batch['rews'][t], rews_dict)
             obs_loss = torch.mean(obs_loss)
