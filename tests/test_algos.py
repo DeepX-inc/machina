@@ -675,7 +675,7 @@ class TestMPC(unittest.TestCase):
                                  data_parallel=1, parallel_dim=0)
 
         mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space,
-                         dm_net, self.rew_func, 1, 1)
+                         dm_net, rew_func, 1, 1)
         optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
 
         # sample with mpc policy
@@ -711,7 +711,7 @@ class TestMPC(unittest.TestCase):
         dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=True,
                                  data_parallel=1, parallel_dim=0)
 
-        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, self.rew_func,
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, rew_func,
                          1, 1, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=True)
         optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
 
