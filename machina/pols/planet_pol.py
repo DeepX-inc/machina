@@ -77,14 +77,14 @@ class PlanetPol(BasePol):
             self.horizon, self.ac_space.shape[0], dtype=torch.float)
         std = torch.ones(
             self.horizon, self.ac_space.shape[0], dtype=torch.float)
-        prev_state = self.prev_state.repeat(self.n_samples, 1)
-        prev_acs = self.prev_acs.repeat(self.n_samples, 1)
         obs = obs.unsqueeze(0)
         embedded_obs = self.rssm.encode(obs).repeat(self.n_samples, 1)
 
         with torch.no_grad():
             for iters in range(self.n_optim_iters):
                 sum_rews = 0
+                prev_state = self.prev_state.repeat(self.n_samples, 1)
+                prev_acs = self.prev_acs.repeat(self.n_samples, 1)
                 hs = self.hs.repeat(self.n_samples, 1)
 
                 # randomly sample N candidate action sequences
@@ -95,9 +95,9 @@ class PlanetPol(BasePol):
                         min=self.ac_space.low[i], max=self.ac_space.high[i])
 
                 # Evaluate action sequences frin the current belief
-
                 posterior_state = self.rssm.posterior(
                     prev_state, prev_acs, embedded_obs, hs)
+                prev_state = posterior_state['sample']
                 hs = posterior_state['belief']
                 for acs in candidate_acs:
                     prior_state = self.rssm.prior(prev_state, acs, hs)
