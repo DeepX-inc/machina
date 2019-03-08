@@ -695,7 +695,7 @@ class TestMPC(unittest.TestCase):
             traj, dm, optim_dm, epoch=1, batch_size=1)
 
         del sampler
-        
+
     def test_learning_rnn(self):
         def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
             next_obs = next_obs * std_obs + mean_obs
