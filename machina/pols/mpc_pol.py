@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import copy
 
 from machina.pds import DeterministicPd
 from machina.pols import BasePol

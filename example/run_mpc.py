@@ -39,10 +39,9 @@ def add_noise_to_init_obs(epis, std):
 def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
     next_obs = next_obs * std_obs + mean_obs
     acs = acs * std_acs + mean_acs
-    # HarfCheetah
-    index_of_velx = 3
-    rews = next_obs[:, index_of_velx] - 0.01 * \
-        torch.sum(acs**2, dim=1)
+    # Pendulum
+    rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
+             0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
     rews = rews.squeeze(0)
 
     return rews
@@ -71,15 +70,15 @@ parser.add_argument('--num_random_rollouts', type=int, default=60,
                     help='Number of random rollouts for collecting initial dataset.')
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001,
                     help='Standard deviation of noise to initial observation in initial dataset.')
-parser.add_argument('--n_samples', type=int, default=300,
+parser.add_argument('--n_samples', type=int, default=1000,
                     help='Number of samples of action sequence in MPC.')
-parser.add_argument('--horizon_of_samples', type=int, default=4,
+parser.add_argument('--horizon_of_samples', type=int, default=20,
                     help='Length of horizon of samples of action sequence in MPC.')
 parser.add_argument('--max_episodes_per_iter', type=int, default=9,
                     help='Number of episodes in an iteration.')
 parser.add_argument('--epoch_per_iter', type=int, default=60,
                     help='Number of epochs in an iteration.')
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true',
                     default=False, help='If True, network is reccurent.')

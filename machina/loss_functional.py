@@ -426,7 +426,8 @@ def dynamics(dm, batch, target='next_obs', td=True):
         out_masks = batch['out_masks']
         pred, _ = dm(obs, acs, h_masks=h_masks)
     else:
-        out_masks = torch.ones_like(obs)
+        out_masks = torch.ones(
+            obs.size()[0], dtype=torch.float, device=get_device())
         pred, _ = dm(obs, acs)
 
     if target == 'rews' or not td:

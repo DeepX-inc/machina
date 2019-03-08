@@ -5,6 +5,8 @@ Test script for algorithms.
 import unittest
 import os
 
+import os
+import pickle
 import numpy as np
 import torch
 import torch.nn as nn
@@ -13,10 +15,11 @@ import gym
 
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol
+from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol, MPCPol, RandomPol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill, behavior_clone, gail, airl, mpc
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc, CEMDeterministicSAVfunc
+from machina.models import DeterministicSModel
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -24,7 +27,7 @@ from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import measure, set_device
 
-from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM, QNet
+from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM, ModelNetLSTM, QNet, DiscrimNet
 
 
 class TestPPOContinuous(unittest.TestCase):
@@ -511,8 +514,229 @@ class TestOnpolicyDistillation(unittest.TestCase):
         del student_sampler
 
 
+class TestBehaviorClone(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+        pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_pol = torch.optim.Adam(pol_net.parameters(), 3e-4)
+
+        with open(os.path.join('data/expert_epis', 'Pendulum-v0_100epis.pkl'), 'rb') as f:
+            expert_epis = pickle.load(f)
+        train_epis, test_epis = ef.train_test_split(
+            expert_epis, train_size=0.7)
+        train_traj = Traj()
+        train_traj.add_epis(train_epis)
+        train_traj.register_epis()
+        test_traj = Traj()
+        test_traj.add_epis(test_epis)
+        test_traj.register_epis()
+
+        result_dict = behavior_clone.train(
+            train_traj, pol, optim_pol,
+            256
+        )
+
+        del sampler
+
+
+class TestGAIL(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+        pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
+
+        vf_net = VNet(self.env.ob_space)
+        vf = DeterministicSVfunc(self.env.ob_space, vf_net)
+
+        discrim_net = DiscrimNet(
+            self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        discrim = DeterministicSAVfunc(
+            self.env.ob_space, self.env.ac_space, discrim_net)
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_vf = torch.optim.Adam(vf_net.parameters(), 3e-4)
+        optim_discrim = torch.optim.Adam(discrim_net.parameters(), 3e-4)
+
+        with open(os.path.join('data/expert_epis', 'Pendulum-v0_100epis.pkl'), 'rb') as f:
+            expert_epis = pickle.load(f)
+        expert_traj = Traj()
+        expert_traj.add_epis(expert_epis)
+        expert_traj.register_epis()
+
+        epis = sampler.sample(pol, max_steps=32)
+
+        agent_traj = Traj()
+        agent_traj.add_epis(epis)
+        agent_traj = ef.compute_pseudo_rews(agent_traj, discrim)
+        agent_traj = ef.compute_vs(agent_traj, vf)
+        agent_traj = ef.compute_rets(agent_traj, 0.99)
+        agent_traj = ef.compute_advs(agent_traj, 0.99, 0.95)
+        agent_traj = ef.centerize_advs(agent_traj)
+        agent_traj = ef.compute_h_masks(agent_traj)
+        agent_traj.register_epis()
+
+        result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
+                                 rl_type='trpo',
+                                 epoch=1,
+                                 batch_size=32, discrim_batch_size=32,
+                                 discrim_step=1,
+                                 pol_ent_beta=1e-3, discrim_ent_beta=1e-5)
+
+        del sampler
+
+
+class TestAIRL(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def test_learning(self):
+        pol_net = PolNet(self.env.ob_space, self.env.ac_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
+
+        vf_net = VNet(self.env.ob_space)
+        vf = DeterministicSVfunc(self.env.ob_space, vf_net)
+
+        rewf_net = VNet(self.env.ob_space, h1=32, h2=32)
+        rewf = DeterministicSVfunc(self.env.ob_space, rewf_net)
+        shaping_vf_net = VNet(self.env.ob_space, h1=32, h2=32)
+        shaping_vf = DeterministicSVfunc(self.env.ob_space, shaping_vf_net)
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_vf = torch.optim.Adam(vf_net.parameters(), 3e-4)
+        optim_discrim = torch.optim.Adam(
+            list(rewf_net.parameters()) + list(shaping_vf_net.parameters()), 3e-4)
+
+        with open(os.path.join('data/expert_epis', 'Pendulum-v0_100epis.pkl'), 'rb') as f:
+            expert_epis = pickle.load(f)
+        expert_traj = Traj()
+        expert_traj.add_epis(expert_epis)
+        expert_traj = ef.add_next_obs(expert_traj)
+        expert_traj.register_epis()
+
+        epis = sampler.sample(pol, max_steps=32)
+
+        agent_traj = Traj()
+        agent_traj.add_epis(epis)
+        agent_traj = ef.add_next_obs(agent_traj)
+        agent_traj = ef.compute_pseudo_rews(
+            agent_traj, rew_giver=rewf, state_only=True)
+        agent_traj = ef.compute_vs(agent_traj, vf)
+        agent_traj = ef.compute_rets(agent_traj, 0.99)
+        agent_traj = ef.compute_advs(agent_traj, 0.99, 0.95)
+        agent_traj = ef.centerize_advs(agent_traj)
+        agent_traj = ef.compute_h_masks(agent_traj)
+        agent_traj.register_epis()
+
+        result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
+                                 rewf=rewf, shaping_vf=shaping_vf, rew_type='rew',
+                                 rl_type='trpo',
+                                 epoch=1,
+                                 batch_size=32, discrim_batch_size=32,
+                                 discrim_step=1,
+                                 pol_ent_beta=1e-3, discrim_ent_beta=1e-5, gamma=0.99)
+
+        del sampler
+
+
+class TestMPC(unittest.TestCase):
+    def setUp(self):
+        self.env = GymEnv('Pendulum-v0')
+
+    def add_noise_to_init_obs(self, epis, std):
+        with torch.no_grad():
+            for epi in epis:
+                epi['obs'][0] += np.random.normal(0, std, epi['obs'][0].shape)
+        return epis
+
+    def test_learning(self):
+        def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+            next_obs = next_obs * std_obs + mean_obs
+            acs = acs * std_acs + mean_acs
+            # Pendulum
+            rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
+                     0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+            rews = rews.squeeze(0)
+
+            return rews
+
+        # init models
+        dm_net = ModelNet(self.env.ob_space, self.env.ac_space)
+        dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=False,
+                                 data_parallel=1, parallel_dim=0)
+
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space,
+                         dm_net, rew_func, 1, 1)
+        optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
+
+        # sample with mpc policy
+        sampler = EpiSampler(
+            self.env, mpc_pol, num_parallel=1)
+        epis = sampler.sample(
+            mpc_pol, max_episodes=1)
+
+        traj = Traj()
+        traj.add_epis(epis)
+        traj = ef.add_next_obs(traj)
+        traj = ef.compute_h_masks(traj)
+        traj.register_epis()
+
+        # train
+        result_dict = mpc.train_dm(
+            traj, dm, optim_dm, epoch=1, batch_size=1)
+
+        del sampler
+
+    def test_learning_rnn(self):
+        def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
+            next_obs = next_obs * std_obs + mean_obs
+            acs = acs * std_acs + mean_acs
+            # Pendulum
+            rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
+                     0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+            rews = rews.squeeze(0)
+
+            return rews
+        # init models
+        dm_net = ModelNetLSTM(self.env.ob_space, self.env.ac_space)
+        dm = DeterministicSModel(self.env.ob_space, self.env.ac_space, dm_net, rnn=True,
+                                 data_parallel=1, parallel_dim=0)
+
+        mpc_pol = MPCPol(self.env.ob_space, self.env.ac_space, dm_net, rew_func,
+                         1, 1, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=True)
+        optim_dm = torch.optim.Adam(dm_net.parameters(), 1e-3)
+
+        # sample with mpc policy
+        sampler = EpiSampler(
+            self.env, mpc_pol, num_parallel=1)
+        epis = sampler.sample(
+            mpc_pol, max_episodes=1)
+
+        traj = Traj()
+        traj.add_epis(epis)
+        traj = ef.add_next_obs(traj)
+        traj = ef.compute_h_masks(traj)
+        traj.register_epis()
+        traj.add_traj(traj)
+
+        # train
+        result_dict = mpc.train_dm(
+            traj, dm, optim_dm, epoch=1, batch_size=1)
+
+        del sampler
+
+
 if __name__ == '__main__':
-    t = TestDDPG()
+    t = TestMPC()
     t.setUp()
-    t.test_learning()
+    t.test_learning_rnn()
     t.tearDown()
