@@ -274,7 +274,7 @@ class DiscrimNet(nn.Module):
 
 
 class MLP(nn.Module):
-    def __init__(self, in_features, out_features, h1=200, h2=200, deterministic=True):
+    def __init__(self, in_features, out_features, h1=100, h2=100, deterministic=True):
         nn.Module.__init__(self)
         self.deterministic = deterministic
 
@@ -284,8 +284,8 @@ class MLP(nn.Module):
             self.output_layer = nn.Linear(h2, out_features)
         else:
             self.mean_layer = nn.Linear(h2, out_features)
-            self.std_layer = nn.Linear(h2, out_features)
-            self.softplus = nn.Softplus()
+            self.log_std = nn.Parameter(torch.log(torch.ones(
+                1, out_features, dtype=torch.float)), requires_grad=False)
         self.apply(weight_init)
 
     def forward(self, x):
@@ -295,5 +295,4 @@ class MLP(nn.Module):
             return self.output_layer(h)
         else:
             mean = self.mean_layer(h)
-            log_std = torch.log(self.softplus(self.std_layer(h)))
-            return mean, log_std
+            return mean, self.log_std

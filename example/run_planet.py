@@ -137,10 +137,9 @@ del rand_sampler
 ### Init Models ###
 
 # initialize dynamics model and mpc policy
-ob_net = MLP(args.state_size + args.belief_size, args.embed_size, h1=args.hidden_size,
-             h2=args.hidden_size, deterministic=False)
-rew_net = MLP(args.state_size + args.belief_size, 1, h1=args.hidden_size,
-              h2=args.hidden_size, deterministic=False)
+ob_net = MLP(args.state_size + args.belief_size,
+             args.embed_size, deterministic=False)
+rew_net = MLP(args.state_size + args.belief_size, 1, deterministic=False)
 ob_model = GaussianSModel(ob_space, ac_space, ob_net,
                           rnn=False, data_parallel=args.data_parallel)
 rew_model = GaussianSModel(ob_space, ac_space, rew_net,
