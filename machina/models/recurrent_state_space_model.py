@@ -26,7 +26,7 @@ class RecurrentSSpaceModel(BaseModel):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, embed_size, state_size, belief_size, hidden_size, min_stddev=1e-5, data_parallel=False, parallel_dim=0):
+    def __init__(self, ob_space, ac_space, embed_size, state_size, belief_size, hidden_size, min_stddev=1e-1, data_parallel=False, parallel_dim=0):
         super().__init__(ob_space, ac_space, None, True, data_parallel, parallel_dim)
         self.embed_size = embed_size
         self.state_size = state_size
@@ -83,7 +83,7 @@ class RecurrentSSpaceModel(BaseModel):
         belief = torch.relu(self.cell(hidden, hs))
         self.hs = belief
 
-        hidden = torch.relu(self.fc2(hidden))
+        hidden = torch.relu(self.fc2(belief))
         mean = self.fc3(hidden)
         log_std = torch.log(self.softplus1(self.fc4(hidden)))
 
