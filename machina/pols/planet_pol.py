@@ -81,6 +81,8 @@ class PlanetPol(BasePol):
         embedded_obs = self.rssm.encode(obs).repeat(self.n_samples, 1)
 
         with torch.no_grad():
+            self.n_optim_iters = 1
+            self.n_refit_samples = 1
             for iters in range(self.n_optim_iters):
                 sum_rews = 0
                 prev_state = self.prev_state.repeat(self.n_samples, 1)
@@ -88,8 +90,10 @@ class PlanetPol(BasePol):
                 hs = self.hs.repeat(self.n_samples, 1)
 
                 # randomly sample N candidate action sequences
-                candidate_acs = torch.randn(
-                    self.horizon, self.n_samples, self.ac_space.shape[0]) * std.unsqueeze(1) + mean.unsqueeze(1)
+                # candidate_acs = torch.randn(
+                #    self.horizon, self.n_samples, self.ac_space.shape[0]) * std.unsqueeze(1) + mean.unsqueeze(1)
+                candidate_acs = torch.empty(self.horizon, self.n_samples, self.ac_space.shape[0], dtype=torch.float).uniform_(
+                    self.ac_space.low[0], self.ac_space.high[0])
                 for i in range(candidate_acs.size()[-1]):
                     candidate_acs[:, :, i] = candidate_acs[:, :, i].clamp(
                         min=self.ac_space.low[i], max=self.ac_space.high[i])
@@ -101,7 +105,8 @@ class PlanetPol(BasePol):
                 hs = posterior_state['belief']
                 for acs in candidate_acs:
                     prior_state = self.rssm.prior(prev_state, acs, hs)
-                    rews, _ = self.rew_model(prior_state['sample'], acs=None)
+                    features = self.rssm.features_from_state(prior_state)
+                    rews, _ = self.rew_model(features, acs=None)
                     sum_rews += rews
                     prev_state = prior_state['sample']
                     hs = prior_state['belief']

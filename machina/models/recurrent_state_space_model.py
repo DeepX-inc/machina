@@ -63,6 +63,9 @@ class RecurrentSSpaceModel(BaseModel):
                              dtype=torch.float, device=self.device)
         return new_hs
 
+    def features_from_state(self, state):
+        return torch.cat((state['sample'], state['belief']), -1)
+
     def encode(self, obs):
         hidden = torch.relu(self.encoder1(obs))
         hidden = torch.relu(self.encoder2(hidden))

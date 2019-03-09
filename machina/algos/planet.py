@@ -113,9 +113,10 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
         sum_divergence_loss = 0
         for t in range(pred_steps-1):
             # zero step recunstruction loss
-            pred_obs, obs_dict = ob_model(posteriors[t]['sample'], acs=None)
+            features = rssm.features_from_state(posteriors[t])
+            pred_obs, obs_dict = ob_model(features, acs=None)
             pred_rews, rews_dict = rew_model(
-                posteriors[t]['sample'], acs=None)
+                features, acs=None)
             obs_loss = -1 * rssm.pd.llh(batch['embedded_obs'][t], obs_dict)
             rews_loss = -1 * rssm.pd.llh(batch['rews'][t], rews_dict)
             obs_loss = torch.mean(obs_loss)
@@ -127,10 +128,11 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
             latend_pred_steps = min(max_latend_pred_steps, pred_steps-1-t)
             for d in range(1, latend_pred_steps+1):
                 # overshooting reconstruction loss
+                features = rssm.features_from_state(priors[t][t+d])
                 pred_obs, obs_dict = ob_model(
-                    priors[t][t+d]['sample'], acs=None)
+                    features, acs=None)
                 pred_rews, rews_dict = rew_model(
-                    priors[t][t+d]['sample'], acs=None)
+                    features, acs=None)
                 obs_loss = -1 * \
                     rssm.pd.llh(batch['embedded_obs'][t+d], obs_dict)
                 rews_loss = -1 * rssm.pd.llh(batch['rews'][t+d], rews_dict)
