@@ -118,9 +118,8 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
                 posteriors[t]['sample'], acs=None)
             obs_loss = -1 * rssm.pd.llh(batch['embedded_obs'][t], obs_dict)
             rews_loss = -1 * rssm.pd.llh(batch['rews'][t], rews_dict)
-            obs_loss = torch.mean(obs_loss) * batch['out_masks'][t]
-            rews_loss = torch.mean(rews_loss) * \
-                batch['out_masks'][t] * reward_loss_scale
+            obs_loss = torch.mean(obs_loss)
+            rews_loss = torch.mean(rews_loss) * reward_loss_scale
             recun_loss = (obs_loss + rews_loss)
 
             # latent overshooting loss
@@ -135,9 +134,9 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
                 obs_loss = -1 * \
                     rssm.pd.llh(batch['embedded_obs'][t+d], obs_dict)
                 rews_loss = -1 * rssm.pd.llh(batch['rews'][t+d], rews_dict)
-                obs_loss = torch.mean(obs_loss) * batch['out_masks'][t+d]
-                rews_loss = (torch.mean(rews_loss) *
-                             overshooting_reward_loss_scale) * batch['out_masks'][t+d]
+                obs_loss = torch.mean(obs_loss)
+                rews_loss = torch.mean(rews_loss) * \
+                    overshooting_reward_loss_scale
                 recun_loss += obs_loss + rews_loss
 
                 # divergence loss
@@ -147,7 +146,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
                     'mean': priors[t][t+d]['mean'], 'log_std': priors[t][t+d]['log_std']}
                 kl = rssm.pd.kl_pq(posterior_params, prior_params)
                 divergence_loss += torch.mean(kl,
-                                              dim=0) * batch['out_masks'][t+d]
+                                              dim=0)
 
                 # global divergence loss
                 global_prior_params = {
@@ -157,7 +156,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
                 global_kl = rssm.pd.kl_pq(
                     posterior_params, global_prior_params)
                 global_divergence_loss = torch.mean(
-                    global_kl, dim=0) * batch['out_masks'][t+d]
+                    global_kl, dim=0)
                 divergence_loss += global_divergence_loss * global_divergence_scale
                 if d == 1:
                     divergence_loss *= 50.
