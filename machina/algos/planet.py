@@ -118,7 +118,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
             pred_rews, rews_dict = rew_model(
                 features, acs=None)
             obs_loss = 0.5 * \
-                ((obs_dict['mean'] - batch['embedded_obs'][t]) ** 2)
+                ((obs_dict['mean'] - batch['obs'][t]) ** 2)
             rews_loss = 0.5 * ((rews_dict['mean'] - batch['rews'][t]) ** 2)
             obs_loss = torch.mean(obs_loss)
             rews_loss = torch.mean(rews_loss) * reward_loss_scale
@@ -134,7 +134,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
                     features, acs=None)
                 pred_rews, rews_dict = rew_model(
                     features, acs=None)
-                obs_loss = 0.5 * ((pred_obs - batch['embedded_obs'][t+d]) ** 2)
+                obs_loss = 0.5 * ((pred_obs - batch['obs'][t+d]) ** 2)
                 rews_loss = 0.5 * ((pred_rews - batch['rews'][t+d]) ** 2)
                 obs_loss = torch.mean(obs_loss)
                 rews_loss = torch.mean(rews_loss) * \
