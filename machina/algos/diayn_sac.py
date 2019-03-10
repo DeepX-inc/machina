@@ -6,7 +6,6 @@ See https://arxiv.org/abs/1801.01290
 import torch
 import torch.nn as nn
 
-from machina.traj import epi_functional as ef
 from machina import loss_functional as lf
 from machina import logger
 
