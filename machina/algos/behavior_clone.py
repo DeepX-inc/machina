@@ -10,7 +10,7 @@ from machina import loss_functional as lf
 
 
 def update_pol(pol, optim_pol, batch):
-    pol_loss = lf.likelihood(pol, batch)
+    pol_loss = lf.log_likelihood(pol, batch)
     optim_pol.zero_grad()
     pol_loss.backward()
     optim_pol.step()
@@ -31,5 +31,5 @@ def test(expert_traj, pol):
     iterater = expert_traj.full_batch(epoch=1)
     for batch in iterater:
         with torch.no_grad():
-            pol_loss = lf.likelihood(pol, batch)
+            pol_loss = lf.log_likelihood(pol, batch)
     return dict(TestPolLoss=[float(pol_loss.detach().cpu().numpy())])
