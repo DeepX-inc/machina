@@ -32,8 +32,8 @@ env1 = GymEnv('HumanoidBulletEnv-v0')
 
 env2 = GymEnv('HumanoidFlagrunBulletEnv-v0')
 
-epis1 = sampler1.sample(pol, max_episodes=args.max_episodes_per_iter)
-epis2 = sampler2.sample(pol, max_episodes=args.max_episodes_per_iter)
+epis1 = sampler1.sample(pol, max_epis=args.max_epis_per_iter)
+epis2 = sampler2.sample(pol, max_epis=args.max_epis_per_iter)
 traj1 = Traj()
 traj2 = Traj()
 
@@ -66,7 +66,7 @@ DeepRL algorithms can be roughly divided into 2 types.
 On-policy and Off-policy algorithms.
 On-policy algorithms use only current episodes for updating policy or some value functions.
 On the other hand, Off-policy algorithms use whole episodes for updating policy or some value functions.
-On-policy algorithms are stable but need many episdeos.
+On-policy algorithms are stable but need many episodeos.
 Off-policy algorithms are sample efficient but unstable.
 Some algorithms like [Q-Prop](https://arxiv.org/abs/1611.02247) are combination of On-policy and Off-policy algorithms.
 This is an example of the combination of [ppo](https://arxiv.org/abs/1707.06347) and [sac](https://arxiv.org/abs/1801.01290).
@@ -105,7 +105,7 @@ result_dict2 = sac.train(
 
 You can see full code here.
 
-To obtain this composability, machina's sampling method is restricted to be episode-based. Episode-based sampling is suitable for real-world environments. Some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
+To obtain this composability, machina's sampling method is restricted to be episode-based. episode-based sampling is suitable for real-world environments. Some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
 
 
 ## Installation

@@ -99,7 +99,7 @@ with open(os.path.join(args.pol_dir, 'models', args.pol_fname), 'rb') as f:
         f, map_location=lambda storage, location: storage))
 
 
-epis = sampler.sample(pol, max_episodes=args.num_epis)
+epis = sampler.sample(pol, max_epis=args.num_epis)
 
 rewards = [np.sum(epi['rews']) for epi in epis]
 mean_rew = np.mean(rewards)

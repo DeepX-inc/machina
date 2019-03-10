@@ -57,7 +57,7 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
+parser.add_argument('--max_epis', type=int,
                     default=1000000, help='Number of episodes to run.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
@@ -74,7 +74,7 @@ parser.add_argument('--n_samples', type=int, default=1000,
                     help='Number of samples of action sequence in MPC.')
 parser.add_argument('--horizon_of_samples', type=int, default=20,
                     help='Length of horizon of samples of action sequence in MPC.')
-parser.add_argument('--max_episodes_per_iter', type=int, default=9,
+parser.add_argument('--max_epis_per_iter', type=int, default=9,
                     help='Number of episodes in an iteration.')
 parser.add_argument('--epoch_per_iter', type=int, default=60,
                     help='Number of epochs in an iteration.')
@@ -128,7 +128,7 @@ random_pol = RandomPol(ob_space, ac_space)
 rand_sampler = EpiSampler(
     env, random_pol, num_parallel=args.num_parallel, seed=args.seed)
 
-epis = rand_sampler.sample(random_pol, max_episodes=args.num_random_rollouts)
+epis = rand_sampler.sample(random_pol, max_epis=args.num_random_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
 traj = Traj()
 traj.add_epis(epis)
@@ -162,7 +162,7 @@ total_epi = 0
 total_step = 0
 counter_agg_iters = 0
 max_rew = -1e+6
-while args.max_episodes > total_epi:
+while args.max_epis > total_epi:
     with measure('train model'):
         result_dict = mpc.train_dm(
             traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size)
@@ -171,7 +171,7 @@ while args.max_episodes > total_epi:
                          args.n_samples, args.horizon_of_samples,
                          mean_obs, std_obs, mean_acs, std_acs, args.rnn)
         epis = rl_sampler.sample(
-            mpc_pol, max_episodes=args.max_episodes_per_iter)
+            mpc_pol, max_epis=args.max_epis_per_iter)
 
         curr_traj = Traj()
         curr_traj.add_epis(epis)

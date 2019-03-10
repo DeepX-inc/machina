@@ -35,7 +35,7 @@ parser.add_argument('--env_name', type=str,
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
+parser.add_argument('--max_epis', type=int,
                     default=1000000, help='Number of episodes to run.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
@@ -43,7 +43,7 @@ parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 parser.add_argument('--data_parallel', action='store_true', default=False,
                     help='If True, inference is done in parallel on gpus.')
 
-parser.add_argument('--max_episodes_per_iter', type=int,
+parser.add_argument('--max_epis_per_iter', type=int,
                     default=1024, help='Number of episodes in an iteration.')
 parser.add_argument('--epoch_per_iter', type=int, default=10,
                     help='Number of epoch in an iteration')
@@ -128,10 +128,10 @@ optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 total_epi = 0
 total_step = 0
 max_rew = -1e6
-while args.max_episodes > total_epi:
+while args.max_epis > total_epi:
     with measure('sample'):
-        epis1 = sampler1.sample(pol, max_episodes=args.max_episodes_per_iter)
-        epis2 = sampler2.sample(pol, max_episodes=args.max_episodes_per_iter)
+        epis1 = sampler1.sample(pol, max_epis=args.max_epis_per_iter)
+        epis2 = sampler2.sample(pol, max_epis=args.max_epis_per_iter)
     with measure('train'):
         traj1 = Traj()
         traj2 = Traj()
