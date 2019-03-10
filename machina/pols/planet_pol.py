@@ -106,8 +106,8 @@ class PlanetPol(BasePol):
                 for acs in candidate_acs:
                     prior_state = self.rssm.prior(prev_state, acs, hs)
                     features = self.rssm.features_from_state(prior_state)
-                    rews, _ = self.rew_model(features, acs=None)
-                    sum_rews += rews
+                    rews, rews_dict = self.rew_model(features, acs=None)
+                    sum_rews += rews_dict['mean']
                     prev_state = prior_state['sample']
                     hs = prior_state['belief']
 
