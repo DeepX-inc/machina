@@ -11,6 +11,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.optim import lr_scheduler
 import gym
 
 import machina as mc
@@ -47,6 +48,10 @@ def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
     return rews
 
 
+def scheduler(epoch):
+    return 1e-3 * min(epoch/10000, 1)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='HalfCheetahBulletEnv-v0')
@@ -55,7 +60,7 @@ parser.add_argument('--pybullet_env', action='store_true', default=True)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1000000)
-parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--num_parallel', type=int, default=1)
 parser.add_argument('--cuda', type=int, default=-1)
 parser.add_argument('--data_parallel', action='store_true', default=False)
 
@@ -151,6 +156,9 @@ optim_rm = torch.optim.Adam(rew_model.parameters(),
                             args.rm_lr, eps=args.rm_eps)
 optim_rssm = torch.optim.Adam(
     rssm.parameters(), args.rssm_lr, eps=args.rssm_eps)
+scheduler_om = lr_scheduler.LambdaLR(optim_om, lr_lambda=scheduler)
+scheduler_rm = lr_scheduler.LambdaLR(optim_rm, lr_lambda=scheduler)
+scheduler_rssm = lr_scheduler.LambdaLR(optim_rssm, lr_lambda=scheduler)
 
 planet_pol = PlanetPol(ob_space, ac_space, rssm, rew_model, args.horizon,
                        args.n_optim_iters, args.n_samples, args.n_refit_samples,
@@ -168,7 +176,7 @@ max_rew = -1e+6
 while args.max_episodes > total_epi:
     with measure('train'):
         result_dict = planet.train(
-            traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch=args.epoch_per_iter,
+            traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, scheduler_rssm, scheduler_om, scheduler_rm, epoch=args.epoch_per_iter,
             pred_steps=args.pred_steps_train, max_latend_pred_steps=args.max_latend_pred_steps_train,
             batch_size=args.batch_size, num_epi_per_seq=1)
     """

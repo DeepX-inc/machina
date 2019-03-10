@@ -12,7 +12,7 @@ from machina.utils import detach_tensor_dict, get_device
 from machina import logger
 
 
-def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch=60, pred_steps=50, max_latend_pred_steps=50, batch_size=50, num_epi_per_seq=1):
+def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, scheduler_rssm, scheduler_om, scheduler_rm, epoch=60, pred_steps=50, max_latend_pred_steps=50, batch_size=50, num_epi_per_seq=1):
     """
     Train function for dynamics model.
 
@@ -126,9 +126,11 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
 
             # global divergence loss
             divergence_loss = 0
+            posterior_params = {
+                'mean': posteriors[t]['mean'], 'log_std': posteriors[t]['log_std']}
             global_prior_params = {
                 'mean': torch.zeros_like(posteriors[t]['mean'], device=get_device()),
-                'log_std': torch.ones_like(psterior[t]['log_std'], device=get_device())
+                'log_std': torch.ones_like(posteriors[t]['log_std'], device=get_device())
             }
             global_kl = rssm.pd.kl_pq(
                 posterior_params, global_prior_params)
@@ -182,6 +184,9 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, epoch
         optim_rssm.step()
         optim_om.step()
         optim_rm.step()
+        scheduler_rssm.step()
+        scheduler_om.step()
+        scheduler_rm.step()
 
         with torch.no_grad():
             sum_obs_loss = torch.mean(sum_obs_loss).cpu().numpy()
