@@ -465,7 +465,7 @@ def cross_ent_diayn(discrim, batch, ob_dim):
     skill = batch['obs'][:, ob_dim:]
     _, targets = skill.max(dim=1)
     logits = discrim.net.learn(obs)
-    discrim_loss = F.cross_entropy(F.softmax(logits, dim=1), targets)
+    discrim_loss = F.cross_entropy(logits, targets)
     return discrim_loss
 
 
