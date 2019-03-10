@@ -157,7 +157,9 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                     'mean': posteriors[t+d]['mean'], 'log_std': posteriors[t+d]['log_std']}
                 prior_params = {
                     'mean': priors[t][t+d]['mean'], 'log_std': priors[t][t+d]['log_std']}
-                kl = rssm.pd.kl_pq(posterior_params, prior_params)
+                # free nats
+                kl = rssm.pd.kl_pq(
+                    posterior_params, prior_params).clamp(max=2.0)
                 divergence_loss += torch.mean(kl,
                                               dim=0)
                 if d == 1:
