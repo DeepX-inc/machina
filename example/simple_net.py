@@ -288,9 +288,9 @@ class DiaynDiscrimNet(nn.Module):
         feat = self.discrim_f(ob)
         skill = obskill[:, -self.num_skill:]
         logit = self.output_layer(torch.relu(self.fc1(feat)))
-        discrim_logit = torch.sum(torch.log(torch.softmax(logit, dim=1))*skill, dim=1)
-        skill_logit = -torch.log(torch.tensor(self.num_skill, dtype=torch.float))
-        rews = discrim_logit - skill_logit
+        discrim_logits = torch.sum(torch.log(torch.softmax(logit, dim=1))*skill, dim=1)
+        skill_logits = -torch.log(torch.tensor(self.num_skill, dtype=torch.float))
+        rews = discrim_logits - skill_logits
         return rews
 
     def learn(self, ob):
