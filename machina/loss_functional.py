@@ -460,6 +460,15 @@ def cross_ent(discrim, batch, expert_or_agent, ent_beta):
     return discrim_loss
 
 
+def cross_ent_diayn(discrim, batch, ob_dim):
+    obs = batch['obs'][:, :ob_dim]
+    skill = batch['obs'][:, ob_dim:]
+    _, targets = skill.max(dim=1)
+    logits = discrim.net.learn(obs)
+    discrim_loss = F.cross_entropy(F.softmax(logits, dim=1), targets)
+    return discrim_loss
+
+
 def density_ratio_rew_cross_ent(rewf, shaping_vf, pol, batch, expert_or_agent, gamma):
     obs = batch['obs']
     acs = batch['acs']

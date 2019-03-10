@@ -207,6 +207,16 @@ def compute_pseudo_rews(data, rew_giver, state_only=False):
     return data
 
 
+def compute_diayn_rews(data, discrim):
+    epis = data.current_epis
+    for epi in epis:
+        obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
+        with torch.no_grad():
+            rews, info = discrim(obs)
+        epi['rews'] = rews.cpu().numpy()
+    return data
+
+
 def train_test_split(epis, train_size):
     num_epi = len(epis)
     num_train = int(num_epi * train_size)
