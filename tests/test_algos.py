@@ -682,7 +682,7 @@ class TestMPC(unittest.TestCase):
         sampler = EpiSampler(
             self.env, mpc_pol, num_parallel=1)
         epis = sampler.sample(
-            mpc_pol, max_episodes=1)
+            mpc_pol, max_epis=1)
 
         traj = Traj()
         traj.add_epis(epis)
@@ -719,7 +719,7 @@ class TestMPC(unittest.TestCase):
         sampler = EpiSampler(
             self.env, mpc_pol, num_parallel=1)
         epis = sampler.sample(
-            mpc_pol, max_episodes=1)
+            mpc_pol, max_epis=1)
 
         traj = Traj()
         traj.add_epis(epis)
