@@ -128,7 +128,7 @@ class PlanetPol(BasePol):
 
         # Actual latent transition
         posterior_state = self.rssm.posterior(
-            self.prev_state, ac.unsqueeze(0), embedded_obs[0, :], self.hs)
+            self.prev_state, ac.unsqueeze(0), embedded_obs[0].unsqueeze(0), self.hs)
         self.prev_state = posterior_state['sample']
         self.prev_acs = ac.unsqueeze(0)
         self.hs = posterior_state['belief']
