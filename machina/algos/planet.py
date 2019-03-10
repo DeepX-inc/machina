@@ -122,10 +122,11 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
             rews_loss = 0.5 * ((rews_dict['mean'] - batch['rews'][t]) ** 2)
             obs_loss = torch.mean(obs_loss)
             rews_loss = torch.mean(rews_loss) * reward_loss_scale
+            sum_obs_loss += obs_loss
+            sum_rews_loss += rews_loss
             recun_loss = (obs_loss + rews_loss)
 
             # global divergence loss
-            divergence_loss = 0
             posterior_params = {
                 'mean': posteriors[t]['mean'], 'log_std': posteriors[t]['log_std']}
             global_prior_params = {
@@ -138,6 +139,8 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                 global_kl, dim=0) * global_divergence_scale
 
             # latent overshooting loss
+            latent_rews_loss = 0
+            divergence_loss = 0
             latend_pred_steps = min(max_latend_pred_steps, pred_steps-1-t)
             for d in range(1, latend_pred_steps+1):
                 # overshooting reconstruction loss
@@ -153,6 +156,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                 if d == 1:
                     rews_loss *= latend_pred_steps
                 recun_loss += rews_loss
+                latent_rews_loss += rews_loss
 
                 # divergence loss
                 posterior_params = {
@@ -166,16 +170,15 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                                               dim=0)
                 if d == 1:
                     divergence_loss *= latend_pred_steps
+
+            latent_rews_loss /= latend_pred_steps
+            sum_rews_loss += latent_rews_loss
             divergence_loss /= latend_pred_steps
             divergence_loss += global_divergence_loss
 
             loss += recun_loss + divergence_loss
-
-            with torch.no_grad():
-                sum_obs_loss += obs_loss
-                sum_rews_loss += rews_loss
-                sum_recun_loss += recun_loss
-                sum_divergence_loss += divergence_loss
+            sum_recun_loss += recun_loss
+            sum_divergence_loss += divergence_loss
 
         # update
         optim_rssm.zero_grad()
@@ -192,11 +195,11 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
         scheduler_om.step()
         scheduler_rm.step()
 
-        with torch.no_grad():
-            sum_obs_loss = torch.mean(sum_obs_loss).cpu().numpy()
-            sum_rews_loss = torch.mean(sum_rews_loss).cpu().numpy()
-            sum_recun_loss = torch.mean(sum_recun_loss).cpu().numpy()
-            sum_divergence_loss = torch.mean(sum_divergence_loss).cpu().numpy()
+        sum_obs_loss = torch.mean(sum_obs_loss).detach().cpu().numpy()
+        sum_rews_loss = torch.mean(sum_rews_loss).detach().cpu().numpy()
+        sum_recun_loss = torch.mean(sum_recun_loss).detach().cpu().numpy()
+        sum_divergence_loss = torch.mean(
+            sum_divergence_loss).detach().cpu().numpy()
 
         losses.append(loss.detach().cpu().numpy())
         obs_losses.append(sum_obs_loss)
