@@ -34,7 +34,7 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
+parser.add_argument('--max_epis', type=int,
                     default=100000000, help='Number of episodes to run.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
@@ -46,7 +46,7 @@ parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
 parser.add_argument('--expert_fname', type=str,
                     default='Pendulum-v0_100epis.pkl')
 
-parser.add_argument('--max_episodes_per_iter', type=int,
+parser.add_argument('--max_epis_per_iter', type=int,
                     default=10, help='Number of episodes in an iteration.')
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4,
@@ -147,7 +147,7 @@ for curr_epoch in range(args.epoch):
         if curr_epoch % int(args.check_rate * args.epoch) == 0 or curr_epoch == 0:
             with measure('sample'):
                 paths = sampler.sample(
-                    pol, max_episodes=args.max_episodes_per_iter)
+                    pol, max_epis=args.max_epis_per_iter)
             rewards = [np.sum(path['rews']) for path in paths]
             mean_rew = np.mean([np.sum(path['rews']) for path in paths])
             logger.record_results_bc(args.log, result_dict, score_file,

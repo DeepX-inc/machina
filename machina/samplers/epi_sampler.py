@@ -88,10 +88,10 @@ def one_epi(env, pol, deterministic=False, prepro=None):
         )
 
 
-def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
+def mp_sample(pol, env, max_steps, max_epis, n_steps_global, n_epis_global, epis, exec_flags, deterministic_flag, process_id, prepro=None, seed=256):
     """
     Multiprocess sample.
-    Sampling episodes until max_steps or max_episodes is achieved.
+    Sampling episodes until max_steps or max_epis is achieved.
 
     Parameters
     ----------
@@ -99,11 +99,11 @@ def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_glob
     env : gym.Env
     max_steps : int
         maximum steps of episodes
-    max_episodes : int
+    max_epis : int
         maximum episodes of episodes
     n_steps_global : torch.Tensor
         shared Tensor
-    n_episodes_global : torch.Tensor
+    n_epis_global : torch.Tensor
         shared Tensor
     epis : list
         multiprocessing's list for sharing episodes between processes.
@@ -122,10 +122,10 @@ def mp_sample(pol, env, max_steps, max_episodes, n_steps_global, n_episodes_glob
     while True:
         time.sleep(0.1)
         if exec_flags[process_id] > 0:
-            while max_steps > n_steps_global and max_episodes > n_episodes_global:
+            while max_steps > n_steps_global and max_epis > n_epis_global:
                 l, epi = one_epi(env, pol, deterministic_flag, prepro)
                 n_steps_global += l
-                n_episodes_global += 1
+                n_epis_global += 1
                 epis.append(epi)
             exec_flags[process_id].zero_()
 
@@ -154,9 +154,9 @@ class EpiSampler(object):
 
         self.n_steps_global = torch.tensor(0, dtype=torch.long).share_memory_()
         self.max_steps = torch.tensor(0, dtype=torch.long).share_memory_()
-        self.n_episodes_global = torch.tensor(
+        self.n_epis_global = torch.tensor(
             0, dtype=torch.long).share_memory_()
-        self.max_episodes = torch.tensor(0, dtype=torch.long).share_memory_()
+        self.max_epis = torch.tensor(0, dtype=torch.long).share_memory_()
 
         self.exec_flags = [torch.tensor(
             0, dtype=torch.long).share_memory_() for _ in range(self.num_parallel)]
@@ -166,8 +166,8 @@ class EpiSampler(object):
         self.epis = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
-            p = mp.Process(target=mp_sample, args=(self.pol, env, self.max_steps, self.max_episodes, self.n_steps_global,
-                                                   self.n_episodes_global, self.epis, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
+            p = mp.Process(target=mp_sample, args=(self.pol, env, self.max_steps, self.max_epis, self.n_steps_global,
+                                                   self.n_epis_global, self.epis, self.exec_flags, self.deterministic_flag, ind, prepro, seed))
             p.start()
             self.processes.append(p)
 
@@ -175,14 +175,14 @@ class EpiSampler(object):
         for p in self.processes:
             p.terminate()
 
-    def sample(self, pol, max_episodes=None, max_steps=None, deterministic=False):
+    def sample(self, pol, max_epis=None, max_steps=None, deterministic=False):
         """
         Switch on sampling processes.
 
         Parameters
         ----------
         pol : Pol
-        max_episodes : int or None
+        max_epis : int or None
             maximum episodes of episodes.
             If None, this value is ignored.
         max_steps : int or None
@@ -193,29 +193,29 @@ class EpiSampler(object):
         Returns
         -------
         epis : list of dict
-            Sampled episodes.
+            Sampled epis.
 
         Raises
         ------
         ValueError
-            If max_steps and max_episodes are botch None.
+            If max_steps and max_epis are botch None.
         """
         for sp, p in zip(self.pol.parameters(), pol.parameters()):
             sp.data.copy_(p.data.to('cpu'))
 
-        if max_episodes is None and max_steps is None:
+        if max_epis is None and max_steps is None:
             raise ValueError(
-                'Either max_episodes or max_steps needs not to be None')
-        max_episodes = max_episodes if max_episodes is not None else LARGE_NUMBER
+                'Either max_epis or max_steps needs not to be None')
+        max_epis = max_epis if max_epis is not None else LARGE_NUMBER
         max_steps = max_steps if max_steps is not None else LARGE_NUMBER
 
         self.n_steps_global.zero_()
-        self.n_episodes_global.zero_()
+        self.n_epis_global.zero_()
 
         self.max_steps.zero_()
         self.max_steps += max_steps
-        self.max_episodes.zero_()
-        self.max_episodes += max_episodes
+        self.max_epis.zero_()
+        self.max_epis += max_epis
 
         if deterministic:
             self.deterministic_flag.zero_()

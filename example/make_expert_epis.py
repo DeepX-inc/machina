@@ -40,7 +40,7 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
+parser.add_argument('--max_epis', type=int,
                     default=100000000, help='Number of episodes to run.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
@@ -111,7 +111,7 @@ with open(os.path.join(args.pol_dir, args.pol_fname), 'rb') as f:
         f, map_location=lambda storage, location: storage))
 
 
-epis = sampler.sample(pol, max_episodes=args.num_epis)
+epis = sampler.sample(pol, max_epis=args.num_epis)
 
 filename = args.epis_fname if len(
     args.epis_fname) != 0 else env.env.spec.id + '_{}epis.pkl'.format(len(epis))
