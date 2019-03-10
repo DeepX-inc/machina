@@ -127,11 +127,11 @@ class PlanetPol(BasePol):
         ac_real = ac.cpu().numpy()
 
         # Actual latent transition
-        prior_state = self.rssm.prior(
-            self.prev_state, ac.unsqueeze(0), self.hs)
-        self.prev_state = prior_state['sample']
+        posterior_state = self.rssm.posterior(
+            self.prev_state, ac.unsqueeze(0), embedded_obs[0, :], self.hs)
+        self.prev_state = posterior_state['sample']
         self.prev_acs = ac.unsqueeze(0)
-        self.hs = prior_state['belief']
+        self.hs = posterior_state['belief']
 
         return ac_real, ac, dict(mean=ac)
 
