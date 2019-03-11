@@ -93,7 +93,7 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 pol_net = PolNet(ob_space, ac_space, args.h1, args.h2, deterministic=True)
-noise = OUActionNoise(ac_space.shape)
+noise = OUActionNoise(ac_space)
 pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net, noise)
 
 targ_pol_net = PolNet(ob_space, ac_space, args.h1, args.h2, deterministic=True)
