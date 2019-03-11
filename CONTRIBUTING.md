@@ -1,8 +1,8 @@
 # Contribution guide for machina
 
-This is a guidance for contributing to machina.
+This file contains guidance for contributing to machina.
 
-We are welcome for any contibutions.
+We welcome any contibutions.
  + Star this repository.
  + Open issues about questions, bugs, installation problems, feature requests, algorithm requests etc.
  + Send pull requests about fixing bug, adding new features, adding new algorithms etc.
@@ -10,13 +10,13 @@ We are welcome for any contibutions.
 
 # Coding style
 
-We use PEP8. Test script checks whether all scripts are passing PEP8 or not. You should apply `autopep8 -i edited_script` before committing.
+We use PEP8. Test script checks whether all scripts are passing a PEP8 test or not. You should apply `autopep8 -i edited_script` before committing.
 
 When we name variable which means number of hoge, we use `num_hoge`.
 
-## Abbreviation
-We use many abbreviation, because many of technical jargons in Reinforcement Learning are too long.
-Please use these abbreviation below. You can add 's' to end of the word for plural form.
+## Abbreviations
+We use many abbreviations, because many words of the technical jargon in Reinforcement Learning are just too long.
+Please use these abbreviations below. You can add 's' to end of the word for the plural form.
 
 ```
 episode -> epi
@@ -36,7 +36,8 @@ entropy -> ent
 probabilistic distribution -> pd
 log likelihood -> llh
 target -> targ
+Kullback-Leibler -> kl
 ```
 
 # Test
-We use Tracis-CI for test. Please check test status to be passed.
+We use Tracis-CI for testing code in machina. Please check if the status of the tests is shown as passing.
