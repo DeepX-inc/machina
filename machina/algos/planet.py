@@ -53,17 +53,9 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
 
     logger.log("Optimizing...")
 
-    iterator = traj.iterate_rnn(
-        batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
-
-    for full_length_batch in iterator:
-        # sample sequence chunks uniformly at random from the trajectory
-        batch = dict()
-        start = np.random.randint(
-            0, len(full_length_batch['obs']) - pred_steps)
-        for key in full_length_batch.keys():
-            batch[key] = full_length_batch[key][start:start + pred_steps]
-
+    iterator = traj.random_batch_rnn(
+        batch_size, seq_length=pred_steps, epoch=epoch)
+    for batch in iterator:
         # embed obs
         embedded = []
         for obs in batch['obs']:
