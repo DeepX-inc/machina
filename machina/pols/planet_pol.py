@@ -78,7 +78,7 @@ class PlanetPol(BasePol):
         std = torch.ones(
             self.horizon, self.ac_space.shape[0], dtype=torch.float)
         obs = obs.unsqueeze(0)
-        embedded_obs = self.rssm.encode(obs).repeat(self.n_samples, 1)
+        embedded_obs = self.rssm.encode(obs)
 
         posterior_state = self.rssm.posterior(
             self.prev_state, self.prev_acs, embedded_obs, self.hs)
