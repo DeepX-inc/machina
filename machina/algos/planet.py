@@ -49,7 +49,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
 
     reward_loss_scale = 10.0
     overshooting_reward_loss_scale = 100.0
-    global_divergence_scale = 0.1
+    global_divergence_loss_scale = 0.1
 
     logger.log("Optimizing...")
 
@@ -98,7 +98,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
 
         for t in range(pred_steps-1):
             posteriors[t+1] = rssm.posterior(posteriors[t]['sample'], batch['acs']
-                                             [t], batch['embedded_obs'][t], hs=posteriors[t]['belief'])
+                                             [t], batch['embedded_obs'][t+1], hs=posteriors[t]['belief'])
             priors[t][t+1] = rssm.prior(posteriors[t]['sample'],
                                         batch['acs'][t], hs=posteriors[t]['belief'])
             for prior_index in range(t):
@@ -136,7 +136,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
             global_kl = rssm.pd.kl_pq(
                 posterior_params, global_prior_params)
             global_divergence_loss = torch.mean(
-                global_kl, dim=0) * global_divergence_scale
+                global_kl, dim=0) * global_divergence_loss_scale
 
             # latent overshooting loss
             latent_rews_loss = 0
@@ -155,7 +155,6 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                     overshooting_reward_loss_scale
                 if d == 1:
                     rews_loss *= latend_pred_steps
-                recun_loss += rews_loss
                 latent_rews_loss += rews_loss
 
                 # divergence loss
@@ -173,6 +172,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
 
             latent_rews_loss /= latend_pred_steps
             sum_rews_loss += latent_rews_loss
+            recun_loss += latent_rews_loss
             divergence_loss /= latend_pred_steps
             divergence_loss += global_divergence_loss
 
