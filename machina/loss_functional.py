@@ -296,7 +296,7 @@ def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, n
     return pol_loss, qf_losses, alpha_loss
 
 
-def ag(pol, qf, batch, sampling=1):
+def ag(pol, qf, batch, sampling=1, no_noise=False):
     """
     DDPG style action gradient.
 
@@ -314,7 +314,11 @@ def ag(pol, qf, batch, sampling=1):
     """
     obs = batch['obs']
 
-    _, _, pd_params = pol(obs)
+    if not no_noise:
+        _, _, pd_params = pol(obs)
+    else:
+        _, _, pd_params = pol(obs, no_noise)
+
     pd = pol.pd
 
     acs = pd.sample(pd_params, torch.Size([sampling]))
