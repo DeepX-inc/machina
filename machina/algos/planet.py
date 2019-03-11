@@ -154,7 +154,7 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                 rews_loss = torch.mean(rews_loss) * \
                     overshooting_reward_loss_scale
                 if d == 1:
-                    rews_loss *= latend_pred_steps
+                    rews_loss *= max_latend_pred_steps
                 latent_rews_loss += rews_loss
 
                 # divergence loss
@@ -170,10 +170,10 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                 if d == 1:
                     divergence_loss *= latend_pred_steps
 
-            latent_rews_loss /= latend_pred_steps
+            latent_rews_loss /= max_latend_pred_steps
             sum_rews_loss += latent_rews_loss
             recun_loss += latent_rews_loss
-            divergence_loss /= latend_pred_steps
+            divergence_loss /= max_latend_pred_steps
             divergence_loss += global_divergence_loss
 
             loss += recun_loss + divergence_loss
