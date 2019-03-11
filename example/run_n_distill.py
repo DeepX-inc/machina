@@ -155,6 +155,7 @@ while args.max_epis > total_epi:
         traj = Traj()
         traj.add_epis(epis)
         traj = ef.compute_h_masks(traj)
+        traj = ef.add_next_ob_to_data(traj)
         traj.register_epis()
         result_dict = n_distill.train(
             traj=traj,
