@@ -69,7 +69,7 @@ class RecurrentSSpaceModel(BaseModel):
     def encode(self, obs):
         hidden = torch.relu(self.encoder1(obs))
         hidden = torch.relu(self.encoder2(hidden))
-        embedded_obs = self.encoder3(hidden)
+        embedded_obs = torch.relu(self.encoder3(hidden))
         return embedded_obs
 
     def prior(self, prev_state, prev_action, hs=None):
@@ -86,7 +86,7 @@ class RecurrentSSpaceModel(BaseModel):
         belief = torch.relu(self.cell(hidden, hs))
         self.hs = belief
 
-        hidden = torch.relu(self.fc2(belief))
+        hidden = torch.relu(self.fc2(hidden))
         mean = self.fc3(hidden)
         log_std = torch.log(self.softplus1(self.fc4(hidden)))
 
