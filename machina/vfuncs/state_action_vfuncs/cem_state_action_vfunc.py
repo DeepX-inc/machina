@@ -62,7 +62,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                             dtype=torch.float, device=obs.device)
         low = torch.tensor(
             self.ac_space.low, dtype=torch.float, device=obs.device)
-        init_samples = torch.linspace(0, 1, self.num_sampling).reshape(
+        init_samples = torch.linspace(0, 1, self.num_sampling, device=obs.device).reshape(
             self.num_sampling, -1) * (high - low) + low  # (self.num_sampling, dim_ac)
         init_samples = self._clamp(init_samples)
         max_qs, max_acs = self._cem(obs, init_samples)
@@ -92,7 +92,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                 best_indices = indices[:, :self.num_best_sampling]
                 best_indices = best_indices + \
                     torch.arange(0, self.num_sampling*self.batch_size,
-                                 self.num_sampling).reshape(self.batch_size, 1)
+                                 self.num_sampling, device=obs.device).reshape(self.batch_size, 1)
                 best_indices = best_indices.reshape(
                     (self.num_best_sampling * self.batch_size,))
                 # (self.num_best_sampling * self.batch_size,  self.dim_ac)
@@ -106,7 +106,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         samples = samples.reshape(
             (self.batch_size, self.num_sampling, self.dim_ac))
         max_q, ind = torch.max(qvals, dim=1)
-        max_ac = samples[torch.arange(self.batch_size), ind]
+        max_ac = samples[torch.arange(self.batch_size, device=obs.device), ind]
         max_ac = self._check_acs_shape(max_ac)
         return max_q, max_ac
 
