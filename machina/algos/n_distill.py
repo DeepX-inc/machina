@@ -29,6 +29,11 @@ def update_pol(student_pol, teacher_pol, optim_pol, batch):
     """
 
     #TODO add the gradient calculation here
+    pol_loss = lf.shannon_cross_entropy(student_pol=student_pol, teacher_pol=teacher_pol, batch)
+    reward_term = lf.shannon_ce_next_ob(student_pol=student_pol, teacher_pol=teacher_pol, batch)
+
+    #Update student_parameters]
+
     return pol_loss.detach().cpu().numpy()
 
 
