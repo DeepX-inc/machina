@@ -168,6 +168,28 @@ def add_next_obs(data):
     return data
 
 
+def add_next_ob_to_data(data):
+    """
+    Creates a new array with the next observation
+
+    Parameters
+    ----------
+    data: Traj
+
+    Returns
+    -------
+    data: Traj
+    """
+    epis = data.current_epis
+    for epi in epis:
+        obs = epi['obs']
+        _obs = [ob for ob in obs]
+        next_ob = np.array(_obs[1:2], dtype=np.float32)
+        epi['next_ob'] = next_ob
+
+    return data
+
+
 def compute_h_masks(data):
     """
     Computing masks for hidden state.
