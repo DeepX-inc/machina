@@ -106,7 +106,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         samples = samples.reshape(
             (self.batch_size, self.num_sampling, self.dim_ac))
         max_q, ind = torch.max(qvals, dim=1)
-        max_ac = samples[torch.arange(self.batch_size, device=get_device()), ind]
+        max_ac = samples[torch.arange(
+            self.batch_size, device=get_device()), ind]
         max_ac = self._check_acs_shape(max_ac)
         return max_q, max_ac
 
