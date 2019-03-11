@@ -80,14 +80,18 @@ class PlanetPol(BasePol):
         obs = obs.unsqueeze(0)
         embedded_obs = self.rssm.encode(obs).repeat(self.n_samples, 1)
 
+        posterior_state = self.rssm.posterior(
+            self.prev_state, self.prev_acs, embedded_obs, self.hs)
+        curr_state = posterior_state['sample']
+        curr_hs = posterior_state['belief']
+
         with torch.no_grad():
             self.n_optim_iters = 1
             self.n_refit_samples = 1
             for iters in range(self.n_optim_iters):
                 sum_rews = 0
-                prev_state = self.prev_state.repeat(self.n_samples, 1)
-                prev_acs = self.prev_acs.repeat(self.n_samples, 1)
-                hs = self.hs.repeat(self.n_samples, 1)
+                state = curr_state.repeat(self.n_samples, 1)
+                hs = curr_hs.repeat(self.n_samples, 1)
 
                 # randomly sample N candidate action sequences
                 # candidate_acs = torch.randn(
@@ -99,16 +103,12 @@ class PlanetPol(BasePol):
                         min=self.ac_space.low[i], max=self.ac_space.high[i])
 
                 # Evaluate action sequences frin the current belief
-                posterior_state = self.rssm.posterior(
-                    prev_state, prev_acs, embedded_obs, hs)
-                prev_state = posterior_state['sample']
-                hs = posterior_state['belief']
                 for acs in candidate_acs:
-                    prior_state = self.rssm.prior(prev_state, acs, hs)
+                    prior_state = self.rssm.prior(state, acs, hs)
                     features = self.rssm.features_from_state(prior_state)
                     rews, rews_dict = self.rew_model(features, acs=None)
                     sum_rews += rews_dict['mean']
-                    prev_state = prior_state['sample']
+                    state = prior_state['sample']
                     hs = prior_state['belief']
 
                 # re-fit belief to the K(n_refit_samples) best action sequence
@@ -127,11 +127,9 @@ class PlanetPol(BasePol):
         ac_real = ac.cpu().numpy()
 
         # Actual latent transition
-        posterior_state = self.rssm.posterior(
-            self.prev_state, ac.unsqueeze(0), embedded_obs[0].unsqueeze(0), self.hs)
-        self.prev_state = posterior_state['sample']
+        self.prev_state = curr_state
         self.prev_acs = ac.unsqueeze(0)
-        self.hs = posterior_state['belief']
+        self.hs = curr_hs
 
         return ac_real, ac, dict(mean=ac)
 
