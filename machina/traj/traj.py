@@ -267,7 +267,7 @@ class Traj(object):
         for _ in range(epoch):
             seqs = []
             indices = np.random.randint(
-                0, len(self._epis_index), (batch_size,))
+                0, len(self._epis_index)-1, (batch_size,))
 
             for idx in indices:
                 start = np.random.randint(
