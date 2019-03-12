@@ -44,6 +44,8 @@ parser.add_argument('--max_steps_off', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
+parser.add_argument('--data_parallel', action='store_true', default=False,
+                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=4000,
                     help='Number of steps to use in an iteration.')
@@ -112,11 +114,14 @@ targ_qf1_net = QNet(ob_space, ac_space, args.h1, args.h2)
 targ_qf1_net.load_state_dict(qf_net.state_dict())
 targ_qf2_net = QNet(ob_space, ac_space, args.h1, args.h2)
 targ_qf2_net.load_state_dict(lagged_qf_net.state_dict())
-qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
-lagged_qf = DeterministicSAVfunc(ob_space, ac_space, lagged_qf_net)
+qf = DeterministicSAVfunc(ob_space, ac_space, qf_net,
+                          data_parallel=args.data_parallel)
+lagged_qf = DeterministicSAVfunc(
+    ob_space, ac_space, lagged_qf_net, data_parallel=args.data_parallel)
 targ_qf1 = CEMDeterministicSAVfunc(ob_space, ac_space, targ_qf1_net, num_sampling=args.num_sampling,
-                                   num_best_sampling=args.num_best_sampling, num_iter=args.num_iter, multivari=args.multivari)
-targ_qf2 = DeterministicSAVfunc(ob_space, ac_space, targ_qf2_net)
+                                   num_best_sampling=args.num_best_sampling, num_iter=args.num_iter, multivari=args.multivari, data_parallel=args.data_parallel)
+targ_qf2 = DeterministicSAVfunc(
+    ob_space, ac_space, targ_qf2_net, data_parallel=args.data_parallel)
 
 pol = ArgmaxQfPol(ob_space, ac_space, targ_qf1, eps=args.eps)
 
@@ -148,11 +153,23 @@ while args.max_epis > total_epi:
         step = on_traj.num_step
         total_step += step
 
+        if args.data_parallel:
+            qf.dp_run = True
+            lagged_qf.dp_run = True
+            targ_qf1.dp_run = True
+            targ_qf2.dp_run = True
+
         result_dict = qtopt.train(
             off_traj, qf, lagged_qf, targ_qf1, targ_qf2,
             optim_qf, step, args.batch_size,
             args.tau, args.gamma, loss_type=args.loss_type
         )
+
+        if args.data_parallel:
+            qf.dp_run = False
+            lagged_qf.dp_run = False
+            targ_qf1.dp_run = False
+            targ_qf2.dp_run = False
 
     total_grad_step += result_dict['grad_step']
     if total_grad_step >= args.lag * num_update_lagged:
