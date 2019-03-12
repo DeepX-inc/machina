@@ -108,9 +108,24 @@ You can see the full example code here.
 To obtain this composability, machina's sampling method is deliberatly restricted to be episode-based because episode-based sampling is suitable for real-world environments. Moreover, some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
 
 
+## Implemented Algorithms
+
++ [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347)
++ [Trust Region Policy Optimization](https://arxiv.org/abs/1502.05477)
++ [Soft Actor Critic](https://arxiv.org/abs/1801.01290)
++ [QT-Opt](https://arxiv.org/abs/1806.10293)
++ [Deep Deterministic Policy Gradient](https://arxiv.org/abs/1509.02971)
++ [Stochastic Value Gradient](https://arxiv.org/abs/1510.09142)
++ [Generative Adversarial Imitation Learning](https://arxiv.org/abs/1606.03476)
++ [Adversatial Inverse Reinforcement Learning](https://arxiv.org/abs/1710.11248)
++ Behavior Cloning
++ [Model-Based RL (Model Predictive Control)](https://arxiv.org/abs/1708.02596)
++ [Teacher Distillation](https://arxiv.org/abs/1902.02186)
+
+
 ## Installation
 
-machina supports Python3.5, 3.6 and PyTorch0.4+.
+machina supports Ubuntu, Python3.5, 3.6, 3.7 and PyTorch1.0.0+.
 
 machina can be directly installed using PyPI.
 ```
@@ -128,5 +143,4 @@ python setup.py install
 You can start machina by checking out this [quickstart](https://github.com/DeepX-inc/machina/tree/master/example/quickstart).
 
 Moreover, you can also check already implemented algorithms in [examples](https://github.com/DeepX-inc/machina/tree/master/example).
-
 
