@@ -296,14 +296,14 @@ class TestDDPG(unittest.TestCase):
     def test_learning(self):
         pol_net = PolNet(self.env.ob_space, self.env.ac_space,
                          h1=32, h2=32, deterministic=True)
-        noise = OUActionNoise(self.env.ac_space.shape)
+        noise = OUActionNoise(self.env.ac_space)
         pol = DeterministicActionNoisePol(
             self.env.ob_space, self.env.ac_space, pol_net, noise)
 
         targ_pol_net = PolNet(
             self.env.ob_space, self.env.ac_space, 32, 32, deterministic=True)
         targ_pol_net.load_state_dict(pol_net.state_dict())
-        targ_noise = OUActionNoise(self.env.ac_space.shape)
+        targ_noise = OUActionNoise(self.env.ac_space)
         targ_pol = DeterministicActionNoisePol(
             self.env.ob_space, self.env.ac_space, targ_pol_net, targ_noise)
 
