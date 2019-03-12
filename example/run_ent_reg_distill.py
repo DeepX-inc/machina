@@ -16,7 +16,7 @@ import gym
 import pybullet as p
 import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
-from machina.algos import entropy_regularized
+from machina.algos import entropy_regularised
 from machina.vfuncs import DeterministicSVfunc
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
@@ -27,10 +27,12 @@ from machina.utils import measure, set_device
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--teacher_dir', type=str, default='garbage',
+parser.add_argument('--teacher_dir', type=str, default='teacher_pol_pendulum',
                     help='Directory path storing file of expert policy model')
 parser.add_argument('--teacher_fname', type=str,
-                    default='../data/expert_pols', help='File name of expert policy model')
+                    default='/home/pierre/machina/example/teacher_pol_pendulum/models/pol_max.pkl', help='File name of expert policy model')
+parser.add_argument('--log', type = str, default = 'student_garbage',
+                    help = 'Directory path storing results of student model')
 parser.add_argument('--env_name', type=str,
                     default='Pendulum-v0', help='Name of environment')
 parser.add_argument('--c2d', action='store_true',
@@ -112,9 +114,11 @@ elif isinstance(ac_space, gym.spaces.MultiDiscrete):
 else:
     raise ValueError('Only Box, Discrete and Multidiscrete are supported')
 
-if args.teacher_pol:
+if args.teacher_fname is not '':
     t_pol.load_state_dict(torch.load(
         os.path.join(args.teacher_dir, args.teacher_fname)))
+else:
+    raise ValueError('Please provide a teacher-policy!')
 
 if args.rnn:
     s_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)

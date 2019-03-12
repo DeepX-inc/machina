@@ -45,4 +45,4 @@ def train(traj, student_pol, teacher_pol, student_optim, epoch, batchsize, num_e
         s_pol_losses.append(s_pol_loss)
 
     logger.log('Optimization finished')
-return dict(S_Pol_loss=s_pol_losses)
+    return dict(S_Pol_loss=s_pol_losses)
