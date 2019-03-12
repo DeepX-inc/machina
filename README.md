@@ -109,17 +109,21 @@ To obtain this composability, machina's sampling method is deliberatly restricte
 
 
 ## Implemented Algorithms
-
+### Model-Free On-Policy RL
 + [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347)
 + [Trust Region Policy Optimization](https://arxiv.org/abs/1502.05477)
+### Model-Free Off-Policy RL
 + [Soft Actor Critic](https://arxiv.org/abs/1801.01290)
 + [QT-Opt](https://arxiv.org/abs/1806.10293)
 + [Deep Deterministic Policy Gradient](https://arxiv.org/abs/1509.02971)
 + [Stochastic Value Gradient](https://arxiv.org/abs/1510.09142)
+### Model-Based RL
++ [Model Predictive Control](https://arxiv.org/abs/1708.02596)
+### Imitation Learning
++ Behavior Cloning
 + [Generative Adversarial Imitation Learning](https://arxiv.org/abs/1606.03476)
 + [Adversatial Inverse Reinforcement Learning](https://arxiv.org/abs/1710.11248)
-+ Behavior Cloning
-+ [Model-Based RL (Model Predictive Control)](https://arxiv.org/abs/1708.02596)
+### Policy Distillation
 + [Teacher Distillation](https://arxiv.org/abs/1902.02186)
 
 
