@@ -30,7 +30,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--teacher_dir', type=str, default='garbage',
                     help='Directory path storing file of expert policy model')
 parser.add_argument('--teacher_fname', type=str,
-                    default='../data/expert_pols', help='File name of expert policy model')
+                    default='/home/pierre/machina/example/teacher_pol_pendulum/models/pol_max.pkl', help='File name of expert policy model')
+parser.add_argument('--log', type = str, default = 'garbage_student')
 parser.add_argument('--env_name', type=str,
                     default='Pendulum-v0', help='Name of environment')
 parser.add_argument('--c2d', action='store_true',
@@ -114,7 +115,7 @@ elif isinstance(ac_space, gym.spaces.MultiDiscrete):
 else:
     raise ValueError('Only Box, Discrete and Multidiscrete are supported')
 
-if args.teacher_pol:
+if args.teacher_fname:
     t_pol.load_state_dict(torch.load(
         os.path.join(args.teacher_dir, args.teacher_fname)))
 
@@ -165,12 +166,11 @@ while args.max_epis > total_epi:
             epoch=args.epoch_per_iter,
             batchsize=args.batch_size)
 
-    if num_iter % 10 = 0:
+    if num_iter % 10 == 0:
         with torch.no_grad():
             logger.log('Testing Student-policy')
             with measure('sample'):
-            epis_measure = student_sampler.sample(
-                s_pol, max_epis=args.max_epis_per_iter)
+                epis_measure = student_sampler.sample(s_pol, max_epis=args.max_epis_per_iter)
     
             with measure('measure'):
                 traj_measure = Traj()
@@ -183,7 +183,7 @@ while args.max_epis > total_epi:
             total_step += step
             rewards = [np.sum(epi['rews']) for epi in epis_measure]
             mean_rew = np.mean(rewards)
-            logger.record_results(args.log, result_dict, score_file,
+            logger.record_results(args.log, result_dict[0], score_file,
                     total_epi, step, total_epi, rewards,
                     plot_title='Policy Distillation')
     num_iter += 1
