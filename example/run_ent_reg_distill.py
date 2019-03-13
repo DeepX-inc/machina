@@ -147,14 +147,13 @@ while args.max_epis > total_epi:
         traj.add_epis(epis)
         traj = ef.compute_h_masks(traj)
         traj = ef.compute_log_rews(traj, teacher_pol=t_pol)
-        pdb.set_trace()
         traj.register_epis()
         result_dict = entropy_regularised.train(
             traj=traj,
             student_pol=s_pol,
             epoch=args.epoch_per_iter,
             batchsize=args.batch_size)
-
+    
     logger.log('Testing Student-policy')
     with measure('sample'):
         epis_measure = student_sampler.sample(
@@ -163,7 +162,6 @@ while args.max_epis > total_epi:
     with measure('measure'):
         traj_measure = Traj()
         traj_measure.add_epis(epis_measure)
-        traj_measure = ef.compute_h_masks(traj_measure)
         traj_measure.register_epis()
 
     total_epi += traj_measure.num_epi
@@ -174,7 +172,6 @@ while args.max_epis > total_epi:
     logger.record_results(args.log, result_dict, score_file,
                           total_epi, step, total_epi, rewards,
                           plot_title='Policy Distillation')
-
     del traj
     del traj_measure
 del sampler

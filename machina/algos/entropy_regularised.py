@@ -31,6 +31,8 @@ def update_pol(student_pol, batch):
     """
 
     total_rew = lf.entropy_regularized_rew(student_pol, batch)
+    print(total_rew)
+    pdb.set_trace()
     grads = torch.autograd.grad(total_rew, student_pol.parameters())
     updated_params = OrderedDict()
     for (name, param), grad in zip(student_pol.named_parameters(), grads):

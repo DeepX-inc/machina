@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import pdb
 from machina.utils import detach_tensor_dict, get_device
 
 
@@ -531,7 +531,6 @@ def entropy_regularized_rew(student_policy, batch):
         obs = batch['obs']
         acs = batch['acs']
         tllh_rews = batch['tllh_rews']
-        
         _, _, s_param = student_policy(obs)
         sllhs = student_policy.pd.llh(acs, s_param)
         tot_rew = torch.mean(sllhs*tllh_rews)
