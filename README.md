@@ -59,7 +59,7 @@ result_dict = ppo_clip.train(traj=traj1, pol=pol, vf=vf, clip_param=args.clip_pa
                              optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
 ```
 
-You can see the full example code [here].
+You can see the full example code [here](https://github.com/DeepX-inc/machina/blob/master/example/run_mixed_env.py).
 
 ### 2 Combination of Off-policy and On-policy algorithms
 DeepRL algorithms can be roughly divided into 2 types.
@@ -103,7 +103,7 @@ result_dict2 = sac.train(
 )
 ```
 
-You can see the full example code here.
+You can see the full example code [here](https://github.com/DeepX-inc/machina/blob/master/example/run_ppo_sac.py).
 
 To obtain this composability, machina's sampling method is deliberatly restricted to be episode-based because episode-based sampling is suitable for real-world environments. Moreover, some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
 
