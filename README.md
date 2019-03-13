@@ -112,8 +112,8 @@ To obtain this composability, machina's sampling method is deliberatly restricte
 The algorithms classes described below are useful for real-world Deep Reinforcement Learning.
 ### Model-Free On-Policy RL
 This class enables stable policy learning.
-+ [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347)
-+ [Trust Region Policy Optimization](https://arxiv.org/abs/1502.05477)
++ [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347) (RNN is supported.)
++ [Trust Region Policy Optimization](https://arxiv.org/abs/1502.05477) (RNN is supported.)
 ### Model-Free Off-Policy RL
 This class enables high generalization.
 + [Soft Actor Critic](https://arxiv.org/abs/1801.01290)
@@ -122,7 +122,7 @@ This class enables high generalization.
 + [Stochastic Value Gradient](https://arxiv.org/abs/1510.09142)
 ### Model-Based RL
 This class enables high sample efficiency.
-+ [Model Predictive Control](https://arxiv.org/abs/1708.02596)
++ [Model Predictive Control](https://arxiv.org/abs/1708.02596) (RNN is supported)
 ### Imitation Learning
 This class removes the need for reward designing.
 + Behavior Cloning
@@ -131,8 +131,7 @@ This class removes the need for reward designing.
 ### Policy Distillation
 This class enables fast forward computation and reduces necessary computation resources during deployment of policy.
 + [Teacher Distillation](https://arxiv.org/abs/1902.02186)
-### RNN as Policy and Value Networks
-This function enables high transfer performance in sim-to-real.
+
 ## Installation
 
 machina supports Ubuntu, Python3.5, 3.6, 3.7 and PyTorch1.0.0+.
