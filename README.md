@@ -132,6 +132,7 @@ This class removes the need for reward designing.
 This class enables fast forward computation and reduces necessary computation resources during deployment of policy.
 + [Teacher Distillation](https://arxiv.org/abs/1902.02186)
 
+
 ## Installation
 
 machina supports Ubuntu, Python3.5, 3.6, 3.7 and PyTorch1.0.0+.
