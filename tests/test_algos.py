@@ -526,7 +526,7 @@ class TestBehaviorClone(unittest.TestCase):
 
         optim_pol = torch.optim.Adam(pol_net.parameters(), 3e-4)
 
-        with open(os.path.join('data/expert_epis', 'Pendulum-v0_100epis.pkl'), 'rb') as f:
+        with open(os.path.join('data/expert_epis', 'Pendulum-v0_2epis.pkl'), 'rb') as f:
             expert_epis = pickle.load(f)
         train_epis, test_epis = ef.train_test_split(
             expert_epis, train_size=0.7)
@@ -566,7 +566,7 @@ class TestGAIL(unittest.TestCase):
         optim_vf = torch.optim.Adam(vf_net.parameters(), 3e-4)
         optim_discrim = torch.optim.Adam(discrim_net.parameters(), 3e-4)
 
-        with open(os.path.join('data/expert_epis', 'Pendulum-v0_100epis.pkl'), 'rb') as f:
+        with open(os.path.join('data/expert_epis', 'Pendulum-v0_2epis.pkl'), 'rb') as f:
             expert_epis = pickle.load(f)
         expert_traj = Traj()
         expert_traj.add_epis(expert_epis)
