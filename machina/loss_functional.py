@@ -533,6 +533,6 @@ def entropy_regularized_rew(student_policy, batch):
         tllh_rews = batch['tllh_rews']
         
         _, _, s_param = student_policy(obs)
-        sllhs = student_pol.pd.llh(acs)
-        
-        return tot_rew = torch.mean(sllhs*tllh_rews)
+        sllhs = student_policy.pd.llh(acs, s_param)
+        tot_rew = torch.mean(sllhs*tllh_rews)
+        return tot_rew
