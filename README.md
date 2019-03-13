@@ -12,15 +12,22 @@
 machina is a library for real-world Deep Reinforcement Learning which is built on top of PyTorch.
 
 ## Features
-+ Composability
-  The sampling phase and learning phase are completely independent. They interact with each other only via policy and trajectories sampled.
+**High Composability**  
+The sampling phase and learning phase are completely independent. They interact with each other only via policy and trajectories sampled.
 
+### Base Merits
+There are merits for all users including beginners of Deep Reinforcement Learning.
+1. Easy to read.
+2. Easy to recognize a difference of algorithms.
+3. Easy to customize.
+
+### Advanced Merits
 Using the principle of composability, we can easily implement following configurations which are otherwise difficult in other RL libraries.
 1. An agent which learns in a mixed environment (e.g. simulated environment and real world environment, some meta learning settings).
 2. An agent which learns by multiple algorithms rather than just a single one (e.g. Q-Prop is combination of TRPO and DDPG).
-3. Hyperparameters for an algorithm are changing dynamically (e.g. Meta Learning).
+3. Hyperparameters for an algorithm are changing dynamically (e.g. Meta Learning for hyperparameters).
 
-### 1 Meta Reinforcement Learning example
+#### 1 Meta Reinforcement Learning example
 We usually define meta learning as a fast adaptation method for tasks which are sampled from a task-space.
 In meta RL, a task is defined as a MDP.
 RL agents have to adapt to a new MDP as fast as possible.
@@ -61,7 +68,7 @@ result_dict = ppo_clip.train(traj=traj1, pol=pol, vf=vf, clip_param=args.clip_pa
 
 You can see the full example code [here].
 
-### 2 Combination of Off-policy and On-policy algorithms
+#### 2 Combination of Off-policy and On-policy algorithms
 DeepRL algorithms can be roughly divided into 2 types.
 On-policy and Off-policy algorithms.
 On-policy algorithms use only current episodes for updating policy or some value functions.
