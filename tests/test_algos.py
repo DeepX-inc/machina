@@ -616,7 +616,7 @@ class TestAIRL(unittest.TestCase):
         optim_discrim = torch.optim.Adam(
             list(rewf_net.parameters()) + list(shaping_vf_net.parameters()), 3e-4)
 
-        with open(os.path.join('data/expert_epis', 'Pendulum-v0_100epis.pkl'), 'rb') as f:
+        with open(os.path.join('data/expert_epis', 'Pendulum-v0_2epis.pkl'), 'rb') as f:
             expert_epis = pickle.load(f)
         expert_traj = Traj()
         expert_traj.add_epis(expert_epis)

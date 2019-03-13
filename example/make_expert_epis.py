@@ -42,7 +42,7 @@ parser.add_argument('--record', action='store_true',
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_epis', type=int,
                     default=100000000, help='Number of episodes to run.')
-parser.add_argument('--num_parallel', type=int, default=4,
+parser.add_argument('--num_parallel', type=int, default=1,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 parser.add_argument('--rnn', action='store_true',
