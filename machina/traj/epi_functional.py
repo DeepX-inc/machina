@@ -249,3 +249,36 @@ def normalize_obs_and_acs(data, mean_obs=None, std_obs=None, mean_acs=None, std_
         return data, mean_obs, std_obs, mean_acs, std_acs
     else:
         return data
+
+def compute_log_rews(data, teacher_pol):
+    """
+    Computing the rew for entropy regularised policy distillation
+
+    Parameters
+    ----------
+    data : Traj
+
+    Returns
+    -------
+    data : Traj
+    """
+    epis = data.current_epis
+    for epi in epis:
+        obs = torch.tensor(epi['obs'], dtype = torch.float, device = get_device())
+        acs = torch.tensor(epi['acs'], dtype = torch.float, device = get_device())
+        with torch.no_grad():
+            _, _, t_params = teacher_pol(obs)
+            t_llhs = teacher_pol.pd.llh(acs, t_params).cpu().numpy()
+        #There are two ways to calculate the llh_rews from teacher
+        #Option1
+        '''
+        _tllh = [t_llh for t_llh in t_llhs]
+        llh_rews = np.array(_tllh[:1] + _tllh[1:], dtype = np.float)
+        '''
+        #Option2
+        llh_rews = np.empty(len(t_llhs), dtype = np.float32)
+        last_llh = 0
+        for t in reversed(range(len(t_llhs))):
+            llh_rews[t] = last_llh = t_llhs[t] + last_llh
+        epi['tllh_rews'] = llh_rews
+    return data

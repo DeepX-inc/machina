@@ -525,3 +525,14 @@ def shannon_cross_entropy(student_pol, teacher_pol, batch):
         _, _, t_params = teacher_pol(obs, h_masks=h_masks)
     cross_entropy_loss = s_pd.kl_pq(t_params, s_params) - s_pd.ent(t_params)
     return torch.mean(cross_entropy_loss)
+
+
+def entropy_regularized_rew(student_policy, batch):
+        obs = batch['obs']
+        acs = batch['acs']
+        tllh_rews = batch['tllh_rews']
+        
+        _, _, s_param = student_policy(obs)
+        sllhs = student_pol.pd.llh(acs)
+        
+        return tot_rew = torch.mean(sllhs*tllh_rews)

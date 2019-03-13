@@ -7,8 +7,9 @@ import torch.nn as nn
 
 from machina import loss_functional as lf
 from machina import logger
+from collections import OrderedDict
 
-def update_pol(student_pol, teacher_pol, optim_pol, batch):
+def update_pol(student_pol, batch):
     """
     Update function of Student-policy
     Parameters
@@ -27,11 +28,13 @@ def update_pol(student_pol, teacher_pol, optim_pol, batch):
         Loss of student policy
     """
 
-    pol_loss = lf.log_likelihood(teacher_pol, batch)
-    optim_pol.zero_grad()
-    pol_loss.backward()
-    optim_pol.step()
-    return pol_loss.detach().cpu().numpy()
+    total_rew = lf.entropy_regularized_rew(student_pol, batch)
+    grads = torch.autograd.grad(total_rew, student_pol.parameters())
+    updated_params = OrderedDict()
+    for (name, param), grad in zip(student_pol.named_parameters(), grads):
+        updated_params[name] = param + grad
+    student_pol.load_state_dict(updated_params)
+    return total_rew.detach().cpu().numpy()
 
 
 def train(traj, student_pol, teacher_pol, student_optim, epoch, batchsize, num_epi_per_seq=1):

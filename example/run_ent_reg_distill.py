@@ -2,12 +2,13 @@
 An example of Entropy Regularised Policy Distillation
 according to https://arxiv.org/abs/1902.02186
 """
-
+import sys
+sys.path.append('../')
 import argparse
 import json
 import os
 from pprint import pprint
-
+import pdb
 import numpy as np
 import torch
 import torch.nn as nn
@@ -145,12 +146,12 @@ while args.max_epis > total_epi:
         traj = Traj()
         traj.add_epis(epis)
         traj = ef.compute_h_masks(traj)
+        traj = ef.compute_log_rews(traj, teacher_pol=t_pol)
+        pdb.set_trace()
         traj.register_epis()
         result_dict = entropy_regularised.train(
             traj=traj,
             student_pol=s_pol,
-            teacher_pol=t_pol,
-            student_optim=optim_pol,
             epoch=args.epoch_per_iter,
             batchsize=args.batch_size)
 
