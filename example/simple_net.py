@@ -280,20 +280,8 @@ class DiaynDiscrimNet(nn.Module):
         self.output_layer = nn.Linear(h_size, skill_space.shape[0])
         self.apply(weight_init)
         self.discrim_f = discrim_f
-        self.f_dim = f_space.shape[0]
-        self.num_skill = skill_space.shape[0]
 
-    def forward(self, obskill):
-        ob = obskill[:, :-self.num_skill]
-        feat = self.discrim_f(ob)
-        skill = obskill[:, -self.num_skill:]
-        logit = self.output_layer(torch.relu(self.fc1(feat)))
-        logqz = torch.sum(torch.log(torch.softmax(logit, dim=1))*skill, dim=1)
-        logpz = -torch.log(torch.tensor(self.num_skill, dtype=torch.float))
-        rews = logqz - logpz
-        return rews
-
-    def logits(self, ob):
+    def forward(self, ob):
         feat = self.discrim_f(ob)
         h = torch.relu(self.fc1(feat))
         return self.output_layer(h)

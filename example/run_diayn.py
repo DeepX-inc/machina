@@ -189,11 +189,12 @@ while args.max_episodes > total_epi:
             pol, qfs, targ_qfs, log_alpha,
             optim_pol, optim_qfs, optim_alpha,
             step, args.batch_size,
-            args.tau, args.gamma, args.sampling, discrim,
+            args.tau, args.gamma, args.sampling,
+            discrim, args.num_skill,
             not args.no_reparam)
         discrim_losses = diayn.train(discrim, optim_discrim, on_traj,
-                                     args.discrim_batch_size, args.epoch_per_iter, args.num_skill,
-                                     f_dim, device, ob_dim)
+                                     args.discrim_batch_size, args.epoch_per_iter,
+                                     args.num_skill, f_dim, device)
     # update counter and record
     rewards = [np.sum(epi['rews']) for epi in epis]
     result_dict['discrimloss'] = discrim_losses
