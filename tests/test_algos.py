@@ -488,10 +488,6 @@ class TestOnpolicyDistillation(unittest.TestCase):
         s_pol = GaussianPol(
             self.env.ob_space, self.env.ac_space, s_pol_net)
 
-        # Please import your own teacher-policy here
-        t_pol.load_state_dict(torch.load(
-            os.path.abspath('data/expert_pols/Pendulum-v0_pol_max.pkl')))
-
         student_sampler = EpiSampler(self.env, s_pol, num_parallel=1)
 
         optim_pol = torch.optim.Adam(s_pol.parameters(), 3e-4)
