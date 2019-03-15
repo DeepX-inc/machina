@@ -9,7 +9,8 @@
 
 # machina
 
-machina is a library for real-world Deep Reinforcement Learning which is built on top of PyTorch.
+machina is a library for real-world Deep Reinforcement Learning which is built on top of PyTorch.  
+machina is officially pronounced "mάkɪnə".
 
 ## Features
 **High Composability**  
