@@ -332,7 +332,7 @@ class Traj(object):
             out_masks = torch.ones(
                 (seq_length, batch_size), dtype=torch.float, device=get_device())
             for i in range(batch_size):
-                out_masks[lengths[i]:-1, i] = 0
+                out_masks[lengths[i]:, i] = 0
             batch['out_masks'] = out_masks
             yield batch
 
