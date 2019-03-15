@@ -296,6 +296,148 @@ def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, n
     return pol_loss, qf_losses, alpha_loss
 
 
+def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_length=40, reparam=True, normalize=False, eps=1e-6):
+    """
+    Loss for soft actor critic.
+
+    Parameters
+    ----------
+    pol : Pol
+    qfs : list of SAVfunction
+    targ_qfs : list of SAVfunction
+    log_alpha : torch.Tensor
+    batch : dict of torch.Tensor
+    gamma : float
+    sampling : int
+        Number of samping in calculating expectation.
+    reparam : bool
+        Reparameterization trick is used or not.
+    normalize : bool
+        If True, normalize value of log likelihood.
+    eps : float
+
+    Returns
+    -------
+    pol_loss, qf_loss, alpha_loss : torch.Tensor, torch.Tensor, torch.Tensor
+    """
+
+    # trajectories for burn-in
+    bi_obs = batch['obs'][:burn_in_length]
+    bi_next_obs = batch['next_obs'][:burn_in_length]
+    bi_acs = batch['acs'][:burn_in_length]
+    bi_h_masks = batch['h_masks'][:burn_in_length]
+    bi_next_h_masks = batch['h_masks'][1:burn_in_length+1]
+
+    # trajectories for train
+    obs = batch['obs'][burn_in_length: -1]
+    acs = batch['acs'][burn_in_length: -1]
+    rews = batch['rews'][burn_in_length: -1]
+    next_obs = batch['next_obs'][burn_in_length: -1]
+    dones = batch['dones'][burn_in_length: -1]
+    h_masks = batch['h_masks'][burn_in_length: -1]
+    next_h_masks = batch['h_masks'][burn_in_length+1:]
+    out_masks = batch['out_masks'][burn_in_length: -1]
+    next_out_masks = batch['out_masks'][burn_in_length+1:]
+
+    # hidden states (time_seq, batch_size, *, cell_size)
+    a_hs = (batch['hs'][0, :, 0], batch['hs'][0, :, 1])
+    next_a_hs = batch['hs'][1]
+    q_hs = [(batch['q_hs'+str(i)][0, :, 0], batch['q_hs'+str(i)][0, :, 1])
+            for i in range(len(qfs))]
+    targ_q_hs = [(batch['targ_q_hs'+str(i)][0, :, 0],
+                  batch['targ_q_hs'+str(i)][0, :, 1]) for i in range(len(targ_qfs))]
+
+    alpha = torch.exp(log_alpha)
+    train_length = batch['obs'].size()[0] - burn_in_length - 1
+    time_seq, batch_size, *_ = batch['obs'].size()
+
+    pol.hs = a_hs
+    with torch.no_grad():
+        bi_pd_params = [pol(bi_obs[i:i+1], h_masks=bi_h_masks[i:i+1])[-1]
+                        for i in range(burn_in_length)]
+    pd_params = [pol(obs[i:i+1], h_masks=h_masks[i:i+1])[-1]
+                 for i in range(train_length)]
+
+    bi_next_pd_params = bi_pd_params[1:] + pd_params[0:1]
+    next_pd_params = pd_params[1:] + \
+        [pol(obs[-1:], h_masks=next_h_masks[-1:])[-1]]
+    pd = pol.pd
+
+    bi_sampled_obs = bi_obs.expand([sampling] + list(bi_obs.size()))
+    bi_sampled_next_obs = bi_next_obs.expand(
+        [sampling] + list(bi_next_obs.size()))
+    sampled_obs = obs.expand([sampling] + list(obs.size()))
+    sampled_next_obs = next_obs.expand([sampling] + list(next_obs.size()))
+
+    bi_sampled_acs = torch.cat([pd.sample(bi_pd_params[i], torch.Size(
+        [sampling])) for i in range(burn_in_length)], dim=1)
+    bi_sampled_next_acs = torch.cat([pd.sample(bi_next_pd_params[i], torch.Size(
+        [sampling])) for i in range(burn_in_length)], dim=1)
+    sampled_acs = torch.cat([pd.sample(pd_params[i], torch.Size(
+        [sampling])) for i in range(train_length)], dim=1)
+    sampled_next_acs = torch.cat([pd.sample(next_pd_params[i], torch.Size(
+        [sampling])) for i in range(train_length)], dim=1)
+
+    sampled_llh = torch.cat(
+        [pd.llh(sampled_acs[0][i].detach(), pd_params[i]) for i in range(train_length)])
+    sampled_next_llh = torch.cat(
+        [pd.llh(sampled_next_acs[0][i], next_pd_params[i]) for i in range(train_length)])
+
+    for i in range(len(qfs)):
+        qfs[i].hs = q_hs[i]
+        targ_qfs[i].hs = targ_q_hs[i]
+
+    # forward of qfs and targ_qfs for burn-in
+    with torch.no_grad():
+        _ = [[qf(bi_sampled_obs[i], bi_sampled_acs[i], hs=q_hs[i],
+                 h_masks=bi_h_masks) for i in range(sampling)] for qf in qfs]
+        _ = [[targ_qf(bi_sampled_next_obs[i], bi_sampled_next_acs[i], hs=targ_q_hs[i],
+                      h_masks=bi_next_h_masks) for i in range(sampling)] for targ_qf in targ_qfs]
+
+    # forward of qfs and targ_qfs for train
+    sampled_qs = torch.cat([torch.cat([qf(sampled_obs[i], sampled_acs[i], h_masks=h_masks)[
+                           0].unsqueeze(0) for i in range(sampling)]).unsqueeze(0) for qf in qfs])
+    sampled_next_targ_qs = torch.cat([torch.cat([targ_qf(sampled_next_obs[i], sampled_next_acs[i], h_masks=next_h_masks)[
+        0].unsqueeze(0) for i in range(sampling)]).unsqueeze(0) for targ_qf in targ_qfs])
+
+    next_vs = torch.cat([torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0).unsqueeze(0)
+                         for sampled_next_targ_q in sampled_next_targ_qs])
+
+    next_vs = torch.min(next_vs, dim=0)[0]
+
+    q_targ = rews + gamma * next_vs * (1 - dones)
+    q_targ = q_targ.detach()
+
+    for i in range(len(qfs)):
+        qfs[i].hs = q_hs[i]
+    with torch.no_grad():
+        _ = [qf(bi_obs, bi_acs, h_masks=bi_h_masks)[0] for qf in qfs]
+    qs = [qf(obs, acs, h_masks=h_masks)[0] for qf in qfs]
+
+    qf_losses = [0.5 * torch.mean((q - q_targ)**2) for q in qs]
+
+    if reparam:
+        pol_losses = [torch.mean(torch.mean(alpha * sampled_llh - sampled_q, dim=0), dim=0)
+                      for sampled_q in sampled_qs]
+        pol_loss = torch.max(*pol_losses)
+        pol_loss = torch.mean(pol_loss)
+    else:
+        pg_weights = [torch.mean(torch.mean(
+            alpha * sampled_llh - sampled_q, dim=0), dim=0).detach() for sampled_q in sampled_qs]
+        pg_weight = torch.max(*pg_weights)
+
+        if normalize:
+            pg_weight = (pg_weight - pg_weight.mean()) / \
+                (pg_weight.std() + eps)
+
+        pol_loss = torch.mean(torch.mean(torch.mean(
+            sampled_llh, dim=0), dim=0) * pg_weight)
+
+    alpha_loss = - torch.mean(log_alpha * (sampled_llh -
+                                           np.prod(pol.ac_space.shape).item()).detach())
+    return batch, pol_loss, qf_losses, alpha_loss
+
+
 def ag(pol, qf, batch, sampling=1, no_noise=False):
     """
     DDPG style action gradient.
