@@ -312,7 +312,7 @@ class Traj(object):
                     self._epis_index[idx], self._epis_index[idx+1] - length + 1)
                 data_map = dict()
                 for key in self.data_map:
-                    if idx == len(self._epis_index)-2 and length != seq_length:
+                    if self._epis_index[-1] - self._epis_index[idx] < seq_length:
                         pad = torch.zeros_like(self.data_map[key], dtype=torch.float, device=get_device())[
                             0:seq_length-length]
                         data_map[key] = torch.cat(
