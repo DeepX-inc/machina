@@ -104,7 +104,7 @@ class QNet(nn.Module):
 
 
 class ModelNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=500, h2=500):
+    def __init__(self, ob_space, ac_space, h1=200, h2=200):
         super(ModelNet, self).__init__()
         self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
@@ -222,7 +222,7 @@ class VNetLSTM(nn.Module):
 
 
 class ModelNetLSTM(nn.Module):
-    def __init__(self, ob_space, ac_space, h_size=1024, cell_size=512):
+    def __init__(self, ob_space, ac_space, h_size=200, cell_size=200):
         super(ModelNetLSTM, self).__init__()
         self.h_size = h_size
         self.cell_size = cell_size

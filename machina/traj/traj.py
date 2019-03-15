@@ -278,6 +278,65 @@ class Traj(object):
                     batch_size, indices, return_indices)
                 yield batch
 
+    def random_batch_rnn(self, batch_size, seq_length=None, epoch=1):
+        """
+        Providing sequences of batch which is randomly sampled from trajectory.
+        batch shape is (seq_length, batch_size, *)
+
+        Parameters
+        ----------
+        batch_size : int
+        seq_length : int
+            Length of sequence of batch. 
+            If seq_length None, max episode length is selected.
+        epoch : int
+
+        Returns
+        -------
+        batch : dict of torch.Tensor
+        """
+
+        if seq_length is None:
+            seq_length = max([self._epis_index[i+1] - self._epis_index[i]
+                              for i in range(len(self._epis_index)-1)])
+
+        for _ in range(epoch):
+            seqs = []
+            lengths = []
+            indices = np.random.randint(
+                0, len(self._epis_index)-1, (batch_size,))
+
+            for idx in indices:
+                length = min(
+                    self._epis_index[idx+1] - self._epis_index[idx], seq_length)
+                start = np.random.randint(
+                    self._epis_index[idx], self._epis_index[idx+1] - length + 1)
+                data_map = dict()
+                for key in self.data_map:
+                    if self._epis_index[-1] - self._epis_index[idx] < seq_length:
+                        pad = torch.zeros_like(self.data_map[key][:seq_length-length],
+                                               dtype=torch.float, device=get_device())
+                        data_map[key] = torch.cat(
+                            [self.data_map[key][start: start+length], pad])
+                    else:
+                        data_map[key] = self.data_map[key][start: start+seq_length]
+                lengths.append(length)
+                seqs.append(data_map)
+
+            batch = dict()
+            keys = seqs[0].keys()
+            for key in keys:
+                batch[key] = torch.cat([seq[key].unsqueeze(0)
+                                        for seq in seqs], dim=0)
+                # (batch_size, seq_length, *) -> (seq_length, batch_size, *)
+                batch[key] = batch[key].transpose(0, 1)
+            out_masks = torch.ones(
+                (seq_length, batch_size), dtype=torch.float, device=get_device())
+            for i in range(batch_size):
+                out_masks[lengths[i]:, i] = 0
+            batch['out_masks'] = out_masks
+            yield batch
+
     def prioritized_random_batch(self, batch_size, epoch=1, return_indices=False):
         for _ in range(epoch):
             if return_indices:
@@ -325,7 +384,8 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]
+                    :self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
