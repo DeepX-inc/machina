@@ -13,19 +13,20 @@ machina is a library for real-world Deep Reinforcement Learning which is built o
 
 ## Features
 **High Composability**  
-The sampling phase and learning phase are completely independent. They interact with each other only via policy and trajectories sampled.
+Composability is an important property in computer programming, allowing to dynamically switch between program components during execution. machina was built and designed with this principle in mind, allowing for high flexibility on system and program development.  
+Specifically, the RL-policy interacts with the environment via generated trajectories, making the exchange of either components simple. For example, using machina, it is possible to switch between a simulated and a real-world environment during the training phase.
 
 ### Base Merits
 There are merits for all users including beginners of Deep Reinforcement Learning.
-1. Easy to read.
-2. Easy to recognize a difference of algorithms.
-3. Easy to customize.
+1. Readability
+2. Intuitive understanding of algorithmic differences
+3. Customizability
 
 ### Advanced Merits
 Using the principle of composability, we can easily implement following configurations which are otherwise difficult in other RL libraries.
-1. An agent which learns in a mixed environment (e.g. simulated environment and real world environment, some meta learning settings).
-2. An agent which learns by multiple algorithms rather than just a single one (e.g. Q-Prop is combination of TRPO and DDPG).
-3. Hyperparameters for an algorithm are changing dynamically (e.g. Meta Learning for hyperparameters).
+1. Easy implementation of mixed environment (e.g. simulated environment and real world environment, some meta learning settings).
+2. Convenient for combining multiple algorithms (e.g. Q-Prop is combination of TRPO and DDPG).
+3. Possibility of changing hyperparameters dynamically (e.g. Meta Learning for hyperparameters).
 
 #### 1 Meta Reinforcement Learning example
 We usually define meta learning as a fast adaptation method for tasks which are sampled from a task-space.
