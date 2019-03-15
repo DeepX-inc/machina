@@ -287,7 +287,8 @@ class Traj(object):
         ----------
         batch_size : int
         seq_length : int
-            Length of sequence of batch.
+            Length of sequence of batch. 
+            If seq_length None, max episode length is selected.
         epoch : int
 
         Returns
