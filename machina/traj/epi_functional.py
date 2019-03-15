@@ -124,6 +124,44 @@ def compute_advs(data, gamma, lam):
     return data
 
 
+def compute_hs(data, func, hs_name='hs', input_acs=False):
+    """
+    Computing Hidden State of RNN Cell.
+
+    Parameters
+    ----------
+    data : Traj
+    func : 
+        Any function. for example pols, vf and qf.
+
+    Returns
+    -------
+    data : Traj
+    """
+    epis = data.current_epis
+    func.reset()
+    with torch.no_grad():
+        for epi in epis:
+            obs = torch.tensor(
+                epi['obs'], dtype=torch.float, device=get_device()).unsqueeze(1)
+            time_seq = obs.size()[0]
+            if input_acs:
+                acs = torch.tensor(
+                    epi['acs'], dtype=torch.float, device=get_device()).unsqueeze(1)
+                hs_seq = [func(obs[i:i+1], acs[i:i+1])[-1]['hs']
+                          for i in range(time_seq)]
+            else:
+                hs_seq = [func(obs[i:i+1])[-1]['hs'] for i in range(time_seq)]
+            if isinstance(hs_seq[0], tuple):
+                hs = np.array([[h.squeeze().detach().cpu().numpy()
+                                for h in hs] for hs in hs_seq], dtype='float32')
+            else:
+                hs = np.array(hs.detach().cpu().numpy(), dtype='float32')
+            epi[hs_name] = hs
+
+    return data
+
+
 def centerize_advs(data, eps=1e-6):
     """
     Centerizing Advantage Function.
