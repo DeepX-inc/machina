@@ -307,12 +307,18 @@ class Traj(object):
 
             for idx in indices:
                 length = min(
-                    self._epis_index[idx+1] - self._epis_index[idx] - 1, seq_length)
+                    self._epis_index[idx+1] - self._epis_index[idx], seq_length)
                 start = np.random.randint(
-                    self._epis_index[idx], self._epis_index[idx+1] - length)
+                    self._epis_index[idx], self._epis_index[idx+1] - length + 1)
                 data_map = dict()
                 for key in self.data_map:
-                    data_map[key] = self.data_map[key][start: start+seq_length]
+                    if idx == len(self._epis_index)-2 and length != seq_length:
+                        pad = torch.zeros_like(self.data_map[key], dtype=torch.float, device=get_device())[
+                            0:seq_length-length]
+                        data_map[key] = torch.cat(
+                            [self.data_map[key][start: start+length], pad])
+                    else:
+                        data_map[key] = self.data_map[key][start: start+seq_length]
                 lengths.append(length)
                 seqs.append(data_map)
 
@@ -377,8 +383,7 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]
-                    :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
