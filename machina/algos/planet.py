@@ -89,8 +89,13 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
             zero_state, zero_action, batch['embedded_obs'][0])
 
         for t in range(pred_steps-1):
-            posteriors[t+1] = rssm.posterior(posteriors[t]['sample'], batch['acs']
-                                             [t], batch['embedded_obs'][t+1], hs=posteriors[t]['belief'])
+            if t > 1:
+                with torch.no_grad():
+                    posteriors[t+1] = rssm.posterior(posteriors[t]['sample'], batch['acs']
+                                                     [t], batch['embedded_obs'][t+1], hs=posteriors[t]['belief'])
+            else:
+                posteriors[t+1] = rssm.posterior(posteriors[t]['sample'], batch['acs']
+                                                 [t], batch['embedded_obs'][t+1], hs=posteriors[t]['belief'])
             priors[t][t+1] = rssm.prior(posteriors[t]['sample'],
                                         batch['acs'][t], hs=posteriors[t]['belief'])
             for prior_index in range(t):
@@ -109,46 +114,39 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
             pred_obs, obs_dict = ob_model(features, acs=None)
             pred_rews, rews_dict = rew_model(
                 features, acs=None)
+            obs_loss = 0
+            # if t == 0:
             obs_loss = 0.5 * \
                 ((obs_dict['mean'] - batch['obs'][t]) ** 2)
+            obs_loss = torch.mean(torch.sum(obs_loss, dim=-1))
             rews_loss = 0.5 * ((rews_dict['mean'] - batch['rews'][t]) ** 2)
-            obs_loss = torch.mean(obs_loss)
-            rews_loss = torch.mean(rews_loss) * reward_loss_scale
+            if t == 0:
+                rews_loss = torch.mean(rews_loss) * reward_loss_scale
+            else:
+                rews_loss = torch.mean(rews_loss) * \
+                    overshooting_reward_loss_scale
             sum_obs_loss += obs_loss
             sum_rews_loss += rews_loss
             recun_loss = (obs_loss + rews_loss)
 
             # global divergence loss
-            posterior_params = {
-                'mean': posteriors[t]['mean'], 'log_std': posteriors[t]['log_std']}
-            global_prior_params = {
-                'mean': torch.zeros_like(posteriors[t]['mean'], device=get_device()),
-                'log_std': torch.ones_like(posteriors[t]['log_std'], device=get_device())
-            }
-            global_kl = rssm.pd.kl_pq(
-                posterior_params, global_prior_params)
-            global_divergence_loss = torch.mean(
-                global_kl, dim=0) * global_divergence_loss_scale
+            global_divergence_loss = 0
+            if t == 0:
+                posterior_params = {
+                    'mean': posteriors[t]['mean'], 'log_std': posteriors[t]['log_std']}
+                global_prior_params = {
+                    'mean': torch.zeros_like(posteriors[t]['mean'], device=get_device()),
+                    'log_std': torch.log(torch.ones_like(posteriors[t]['log_std'], device=get_device()))
+                }
+                global_kl = rssm.pd.kl_pq(
+                    posterior_params, global_prior_params)
+                global_divergence_loss = torch.mean(
+                    global_kl, dim=0) * global_divergence_loss_scale
 
             # latent overshooting loss
-            latent_rews_loss = 0
             divergence_loss = 0
             latend_pred_steps = min(max_latend_pred_steps, pred_steps-1-t)
             for d in range(1, latend_pred_steps+1):
-                # overshooting reconstruction loss
-                features = rssm.features_from_state(priors[t][t+d])
-                pred_obs, obs_dict = ob_model(
-                    features, acs=None)
-                pred_rews, rews_dict = rew_model(
-                    features, acs=None)
-                rews_loss = 0.5 * \
-                    ((rews_dict['mean'] - batch['rews'][t+d]) ** 2)
-                rews_loss = torch.mean(rews_loss) * \
-                    overshooting_reward_loss_scale
-                if d == 1:
-                    rews_loss *= max_latend_pred_steps
-                latent_rews_loss += rews_loss
-
                 # divergence loss
                 posterior_params = {
                     'mean': posteriors[t+d]['mean'], 'log_std': posteriors[t+d]['log_std']}
@@ -157,14 +155,11 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                 # free nats
                 kl = rssm.pd.kl_pq(
                     posterior_params, prior_params).clamp(max=2.0)
-                divergence_loss += torch.mean(kl,
-                                              dim=0)
+                kl = torch.mean(kl, dim=0)
+                divergence_loss += kl
                 if d == 1:
-                    divergence_loss *= latend_pred_steps
+                    divergence_loss *= max_latend_pred_steps
 
-            latent_rews_loss /= max_latend_pred_steps
-            sum_rews_loss += latent_rews_loss
-            recun_loss += latent_rews_loss
             divergence_loss /= max_latend_pred_steps
             divergence_loss += global_divergence_loss
 
