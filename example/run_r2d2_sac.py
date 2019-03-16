@@ -165,7 +165,9 @@ while args.max_epis > total_epi:
 
         if args.data_parallel:
             pol.dp_run = True
-            qf.dp_run = True
+            for qf, targ_qf in zip(qfs, targ_qfs):
+                qf.dp_run = True
+                targ_qf.dp_run = True
 
         result_dict, off_traj = r2d2_sac.train(
             off_traj,
