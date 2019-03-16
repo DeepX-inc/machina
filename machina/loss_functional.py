@@ -347,16 +347,15 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     next_h_masks = batch['h_masks'][burn_in_length+1:]
 
     # hidden states (time_seq, batch_size, *, cell_size)
-    a_hs = (batch['hs'][0, :, 0], batch['hs'][0, :, 1])
-    next_a_hs = batch['hs'][1]
-    q_hs = [(batch['q_hs'+str(i)][0, :, 0], batch['q_hs'+str(i)][0, :, 1])
-            for i in range(len(qfs))]
-    targ_q_hs = [(batch['targ_q_hs'+str(i)][0, :, 0],
-                  batch['targ_q_hs'+str(i)][0, :, 1]) for i in range(len(targ_qfs))]
+    init_a_hs = (batch['hs'][0, :, 0], batch['hs'][0, :, 1])
+    init_qf_hs = [(batch['q_hs'+str(i)][0, :, 0], batch['q_hs'+str(i)][0, :, 1])
+                  for i in range(len(qfs))]
+    init_targ_qf_hs = [(batch['targ_q_hs'+str(i)][0, :, 0],
+                        batch['targ_q_hs'+str(i)][0, :, 1]) for i in range(len(targ_qfs))]
 
     alpha = torch.exp(log_alpha)
 
-    pol.hs = a_hs
+    pol.hs = init_a_hs
     # (time_seq, ['mean', 'log_std', 'hs'], *)
     with torch.no_grad():
         _bi_pd_params = pol(bi_obs, h_masks=bi_h_masks)[-1]
@@ -416,17 +415,17 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
 
     # forward of qfs and targ_qfs for burn-in
     with torch.no_grad():
-        _ = [[qf(bi_sampled_obs[i], bi_sampled_acs[i], hs=q_hs[i],
-                 h_masks=bi_h_masks) for i in range(sampling)] for qf in qfs]
-        _ = [[targ_qf(bi_sampled_next_obs[i], bi_sampled_next_acs[i], hs=targ_q_hs[i],
-                      h_masks=bi_next_h_masks) for i in range(sampling)] for targ_qf in targ_qfs]
+        qf_hs = [[qf(bi_sampled_obs[i], bi_sampled_acs[i], hs=init_qf_hs[q],
+                     h_masks=bi_h_masks)[-1]['hs'] for i in range(sampling)] for q, qf in enumerate(qfs)]
+        targ_qf_hs = [[targ_qf(bi_sampled_next_obs[i], bi_sampled_next_acs[i], hs=init_targ_qf_hs[q],
+                               h_masks=bi_next_h_masks)[-1]['hs'] for i in range(sampling)] for q, targ_qf in enumerate(targ_qfs)]
 
     # forward of qfs and targ_qfs for train
     # (len(qfs), sampling, time_seq, batch_size)
-    sampled_qs = torch.stack([torch.stack([qf(sampled_obs[i], sampled_acs[i], h_masks=h_masks)[
-        0] for i in range(sampling)]) for qf in qfs])
-    sampled_next_targ_qs = torch.stack([torch.stack([targ_qf(sampled_next_obs[i], sampled_next_acs[i], h_masks=next_h_masks)[
-        0] for i in range(sampling)]) for targ_qf in targ_qfs])
+    sampled_qs = torch.stack([torch.stack([qf(sampled_obs[s], sampled_acs[s], hs=qf_hs[q][s], h_masks=h_masks)[
+        0] for s in range(sampling)]) for q, qf in enumerate(qfs)])
+    sampled_next_targ_qs = torch.stack([torch.stack([targ_qf(sampled_next_obs[s], sampled_next_acs[s], hs=targ_qf_hs[q][s], h_masks=next_h_masks)[
+        0] for s in range(sampling)]) for q, targ_qf in enumerate(targ_qfs)])
 
     # (len(qfs), time_seq, batch_size)
     next_vs = torch.stack([torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
@@ -440,7 +439,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     q_targ = q_targ.detach()
 
     for i in range(len(qfs)):
-        qfs[i].hs = q_hs[i]
+        qfs[i].hs = init_qf_hs[i]
 
     # (len(qfs), time_seq, batch_size)
     with torch.no_grad():
