@@ -365,7 +365,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
         bi_pd_params = []
         for params in zip(*separated_bi_pd_params):
             params_dict = {key: param for key, param in zip(
-                sorted(_bi_pd_params.keys())[1:], params)}
+                keys, params)}
             bi_pd_params.append(params_dict)
 
     _pd_params = pol(obs, h_masks=h_masks)[-1]
@@ -375,7 +375,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     pd_params = []
     for params in zip(*separated_pd_params):
         params_dict = {key: param for key, param in zip(
-            sorted(_pd_params.keys())[1:], params)}
+            keys, params)}
         pd_params.append(params_dict)
 
     bi_next_pd_params = bi_pd_params[1:] + pd_params[0:1]
