@@ -336,8 +336,6 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     dones = batch['dones'][burn_in_length: -1]
     h_masks = batch['h_masks'][burn_in_length: -1]
     next_h_masks = batch['h_masks'][burn_in_length+1:]
-    out_masks = batch['out_masks'][burn_in_length: -1]
-    next_out_masks = batch['out_masks'][burn_in_length+1:]
 
     # hidden states (time_seq, batch_size, *, cell_size)
     a_hs = (batch['hs'][0, :, 0], batch['hs'][0, :, 1])
@@ -414,7 +412,10 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
         _ = [qf(bi_obs, bi_acs, h_masks=bi_h_masks)[0] for qf in qfs]
     qs = [qf(obs, acs, h_masks=h_masks)[0] for qf in qfs]
 
-    qf_losses = [0.5 * torch.mean((q - q_targ)**2) for q in qs]
+    td_losses = [(q - q_targ) for q in qs]
+    qf_losses = [0.5 * torch.mean((td_loss)**2) for td_loss in td_losses]
+    td_losses = torch.cat([td_loss.unsqueeze(0) for td_loss in td_losses])
+    td_losses = torch.mean(td_losses, dim=0)
 
     if reparam:
         pol_losses = [torch.mean(torch.mean(alpha * sampled_llh - sampled_q, dim=0), dim=0)
@@ -435,7 +436,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
 
     alpha_loss = - torch.mean(log_alpha * (sampled_llh -
                                            np.prod(pol.ac_space.shape).item()).detach())
-    return batch, pol_loss, qf_losses, alpha_loss
+    return batch, pol_loss, qf_losses, alpha_loss, td_losses
 
 
 def ag(pol, qf, batch, sampling=1, no_noise=False):
