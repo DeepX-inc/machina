@@ -325,6 +325,11 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     time_seq, batch_size, *_ = batch['obs'].size()
     train_length = time_seq - burn_in_length - 1
 
+    pol.reset()
+    for qf, targ_qf in zip(qfs, targ_qfs):
+        qf.reset()
+        targ_qf.reset()
+
     # trajectories for burn-in
     bi_obs = batch['obs'][:burn_in_length]
     bi_next_obs = batch['next_obs'][:burn_in_length]
