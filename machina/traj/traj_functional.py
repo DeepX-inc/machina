@@ -43,7 +43,7 @@ def update_pris(traj, td_loss, indices, alpha=0.6, epsilon=1e-6, update_epi_pris
                 epi_end = traj._epis_index[i]
                 break
 
-        pris = traj.data_map['pris'][epi_start: epi_end-seq_length+1]
+        pris = traj.data_map['pris'][epi_start: epi_end]
         n_seq = len(pris) - seq_length + 1
         abs_pris = np.abs(pris.cpu().numpy())
         seq_pris = np.array([eta * np.max(abs_pris[i:i+seq_length]) + (1 - eta) *
