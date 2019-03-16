@@ -45,7 +45,7 @@ class Traj(object):
         if 'pris' in self.data_map:
             return torch.max(self.data_map['pris']).cpu()
         else:
-            return torch.tensor(1)
+            return torch.tensor(100)
 
     def add_epis(self, epis):
         self.current_epis = epis
@@ -250,6 +250,40 @@ class Traj(object):
         else:
             return data_map
 
+    def prioritized_random_batch_rnn_once(self, batch_size, seq_length, return_indices=False, init_beta=0.4, beta_step=0.00025/4):
+        if hasattr(self, 'pri_beta') == False:
+            self.pri_beta = init_beta
+        elif self.pri_beta >= 1.0:
+            self.pri_beta = 1.0
+        else:
+            self.pri_beta += beta_step
+
+        seq_pris = self.data_map['seq_pris'].clone().detach()
+
+        start_indices = torch.utils.data.sampler.WeightedRandomSampler(
+            seq_pris, batch_size)  # , replacement=True)
+        start_indices = [idx for idx in start_indices]
+
+        seqs = []
+        length = []
+        for start in start_indices:
+            data_map = dict()
+            for key in self.data_map:
+                data_map[key] = self.data_map[key][start: start+seq_length]
+            seqs.append(data_map)
+
+        batch = dict()
+        keys = seqs[0].keys()
+        for key in keys:
+            batch[key] = torch.stack([seq[key] for seq in seqs], dim=0)
+            # (batch_size, seq_length, *) -> (seq_length, batch_size, *)
+            batch[key] = batch[key].transpose(0, 1)
+
+        if return_indices:
+            return batch, start_indices
+        else:
+            return batch
+
     def random_batch(self, batch_size, epoch=1, indices=None, return_indices=False):
         """
         Providing batches which is randomly sampled from trajectory.
@@ -326,8 +360,7 @@ class Traj(object):
             batch = dict()
             keys = seqs[0].keys()
             for key in keys:
-                batch[key] = torch.cat([seq[key].unsqueeze(0)
-                                        for seq in seqs], dim=0)
+                batch[key] = torch.stack([seq[key] for seq in seqs])
                 # (batch_size, seq_length, *) -> (seq_length, batch_size, *)
                 batch[key] = batch[key].transpose(0, 1)
             out_masks = torch.ones(
@@ -346,6 +379,35 @@ class Traj(object):
             else:
                 batch = self.prioritized_random_batch_once(
                     batch_size, return_indices)
+                yield batch
+
+    def prioritized_random_batch_rnn(self, batch_size, seq_length, epoch=1, return_indices=False):
+        """
+        Providing sequences of batch which is prioritized randomly sampled from trajectory.
+        batch shape is (seq_length, batch_size, *)
+
+        Parameters
+        ----------
+        batch_size : int
+        seq_length : int
+            Length of sequence of batch. 
+            If seq_length None, max episode length is selected.
+        epoch : int
+        return_indices : bool
+            If True, indices are also returned.
+
+        Returns
+        -------
+        batch : dict of torch.Tensor
+        """
+        for _ in range(epoch):
+            if return_indices:
+                batch, start_indices = self.prioritized_random_batch_rnn_once(
+                    batch_size, seq_length, return_indices)
+                yield batch, start_indices
+            else:
+                batch = self.prioritized_random_batch_once(
+                    batch_size, seq_length, return_indices)
                 yield batch
 
     def full_batch(self, epoch=1, return_indices=False):
@@ -384,8 +446,7 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]
-                    :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
