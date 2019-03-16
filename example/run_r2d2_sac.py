@@ -100,23 +100,23 @@ ac_space = env.action_space
 
 pol_net = PolNetLSTM(ob_space, ac_space)
 pol = GaussianPol(ob_space, ac_space, pol_net, rnn=True,
-                  data_parallel=args.data_parallel, parallel_dim=0)
+                  data_parallel=args.data_parallel, parallel_dim=1)
 
 qf_net1 = QNetLSTM(ob_space, ac_space)
 qf1 = DeterministicSAVfunc(ob_space, ac_space, qf_net1, rnn=True,
-                           data_parallel=args.data_parallel, parallel_dim=0)
+                           data_parallel=args.data_parallel, parallel_dim=1)
 targ_qf_net1 = QNetLSTM(ob_space, ac_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
 targ_qf1 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net1, rnn=True, data_parallel=args.data_parallel, parallel_dim=0)
+    ob_space, ac_space, targ_qf_net1, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
 
 qf_net2 = QNetLSTM(ob_space, ac_space)
 qf2 = DeterministicSAVfunc(ob_space, ac_space, qf_net2, rnn=True,
-                           data_parallel=args.data_parallel, parallel_dim=0)
+                           data_parallel=args.data_parallel, parallel_dim=1)
 targ_qf_net2 = QNetLSTM(ob_space, ac_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
 targ_qf2 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net2, rnn=True, data_parallel=args.data_parallel, parallel_dim=0)
+    ob_space, ac_space, targ_qf_net2, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
 
 qfs = [qf1, qf2]
 targ_qfs = [targ_qf1, targ_qf2]
@@ -179,7 +179,9 @@ while args.max_epis > total_epi:
 
         if args.data_parallel:
             pol.dp_run = False
-            qf.dp_run = False
+            for qf, targ_qf in zip(qfs, targ_qfs):
+                qf.dp_run = False
+                targ_qf.dp_run = False
 
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
