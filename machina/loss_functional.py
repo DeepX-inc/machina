@@ -354,14 +354,29 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     pol.hs = a_hs
     # (time_seq, ['mean', 'log_std', 'hs'], *)
     with torch.no_grad():
-        bi_pd_params = [pol(bi_obs[i], h_masks=bi_h_masks[i])[-1]
-                        for i in range(burn_in_length)]
-    pd_params = [pol(obs[i], h_masks=h_masks[i])[-1]
-                 for i in range(train_length)]
+        _bi_pd_params = pol(bi_obs, h_masks=bi_h_masks)[-1]
+        separated_bi_pd_params = [_bi_pd_params[key]
+                                  for key in sorted(_bi_pd_params.keys())[1:]]
+        bi_pd_params = []
+        for params in zip(*separated_bi_pd_params):
+            params_dict = {key: param for key, param in zip(
+                sorted(_bi_pd_params.keys())[1:], params)}
+            bi_pd_params.append(params_dict)
+
+    _pd_params = pol(obs, h_masks=h_masks)[-1]
+    separated_pd_params = [_pd_params[key]
+                           for key in sorted(_pd_params.keys())[1:]]
+    pd_params = []
+    for params in zip(*separated_pd_params):
+        params_dict = {key: param for key, param in zip(
+            sorted(_pd_params.keys())[1:], params)}
+        pd_params.append(params_dict)
 
     bi_next_pd_params = bi_pd_params[1:] + pd_params[0:1]
     next_pd_params = pd_params[1:] + \
         [pol(obs[-1:], h_masks=next_h_masks[-1:])[-1]]
+    for key in sorted(pd_params[0].keys()):
+        next_pd_params[-1][key] = next_pd_params[-1][key][0]
     pd = pol.pd
 
     # (sampling, time_seq, batch_size, *)
@@ -381,19 +396,18 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     sampled_next_acs = torch.stack([pd.sample(next_pd_params[i], torch.Size([sampling]))
                                     for i in range(train_length)])
 
-    #    (time_seq, sampling, 1, batch_size, *)
-    # -> (time_seq, sampling, batch_size, *)
+    #    (time_seq, sampling, batch_size, *)
     # -> (sampling, time_seq, batch_size, *)
-    bi_sampled_acs = bi_sampled_acs.squeeze(2).transpose(0, 1)
-    bi_sampled_next_acs = bi_sampled_next_acs.squeeze(2).transpose(0, 1)
-    sampled_acs = sampled_acs.squeeze(2).transpose(0, 1)
-    sampled_next_acs = sampled_next_acs.squeeze(2).transpose(0, 1)
+    bi_sampled_acs = bi_sampled_acs.transpose(0, 1)
+    bi_sampled_next_acs = bi_sampled_next_acs.transpose(0, 1)
+    sampled_acs = sampled_acs.transpose(0, 1)
+    sampled_next_acs = sampled_next_acs.transpose(0, 1)
 
     # (sampling, time_seq, batch_size)
     sampled_llh = torch.stack(
-        [torch.cat([pd.llh(sampled_acs[s][i].detach(), pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
+        [torch.stack([pd.llh(sampled_acs[s][i].detach(), pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
     sampled_next_llh = torch.stack(
-        [torch.cat([pd.llh(sampled_next_acs[s][i], next_pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
+        [torch.stack([pd.llh(sampled_next_acs[s][i], next_pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
 
     # forward of qfs and targ_qfs for burn-in
     with torch.no_grad():
