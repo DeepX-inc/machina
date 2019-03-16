@@ -359,8 +359,9 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     # (time_seq, ['mean', 'log_std', 'hs'], *)
     with torch.no_grad():
         _bi_pd_params = pol(bi_obs, h_masks=bi_h_masks)[-1]
-        separated_bi_pd_params = [_bi_pd_params[key]
-                                  for key in sorted(_bi_pd_params.keys())[1:]]
+        keys = sorted(_bi_pd_params.keys())
+        keys.remove('hs')
+        separated_bi_pd_params = [_bi_pd_params[key] for key in keys]
         bi_pd_params = []
         for params in zip(*separated_bi_pd_params):
             params_dict = {key: param for key, param in zip(
@@ -368,8 +369,9 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
             bi_pd_params.append(params_dict)
 
     _pd_params = pol(obs, h_masks=h_masks)[-1]
-    separated_pd_params = [_pd_params[key]
-                           for key in sorted(_pd_params.keys())[1:]]
+    keys = sorted(_pd_params.keys())
+    keys.remove('hs')
+    separated_pd_params = [_pd_params[key] for key in keys]
     pd_params = []
     for params in zip(*separated_pd_params):
         params_dict = {key: param for key, param in zip(
