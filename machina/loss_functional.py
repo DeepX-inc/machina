@@ -129,7 +129,7 @@ def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=
     continuous : bool
         action space is continuous or not
     sampling : int
-        Number of samping in calculating expectation.
+        Number of sampling in calculating expectation.
     reduction : str
       This argument takes only elementwise, sum, and none.
       Loss shape is pytorch's manner.
@@ -225,7 +225,7 @@ def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, n
     batch : dict of torch.Tensor
     gamma : float
     sampling : int
-        Number of samping in calculating expectation.
+        Number of sampling in calculating expectation.
     reparam : bool
         Reparameterization trick is used or not.
     normalize : bool
@@ -309,7 +309,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     batch : dict of torch.Tensor
     gamma : float
     sampling : int
-        Number of samping in calculating expectation.
+        Number of sampling in calculating expectation.
     burn_in_length : int
         Length of batches for burn-in.
     reparam : bool
@@ -322,6 +322,8 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     -------
     pol_loss, qf_loss, alpha_loss, td_losses : torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
     """
+    time_seq, batch_size, *_ = batch['obs'].size()
+    train_length = time_seq - burn_in_length - 1
 
     # trajectories for burn-in
     bi_obs = batch['obs'][:burn_in_length]
@@ -348,14 +350,13 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
                   batch['targ_q_hs'+str(i)][0, :, 1]) for i in range(len(targ_qfs))]
 
     alpha = torch.exp(log_alpha)
-    train_length = batch['obs'].size()[0] - burn_in_length - 1
-    time_seq, batch_size, *_ = batch['obs'].size()
 
     pol.hs = a_hs
+    # (time_seq, ['mean', 'log_std', 'hs'], *)
     with torch.no_grad():
-        bi_pd_params = [pol(bi_obs[i:i+1], h_masks=bi_h_masks[i:i+1])[-1]
+        bi_pd_params = [pol(bi_obs[i], h_masks=bi_h_masks[i])[-1]
                         for i in range(burn_in_length)]
-    pd_params = [pol(obs[i:i+1], h_masks=h_masks[i:i+1])[-1]
+    pd_params = [pol(obs[i], h_masks=h_masks[i])[-1]
                  for i in range(train_length)]
 
     bi_next_pd_params = bi_pd_params[1:] + pd_params[0:1]
@@ -363,29 +364,36 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
         [pol(obs[-1:], h_masks=next_h_masks[-1:])[-1]]
     pd = pol.pd
 
+    # (sampling, time_seq, batch_size, *)
     bi_sampled_obs = bi_obs.expand([sampling] + list(bi_obs.size()))
     bi_sampled_next_obs = bi_next_obs.expand(
         [sampling] + list(bi_next_obs.size()))
     sampled_obs = obs.expand([sampling] + list(obs.size()))
     sampled_next_obs = next_obs.expand([sampling] + list(next_obs.size()))
 
+    # (time_seq, sampling, 1, batch_size, *)
     bi_sampled_acs = torch.cat([pd.sample(bi_pd_params[i], torch.Size(
-        [sampling])) for i in range(burn_in_length)], dim=1)
+        [sampling])).unsqueeze(0) for i in range(burn_in_length)])
     bi_sampled_next_acs = torch.cat([pd.sample(bi_next_pd_params[i], torch.Size(
-        [sampling])) for i in range(burn_in_length)], dim=1)
+        [sampling])).unsqueeze(0) for i in range(burn_in_length)])
     sampled_acs = torch.cat([pd.sample(pd_params[i], torch.Size(
-        [sampling])) for i in range(train_length)], dim=1)
+        [sampling])).unsqueeze(0) for i in range(train_length)])
     sampled_next_acs = torch.cat([pd.sample(next_pd_params[i], torch.Size(
-        [sampling])) for i in range(train_length)], dim=1)
+        [sampling])).unsqueeze(0) for i in range(train_length)])
 
+    #    (time_seq, sampling, 1, batch_size, *)
+    # -> (time_seq, sampling, batch_size, *)
+    # -> (sampling, time_seq, batch_size, *)
+    bi_sampled_acs = bi_sampled_acs.squeeze(2).transpose(0, 1)
+    bi_sampled_next_acs = bi_sampled_next_acs.squeeze(2).transpose(0, 1)
+    sampled_acs = sampled_acs.squeeze(2).transpose(0, 1)
+    sampled_next_acs = sampled_next_acs.squeeze(2).transpose(0, 1)
+
+    # (sampling, time_seq, batch_size)
     sampled_llh = torch.cat(
-        [pd.llh(sampled_acs[0][i].detach(), pd_params[i]) for i in range(train_length)])
+        [torch.cat([pd.llh(sampled_acs[s][i].detach(), pd_params[i]) for i in range(train_length)]).unsqueeze(0) for s in range(sampling)])
     sampled_next_llh = torch.cat(
-        [pd.llh(sampled_next_acs[0][i], next_pd_params[i]) for i in range(train_length)])
-
-    for i in range(len(qfs)):
-        qfs[i].hs = q_hs[i]
-        targ_qfs[i].hs = targ_q_hs[i]
+        [torch.cat([pd.llh(sampled_next_acs[s][i], next_pd_params[i]) for i in range(train_length)]).unsqueeze(0) for s in range(sampling)])
 
     # forward of qfs and targ_qfs for burn-in
     with torch.no_grad():
@@ -395,21 +403,27 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
                       h_masks=bi_next_h_masks) for i in range(sampling)] for targ_qf in targ_qfs]
 
     # forward of qfs and targ_qfs for train
+    # (len(qfs), sampling, time_seq, batch_size)
     sampled_qs = torch.cat([torch.cat([qf(sampled_obs[i], sampled_acs[i], h_masks=h_masks)[
                            0].unsqueeze(0) for i in range(sampling)]).unsqueeze(0) for qf in qfs])
     sampled_next_targ_qs = torch.cat([torch.cat([targ_qf(sampled_next_obs[i], sampled_next_acs[i], h_masks=next_h_masks)[
         0].unsqueeze(0) for i in range(sampling)]).unsqueeze(0) for targ_qf in targ_qfs])
 
+    # (len(qfs), time_seq, batch_size)
     next_vs = torch.cat([torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0).unsqueeze(0)
                          for sampled_next_targ_q in sampled_next_targ_qs])
 
+    # (time-seq, batch_size)
     next_vs = torch.min(next_vs, dim=0)[0]
 
+    # (time-seq, batch_size)
     q_targ = rews + gamma * next_vs * (1 - dones)
     q_targ = q_targ.detach()
 
     for i in range(len(qfs)):
         qfs[i].hs = q_hs[i]
+
+    # (len(qfs), time_seq, batch_size)
     with torch.no_grad():
         _ = [qf(bi_obs, bi_acs, h_masks=bi_h_masks)[0] for qf in qfs]
     qs = [qf(obs, acs, h_masks=h_masks)[0] for qf in qfs]
@@ -451,7 +465,7 @@ def ag(pol, qf, batch, sampling=1, no_noise=False):
     qf : SAVfunction
     batch : dict of torch.Tensor
     sampling : int
-        Number of samping in calculating expectation.
+        Number of sampling in calculating expectation.
 
     Returns
     -------
