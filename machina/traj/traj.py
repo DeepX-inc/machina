@@ -275,8 +275,7 @@ class Traj(object):
         batch = dict()
         keys = seqs[0].keys()
         for key in keys:
-            batch[key] = torch.cat([seq[key].unsqueeze(0)
-                                    for seq in seqs], dim=0)
+            batch[key] = torch.stack([seq[key] for seq in seqs], dim=0)
             # (batch_size, seq_length, *) -> (seq_length, batch_size, *)
             batch[key] = batch[key].transpose(0, 1)
 
@@ -361,8 +360,7 @@ class Traj(object):
             batch = dict()
             keys = seqs[0].keys()
             for key in keys:
-                batch[key] = torch.cat([seq[key].unsqueeze(0)
-                                        for seq in seqs], dim=0)
+                batch[key] = torch.stack([seq[key] for seq in seqs])
                 # (batch_size, seq_length, *) -> (seq_length, batch_size, *)
                 batch[key] = batch[key].transpose(0, 1)
             out_masks = torch.ones(

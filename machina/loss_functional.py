@@ -372,14 +372,14 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     sampled_next_obs = next_obs.expand([sampling] + list(next_obs.size()))
 
     # (time_seq, sampling, 1, batch_size, *)
-    bi_sampled_acs = torch.cat([pd.sample(bi_pd_params[i], torch.Size(
-        [sampling])).unsqueeze(0) for i in range(burn_in_length)])
-    bi_sampled_next_acs = torch.cat([pd.sample(bi_next_pd_params[i], torch.Size(
-        [sampling])).unsqueeze(0) for i in range(burn_in_length)])
-    sampled_acs = torch.cat([pd.sample(pd_params[i], torch.Size(
-        [sampling])).unsqueeze(0) for i in range(train_length)])
-    sampled_next_acs = torch.cat([pd.sample(next_pd_params[i], torch.Size(
-        [sampling])).unsqueeze(0) for i in range(train_length)])
+    bi_sampled_acs = torch.stack([pd.sample(bi_pd_params[i], torch.Size([sampling]))
+                                  for i in range(burn_in_length)])
+    bi_sampled_next_acs = torch.stack([pd.sample(bi_next_pd_params[i], torch.Size([sampling]))
+                                       for i in range(burn_in_length)])
+    sampled_acs = torch.stack([pd.sample(pd_params[i], torch.Size([sampling]))
+                               for i in range(train_length)])
+    sampled_next_acs = torch.stack([pd.sample(next_pd_params[i], torch.Size([sampling]))
+                                    for i in range(train_length)])
 
     #    (time_seq, sampling, 1, batch_size, *)
     # -> (time_seq, sampling, batch_size, *)
@@ -390,10 +390,10 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     sampled_next_acs = sampled_next_acs.squeeze(2).transpose(0, 1)
 
     # (sampling, time_seq, batch_size)
-    sampled_llh = torch.cat(
-        [torch.cat([pd.llh(sampled_acs[s][i].detach(), pd_params[i]) for i in range(train_length)]).unsqueeze(0) for s in range(sampling)])
-    sampled_next_llh = torch.cat(
-        [torch.cat([pd.llh(sampled_next_acs[s][i], next_pd_params[i]) for i in range(train_length)]).unsqueeze(0) for s in range(sampling)])
+    sampled_llh = torch.stack(
+        [torch.cat([pd.llh(sampled_acs[s][i].detach(), pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
+    sampled_next_llh = torch.stack(
+        [torch.cat([pd.llh(sampled_next_acs[s][i], next_pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
 
     # forward of qfs and targ_qfs for burn-in
     with torch.no_grad():
@@ -404,14 +404,14 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
 
     # forward of qfs and targ_qfs for train
     # (len(qfs), sampling, time_seq, batch_size)
-    sampled_qs = torch.cat([torch.cat([qf(sampled_obs[i], sampled_acs[i], h_masks=h_masks)[
-                           0].unsqueeze(0) for i in range(sampling)]).unsqueeze(0) for qf in qfs])
-    sampled_next_targ_qs = torch.cat([torch.cat([targ_qf(sampled_next_obs[i], sampled_next_acs[i], h_masks=next_h_masks)[
-        0].unsqueeze(0) for i in range(sampling)]).unsqueeze(0) for targ_qf in targ_qfs])
+    sampled_qs = torch.stack([torch.stack([qf(sampled_obs[i], sampled_acs[i], h_masks=h_masks)[
+        0] for i in range(sampling)]) for qf in qfs])
+    sampled_next_targ_qs = torch.stack([torch.stack([targ_qf(sampled_next_obs[i], sampled_next_acs[i], h_masks=next_h_masks)[
+        0] for i in range(sampling)]) for targ_qf in targ_qfs])
 
     # (len(qfs), time_seq, batch_size)
-    next_vs = torch.cat([torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0).unsqueeze(0)
-                         for sampled_next_targ_q in sampled_next_targ_qs])
+    next_vs = torch.stack([torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
+                           for sampled_next_targ_q in sampled_next_targ_qs])
 
     # (time-seq, batch_size)
     next_vs = torch.min(next_vs, dim=0)[0]
@@ -430,7 +430,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
 
     td_losses = [(q - q_targ) for q in qs]
     qf_losses = [0.5 * torch.mean((td_loss)**2) for td_loss in td_losses]
-    td_losses = torch.cat([td_loss.unsqueeze(0) for td_loss in td_losses])
+    td_losses = torch.stack([td_loss for td_loss in td_losses])
     td_losses = torch.mean(td_losses, dim=0)
 
     if reparam:
