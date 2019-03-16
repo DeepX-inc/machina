@@ -104,4 +104,4 @@ def train(traj,
         PolLoss=pol_losses,
         QfLoss=_qf_losses,
         AlphaLoss=alpha_losses
-    ), traj
+    )

@@ -169,7 +169,7 @@ while args.max_epis > total_epi:
                 qf.dp_run = True
                 targ_qf.dp_run = True
 
-        result_dict, off_traj = r2d2_sac.train(
+        result_dict = r2d2_sac.train(
             off_traj,
             pol, qfs, targ_qfs, log_alpha,
             optim_pol, optim_qfs, optim_alpha,
