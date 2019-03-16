@@ -47,7 +47,7 @@ def set_all_pris(data, pri):
     return data
 
 
-def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, deterministic=True, sampling=1, alpha=0.6, epsilon=1e-6):
+def compute_pris(data, qf, targ_qf, pol, gamma, continuous=True, deterministic=True, rnn=False, sampling=1, alpha=0.6, epsilon=1e-6):
     if continuous:
         epis = data.current_epis
         for epi in epis:
@@ -55,9 +55,16 @@ def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, determinis
             keys = ['obs', 'acs', 'rews', 'next_obs', 'dones']
             for key in keys:
                 data_map[key] = torch.tensor(epi[key], device=get_device())
+            if rnn:
+                qf.reset()
+                targ_qf.reset()
+                pol.reset()
+                keys = ['obs', 'acs', 'next_obs']
+                for key in keys:
+                    data_map[key] = data_map[key].unsqueeze(1)
             with torch.no_grad():
                 bellman_loss = lf.bellman(
-                    qf, targ_qf, targ_pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
+                    qf, targ_qf, pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
                 td_loss = torch.sqrt(bellman_loss*2)
                 pris = (torch.abs(td_loss) + epsilon) ** alpha
                 epi['pris'] = pris.cpu().numpy()
@@ -65,6 +72,18 @@ def compute_pris(data, qf, targ_qf, targ_pol, gamma, continuous=True, determinis
     else:
         raise NotImplementedError(
             "Only Q function with continuous action space is supported now.")
+
+
+def compute_seq_pris(data, seq_length, eta=0.9):
+    epis = data.current_epis
+    for epi in epis:
+        n_seq = len(epi['pris']) - seq_length + 1
+        abs_pris = np.abs(epi['pris'])
+        seq_pris = np.array([eta * np.max(abs_pris[i:i+seq_length]) + (1 - eta) *
+                             np.mean(abs_pris[i:i+seq_length]) for i in range(n_seq)], dtype='float32')
+        pad = np.zeros((seq_length - 1,), dtype='float32')
+        epi['seq_pris'] = np.concatenate([seq_pris, pad])
+    return data
 
 
 def compute_rets(data, gamma):
