@@ -75,6 +75,20 @@ def compute_pris(data, qf, targ_qf, pol, gamma, continuous=True, deterministic=T
 
 
 def compute_seq_pris(data, seq_length, eta=0.9):
+    """
+    Computing priorities of each sequence in episodes.
+
+    Parameters
+    ----------
+    data : Traj
+    seq_length : int
+        Length of batch
+    eta : float
+
+    Returns
+    -------
+    data : Traj
+    """
     epis = data.current_epis
     for epi in epis:
         n_seq = len(epi['pris']) - seq_length + 1

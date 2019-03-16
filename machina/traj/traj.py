@@ -383,7 +383,25 @@ class Traj(object):
                     batch_size, return_indices)
                 yield batch
 
-    def prioritized_random_batch_rnn(self, batch_size, seq_length, epoch=1, return_indices=False, init_beta=0.4, beta_step=0.00025/4):
+    def prioritized_random_batch_rnn(self, batch_size, seq_length, epoch=1, return_indices=False):
+        """
+        Providing sequences of batch which is prioritized randomly sampled from trajectory.
+        batch shape is (seq_length, batch_size, *)
+
+        Parameters
+        ----------
+        batch_size : int
+        seq_length : int
+            Length of sequence of batch. 
+            If seq_length None, max episode length is selected.
+        epoch : int
+        return_indices : bool
+            If True, indices are also returned.
+
+        Returns
+        -------
+        batch : dict of torch.Tensor
+        """
         for _ in range(epoch):
             if return_indices:
                 batch, start_indices = self.prioritized_random_batch_rnn_once(

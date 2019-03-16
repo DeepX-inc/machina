@@ -10,6 +10,26 @@ from machina.utils import get_device
 
 
 def update_pris(traj, td_loss, indices, alpha=0.6, epsilon=1e-6, update_epi_pris=False, seq_length=None, eta=0.9):
+    """
+    Update priorities specified in indices.
+
+    Parameters
+    ----------
+    data : Traj
+    td_loss : torch.Tensor
+    indices : torch.Tensor ot List of int
+    alpha : float
+    epsilon : float
+    update_epi_pris : bool
+        If True, all priorities of a episode including indices[0] are updated.
+    seq_length : int
+        Length of batch.
+    eta : float
+
+    Returns
+    -------
+    data : Traj
+    """
     pris = (torch.abs(td_loss) + epsilon) ** alpha
     traj.data_map['pris'][indices] = pris.detach()
 

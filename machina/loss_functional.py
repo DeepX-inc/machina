@@ -310,6 +310,8 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     gamma : float
     sampling : int
         Number of samping in calculating expectation.
+    burn_in_length : int
+        Length of batches for burn-in.
     reparam : bool
         Reparameterization trick is used or not.
     normalize : bool
@@ -318,7 +320,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
 
     Returns
     -------
-    pol_loss, qf_loss, alpha_loss : torch.Tensor, torch.Tensor, torch.Tensor
+    pol_loss, qf_loss, alpha_loss, td_losses : torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
     """
 
     # trajectories for burn-in

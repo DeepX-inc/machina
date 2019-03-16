@@ -8,6 +8,7 @@ import torch.nn as nn
 
 from machina import loss_functional as lf
 from machina import logger
+from machina.traj import traj_functional as tf
 
 
 def train(traj,
@@ -41,6 +42,10 @@ def train(traj,
         Number of iteration.
     batch_size : int
         Number of batches.
+    seq_length : int
+        Length of batches.
+    burn_in_length : int
+        Length of batches for burn-in.
     tau : float
         Target updating rate.
     gamma : float
@@ -59,10 +64,8 @@ def train(traj,
     _qf_losses = []
     alpha_losses = []
     logger.log("Optimizing...")
-    from time import time
-    for batch in traj.random_batch_rnn(batch_size, seq_length, epoch):
-        start = time()
-        batch, pol_loss, qf_losses, alpha_loss = lf.r2d2_sac(
+    for batch, start_indices in traj.prioritized_random_batch_rnn(batch_size, seq_length, epoch, return_indices=True):
+        batch, pol_loss, qf_losses, alpha_loss, td_losses = lf.r2d2_sac(
             pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling, burn_in_length, reparam)
 
         optim_pol.zero_grad()
@@ -86,7 +89,14 @@ def train(traj,
         _qf_losses.append(
             (sum(qf_losses) / len(qf_losses)).detach().cpu().numpy())
         alpha_losses.append(alpha_loss.detach().cpu().numpy())
-        # print(time()-start)
+
+        # update seq_pris
+        train_length = seq_length - burn_in_length
+        for i in range(batch_size):
+            start = start_indices[i] + burn_in_length
+            seq_indices = torch.arange(start, start+train_length-1)
+            traj = tf.update_pris(
+                traj, td_losses[:, i], seq_indices, update_epi_pris=True, seq_length=seq_length)
 
     logger.log("Optimization finished!")
 
@@ -94,4 +104,4 @@ def train(traj,
         PolLoss=pol_losses,
         QfLoss=_qf_losses,
         AlphaLoss=alpha_losses
-    )
+    ), traj
