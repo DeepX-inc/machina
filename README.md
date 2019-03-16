@@ -125,7 +125,7 @@ This class enables stable policy learning.
 + [Trust Region Policy Optimization](https://arxiv.org/abs/1502.05477) (RNN is supported.)
 ### Model-Free Off-Policy RL
 This class enables high generalization.
-+ [Soft Actor Critic](https://arxiv.org/abs/1801.01290)
++ [Soft Actor Critic](https://arxiv.org/abs/1801.01290) (RNN is supported with R2D2 like burn in and saving hidden states methods.)
 + [QT-Opt](https://arxiv.org/abs/1806.10293)
 + [Deep Deterministic Policy Gradient](https://arxiv.org/abs/1509.02971)
 + [Stochastic Value Gradient](https://arxiv.org/abs/1510.09142)
