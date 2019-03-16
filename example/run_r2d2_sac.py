@@ -51,8 +51,8 @@ parser.add_argument('--data_parallel', action='store_true', default=False,
 parser.add_argument('--max_steps_per_iter', type=int, default=10000,
                     help='Number of steps to use in an iteration.')
 parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--seq_length', type=int, default=120)
-parser.add_argument('--burn_in_length', type=int, default=40)
+parser.add_argument('--seq_length', type=int, default=60)
+parser.add_argument('--burn_in_length', type=int, default=20)
 parser.add_argument('--sampling', type=int, default=1,
                     help='Number of sampling in calculation of expectation.')
 parser.add_argument('--no_reparam', action='store_true', default=False)
