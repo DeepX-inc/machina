@@ -96,22 +96,22 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = PolNetLSTM(ob_space, ac_space)  # , h_size=200, cell_size=100)
+pol_net = PolNetLSTM(ob_space, ac_space)
 pol = GaussianPol(ob_space, ac_space, pol_net, rnn=True,
                   data_parallel=args.data_parallel, parallel_dim=0)
 
-qf_net1 = QNetLSTM(ob_space, ac_space)  # , h_size=200, cell_size=100)
+qf_net1 = QNetLSTM(ob_space, ac_space)
 qf1 = DeterministicSAVfunc(ob_space, ac_space, qf_net1, rnn=True,
                            data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net1 = QNetLSTM(ob_space, ac_space)  # , h_size=200, cell_size=100)
+targ_qf_net1 = QNetLSTM(ob_space, ac_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
 targ_qf1 = DeterministicSAVfunc(
     ob_space, ac_space, targ_qf_net1, rnn=True, data_parallel=args.data_parallel, parallel_dim=0)
 
-qf_net2 = QNetLSTM(ob_space, ac_space)  # , h_size=200, cell_size=100)
+qf_net2 = QNetLSTM(ob_space, ac_space)
 qf2 = DeterministicSAVfunc(ob_space, ac_space, qf_net2, rnn=True,
                            data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net2 = QNetLSTM(ob_space, ac_space)  # , h_size=200, cell_size=100)
+targ_qf_net2 = QNetLSTM(ob_space, ac_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
 targ_qf2 = DeterministicSAVfunc(
     ob_space, ac_space, targ_qf_net2, rnn=True, data_parallel=args.data_parallel, parallel_dim=0)
@@ -144,6 +144,9 @@ while args.max_epis > total_epi:
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
+        max_pri = on_traj.get_max_pri()
+        on_traj = ef.set_all_pris(on_traj, max_pri)
+        on_traj = ef.compute_seq_pris(on_traj, args.seq_length)
         on_traj = ef.compute_h_masks(on_traj)
         for i in range(len(qfs)):
             on_traj = ef.compute_hs(
@@ -162,7 +165,7 @@ while args.max_epis > total_epi:
             pol.dp_run = True
             qf.dp_run = True
 
-        result_dict = r2d2_sac.train(
+        result_dict, off_traj = r2d2_sac.train(
             off_traj,
             pol, qfs, targ_qfs, log_alpha,
             optim_pol, optim_qfs, optim_alpha,
