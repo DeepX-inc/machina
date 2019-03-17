@@ -115,33 +115,16 @@ result_dict2 = sac.train(
 You can see the full example code [here](https://github.com/DeepX-inc/machina/blob/master/example/run_ppo_sac.py).
 
 To obtain this composability, machina's sampling method is deliberatly restricted to be episode-based because episode-based sampling is suitable for real-world environments. Moreover, some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
-
-
-## Implemented Algorithms
-The algorithms classes described below are useful for real-world Deep Reinforcement Learning.
-+ Model-Free On-Policy RL
-
-  This class enables stable policy learning.
-+ Model-Free Off-Policy RL
-
-  This class enables high generalization.
-+ Model-Based RL
-
-  This class enables high sample efficiency.
-+ Imitation Learning
-
-  This class removes the need for reward designing.
-+ Policy Distillation
-
-  This class enables fast forward computation and reduces necessary computation resources during deployment of policy.
 <TABLE>
 <TR>
   <TH> CLASS</TH>
+  <TH> Merit</TH>
   <TH> ALGORITHM</TH>
   <TH> SUPPORT</TH>
 </TR>
 <TR>
   <TD rowspan="2">Model-Free On-Policy RL</TD>
+  <TD rowspan="2"> stable policy learning</TD>
   <TD><a href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization</a></TD>
   <TD>RNN</TD>
 </TR>
@@ -151,6 +134,7 @@ The algorithms classes described below are useful for real-world Deep Reinforcem
 </TR>
 <TR>
   <TD rowspan="4">Model-Free Off-Policy RL</TD>
+  <TD rowspan="4"> high generalization</TD>
   <TD><a href="https://arxiv.org/abs/1801.01290">Soft Actor Critic</a></TD>
   <TD><font color="Red">R2D2<sup>&lowast;</sup></font></TD>
 </TR>
@@ -168,11 +152,13 @@ The algorithms classes described below are useful for real-world Deep Reinforcem
 </TR>
 <TR>
   <TD>Model-Based RL</TD>
+  <TD> high sample efficiency</TD>
   <TD><a href="https://arxiv.org/abs/1708.02596">Model Predictive Control</a></TD>
   <TD>RNN</TD>
 </TR>
 <TR>
   <TD rowspan="3">Imitation Learning</TD>
+  <TD rowspan="3">removal of the need for reward designing</TD>
   <TD>Behavior Cloning</TD>
   <TD></TD>
 </TR>
@@ -186,6 +172,7 @@ The algorithms classes described below are useful for real-world Deep Reinforcem
 </TR>
 <TR>
   <TD>Policy Distillation</TD>
+  <TD>reduction of necessary computation resources during deployment of policy</TD>
   <TD><a href="https://arxiv.org/abs/1902.02186">Teacher Distillation</a></TD>
   <TD></TD>
 </TR>
