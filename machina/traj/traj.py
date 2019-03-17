@@ -60,12 +60,14 @@ class Traj(object):
             for key in data_map:
                 if remain_index is not None:
                     self.data_map[key] = torch.cat(
-                        [self.data_map[key][self._epis_index[remain_index]:], data_map[key]], dim=0)
+                        [self.data_map[key][self._epis_index[remain_index]:], data_map[key].to(self.traj_device())], dim=0)
                 else:
                     self.data_map[key] = torch.cat(
-                        [self.data_map[key], data_map[key]], dim=0)
+                        [self.data_map[key], data_map[key].to(self.traj_device())], dim=0)
         else:
-            self.data_map = data_map
+            self.data_map = dict()
+            for key in data_map:
+                self.data_map[key] = data_map[key].to(self.traj_device())
 
     def register_epis(self):
         epis = self.current_epis
