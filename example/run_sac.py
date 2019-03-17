@@ -53,6 +53,7 @@ parser.add_argument('--max_steps_per_iter', type=int, default=10000,
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--sampling', type=int, default=1,
                     help='Number of sampling in calculation of expectation.')
+parser.add_argument('--no_reparam', action='store_true', default=False)
 parser.add_argument('--pol_lr', type=float, default=1e-4,
                     help='Policy learning rate')
 parser.add_argument('--qf_lr', type=float, default=3e-4,
