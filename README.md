@@ -115,6 +115,9 @@ result_dict2 = sac.train(
 You can see the full example code [here](https://github.com/DeepX-inc/machina/blob/master/example/run_ppo_sac.py).
 
 To obtain this composability, machina's sampling method is deliberatly restricted to be episode-based because episode-based sampling is suitable for real-world environments. Moreover, some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
+
+## Implemented Algorithms
+The algorithms classes described below are useful for real-world Deep Reinforcement Learning.
 <TABLE>
 <TR>
   <TH> CLASS</TH>
