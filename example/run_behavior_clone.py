@@ -41,8 +41,6 @@ parser.add_argument('--num_parallel', type=int, default=4,
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 parser.add_argument('--data_parallel', action='store_true', default=False,
                     help='If True, inference is done in parallel on gpus.')
-parser.add_argument('--rnn', action='store_true',
-                    default=False, help='If True, network is reccurent.')
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
 parser.add_argument('--expert_fname', type=str,
@@ -101,19 +99,16 @@ if args.c2d:
 ob_space = env.observation_space
 ac_space = env.action_space
 
-if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
-else:
-    pol_net = PolNet(ob_space, ac_space)
+pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn,
-                      data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+    pol = GaussianPol(ob_space, ac_space, pol_net,
+                      data_parallel=args.data_parallel)
 elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn,
-                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+    pol = CategoricalPol(ob_space, ac_space, pol_net,
+                         data_parallel=args.data_parallel)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn,
-                              data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+    pol = MultiCategoricalPol(
+        ob_space, ac_space, pol_net, data_parallel=args.data_parallel)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
