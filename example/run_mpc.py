@@ -130,7 +130,7 @@ rand_sampler = EpiSampler(
 
 epis = rand_sampler.sample(random_pol, max_epis=args.num_random_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
-traj = Traj()
+traj = Traj(traj_device='cpu')
 traj.add_epis(epis)
 traj = ef.add_next_obs(traj)
 traj = ef.compute_h_masks(traj)
@@ -173,7 +173,7 @@ while args.max_epis > total_epi:
         epis = rl_sampler.sample(
             mpc_pol, max_epis=args.max_epis_per_iter)
 
-        curr_traj = Traj()
+        curr_traj = Traj(traj_device='cpu')
         curr_traj.add_epis(epis)
 
         curr_traj = ef.add_next_obs(curr_traj)
