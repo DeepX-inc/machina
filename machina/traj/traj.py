@@ -47,7 +47,7 @@ class Traj(object):
 
     @property
     def num_step(self):
-        return self._epis_index[-1]
+        return int(self._epis_index[-1])
 
     @property
     def num_epi(self):
