@@ -14,5 +14,5 @@ install:
 script:
     - autopep8 -r . --diff | tee check_autopep8
     - test ! -s check_autopep8
-    - nosetests -x tests --process-timeout 2000 --with-coverage --cover-package machina-rl
+    - nosetests -x tests --process-timeout 2000
 sudo: false
