@@ -151,7 +151,8 @@ class Traj(object):
 
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][cur_id:cur_id+cur_batch_size].to(get_device())
+            data_map[key] = self.data_map[key][cur_id:cur_id +
+                                               cur_batch_size].to(get_device())
         return data_map
 
     def iterate_once(self, batch_size, indices=None, shuffle=True):
@@ -227,7 +228,8 @@ class Traj(object):
 
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][indices[:batch_size]].to(get_device())
+            data_map[key] = self.data_map[key][indices[:batch_size]].to(
+                get_device())
         if return_indices:
             return data_map, indices
         else:
@@ -520,6 +522,7 @@ class Traj(object):
                 _batch = dict()
                 keys = batch[0].keys()
                 for key in keys:
-                    _batch[key] = pad_sequence([b[key] for b in batch]).to(get_device())
+                    _batch[key] = pad_sequence(
+                        [b[key] for b in batch]).to(get_device())
                 _batch['out_masks'] = out_masks.get_device()
                 yield _batch
