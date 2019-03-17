@@ -53,10 +53,10 @@ def pg_clip(pol, batch, clip_param, ent_beta):
     pol_loss1 = - ratio * advs
     pol_loss2 = - torch.clamp(ratio, 1.0 - clip_param, 1.0 + clip_param) * advs
     pol_loss = torch.max(pol_loss1, pol_loss2)
-    pol_loss = torch.mean(pol_loss * out_masks)
+    pol_loss = torch.sum(pol_loss * out_masks) / torch.sum(out_masks)
 
     ent = pd.ent(pd_params)
-    pol_loss -= ent_beta * torch.mean(ent)
+    pol_loss -= ent_beta * torch.sum(ent * out_masks) / torch.sum(out_masks)
 
     return pol_loss
 
@@ -99,18 +99,18 @@ def pg_kl(pol, batch, kl_beta, ent_beta=0):
 
     new_llh = pol.pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)
-    pol_loss = ratio * advs * out_masks
+    pol_loss = torch.sum(ratio * advs * out_masks) / torch.sum(out_masks)
 
     kl = pol.pd.kl_pq(
         batch,
         pd_params
     )
 
-    pol_loss -= kl_beta * kl * out_masks
-    pol_loss = - torch.mean(pol_loss)
+    kl_loss = kl_beta * torch.sum(kl * out_masks) / torch.sum(out_masks)
+    pol_loss = -pol_loss + kl_loss
 
     ent = pd.ent(pd_params)
-    pol_loss -= ent_beta * torch.mean(ent)
+    pol_loss -= ent_beta * torch.sum(ent * out_masks) / torch.sum(out_masks)
     return pol_loss
 
 
@@ -538,9 +538,11 @@ def pg(pol, batch, ent_beta=0):
 
     llh = pol.pd.llh(acs, pd_params)
 
-    pol_loss = - torch.mean(llh * advs * out_masks)
+    pol_loss = - torch.sum(llh * advs * out_masks) / torch.sum(out_masks)
+
     ent = pd.ent(pd_params)
-    pol_loss -= ent_beta * torch.mean(ent)
+    pol_loss -= ent_beta * torch.sum(ent * out_masks) / torch.sum(out_masks)
+
     return pol_loss
 
 
@@ -577,9 +579,10 @@ def monte_carlo(vf, batch, clip_param=0.2, clip=False):
         vpredclipped = old_vs + \
             torch.clamp(vs - old_vs, -clip_param, clip_param)
         vfloss2 = (vpredclipped - rets)**2
-        vf_loss = 0.5 * torch.mean(torch.max(vfloss1, vfloss2) * out_masks)
+        vf_loss = 0.5 * torch.sum(torch.max(vfloss1, vfloss2)
+                                  * out_masks) / torch.sum(out_masks)
     else:
-        vf_loss = 0.5 * torch.mean(vfloss1 * out_masks)
+        vf_loss = 0.5 * torch.sum(vfloss1 * out_masks) / torch.sum(out_masks)
     return vf_loss
 
 
@@ -617,7 +620,8 @@ def dynamics(dm, batch, target='next_obs', td=True):
         dm_loss = (pred - batch[target])**2
     else:
         dm_loss = (pred - (batch['next_obs'] - batch['obs']))**2
-    dm_loss = 0.5 * torch.mean(torch.mean(dm_loss, dim=-1) * out_masks)
+    dm_loss = 0.5 * torch.sum(torch.mean(dm_loss, dim=-1)
+                              * out_masks) / torch.sum(out_masks)
 
     return dm_loss
 
