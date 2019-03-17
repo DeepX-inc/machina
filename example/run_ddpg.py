@@ -98,7 +98,7 @@ pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net, noise)
 
 targ_pol_net = PolNet(ob_space, ac_space, args.h1, args.h2, deterministic=True)
 targ_pol_net.load_state_dict(pol_net.state_dict())
-targ_noise = OUActionNoise(ac_space.shape)
+targ_noise = OUActionNoise(ac_space)
 targ_pol = DeterministicActionNoisePol(
     ob_space, ac_space, targ_pol_net, targ_noise)
 
