@@ -224,11 +224,12 @@ class Traj(object):
         -------
         data_map : dict of torch.Tensor
         """
-        indices = self._get_indices(indices, shuffle=True)
+        #indices = self._get_indices(indices, shuffle=True)
+        indices = torch.randint(0, self.num_step - 1, size=(batch_size, ))
 
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][indices[:batch_size]].to(
+            data_map[key] = self.data_map[key][indices].to(
                 get_device())
         if return_indices:
             return data_map, indices
