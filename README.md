@@ -119,18 +119,21 @@ To obtain this composability, machina's sampling method is deliberatly restricte
 
 ## Implemented Algorithms
 The algorithms classes described below are useful for real-world Deep Reinforcement Learning.
-### Model-Free On-Policy RL
-This class enables stable policy learning.
-### Model-Free Off-Policy RL
-This class enables high generalization.
-### Model-Based RL
-This class enables high sample efficiency.
-### Imitation Learning
-This class removes the need for reward designing.
-### Policy Distillation
-This class enables fast forward computation and reduces necessary computation resources during deployment of policy.
-+ [Teacher Distillation](https://arxiv.org/abs/1902.02186)
++ Model-Free On-Policy RL
 
+This class enables stable policy learning.
++ Model-Free Off-Policy RL
+
+This class enables high generalization.
++ Model-Based RL
+
+This class enables high sample efficiency.
++ Imitation Learning
+
+This class removes the need for reward designing.
++ Policy Distillation
+
+This class enables fast forward computation and reduces necessary computation resources during deployment of policy.
 <TABLE>
 <TR>
   <TH> CLASS</TH>
