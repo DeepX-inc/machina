@@ -22,9 +22,16 @@ class Traj(object):
     An episode is a sequence of steps.
 
     This class provides batch methods.
+
+    Parameters
+    ----------
+    max_steps: None or int
+        Specifying maximum steps to be saved in Traj.
+    traj_device: None or str or torch.device
+        Device name Traj is allocated.
     """
 
-    def __init__(self, max_steps=None):
+    def __init__(self, max_steps=None, traj_device=None):
         self.data_map = dict()
         self._next_id = 0
 
@@ -32,6 +39,11 @@ class Traj(object):
         self._epis_index = np.array([0])
 
         self.max_steps = max_steps if max_steps is not None else LARGE_NUMBER
+
+        if traj_device is None:
+            self.traj_device = lambda: get_device()
+        else:
+            self.traj_device = lambda: traj_device
 
     @property
     def num_step(self):
@@ -55,12 +67,14 @@ class Traj(object):
             for key in data_map:
                 if remain_index is not None:
                     self.data_map[key] = torch.cat(
-                        [self.data_map[key][self._epis_index[remain_index]:], data_map[key]], dim=0)
+                        [self.data_map[key][self._epis_index[remain_index]:], data_map[key].to(self.traj_device())], dim=0)
                 else:
                     self.data_map[key] = torch.cat(
-                        [self.data_map[key], data_map[key]], dim=0)
+                        [self.data_map[key], data_map[key].to(self.traj_device())], dim=0)
         else:
-            self.data_map = data_map
+            self.data_map = dict()
+            for key in data_map:
+                self.data_map[key] = data_map[key].to(self.traj_device())
 
     def register_epis(self):
         epis = self.current_epis
@@ -69,12 +83,12 @@ class Traj(object):
         for key in keys:
             if isinstance(epis[0][key], list) or isinstance(epis[0][key], np.ndarray):
                 data_map[key] = torch.tensor(np.concatenate(
-                    [epi[key] for epi in epis], axis=0), dtype=torch.float, device=get_device())
+                    [epi[key] for epi in epis], axis=0), dtype=torch.float, device=self.traj_device())
             elif isinstance(epis[0][key], dict):
                 new_keys = epis[0][key].keys()
                 for new_key in new_keys:
                     data_map[new_key] = torch.tensor(np.concatenate(
-                        [epi[key][new_key] for epi in epis], axis=0), dtype=torch.float, device=get_device())
+                        [epi[key][new_key] for epi in epis], axis=0), dtype=torch.float, device=self.traj_device())
 
         self._concat_data_map(data_map)
 
@@ -120,12 +134,12 @@ class Traj(object):
             self._epis_index = traj._epis_index[:remain_index+1]
 
     def _shuffled_indices(self, indices):
-        return indices[torch.randperm(len(indices), device=get_device())]
+        return indices[torch.randperm(len(indices))]
 
     def _get_indices(self, indices=None, shuffle=True):
         if indices is None:
             indices = torch.arange(
-                self.num_step, device=get_device(), dtype=torch.long)
+                self.num_step, dtype=torch.long)
         if shuffle:
             indices = self._shuffled_indices(indices)
         return indices
@@ -137,7 +151,8 @@ class Traj(object):
 
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][cur_id:cur_id+cur_batch_size]
+            data_map[key] = self.data_map[key][cur_id:cur_id +
+                                               cur_batch_size].to(get_device())
         return data_map
 
     def iterate_once(self, batch_size, indices=None, shuffle=True):
@@ -213,7 +228,8 @@ class Traj(object):
 
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][indices[:batch_size]]
+            data_map[key] = self.data_map[key][indices[:batch_size]].to(
+                get_device())
         if return_indices:
             return data_map, indices
         else:
@@ -244,7 +260,7 @@ class Traj(object):
 
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][indices]
+            data_map[key] = self.data_map[key][indices].to(get_device())
         if return_indices:
             return data_map, indices
         else:
@@ -277,7 +293,7 @@ class Traj(object):
         for key in keys:
             batch[key] = torch.stack([seq[key] for seq in seqs], dim=0)
             # (batch_size, seq_length, *) -> (seq_length, batch_size, *)
-            batch[key] = batch[key].transpose(0, 1)
+            batch[key] = batch[key].transpose(0, 1).to(get_device())
 
         if return_indices:
             return batch, start_indices
@@ -362,7 +378,7 @@ class Traj(object):
             for key in keys:
                 batch[key] = torch.stack([seq[key] for seq in seqs])
                 # (batch_size, seq_length, *) -> (seq_length, batch_size, *)
-                batch[key] = batch[key].transpose(0, 1)
+                batch[key] = batch[key].transpose(0, 1).to(get_device())
             out_masks = torch.ones(
                 (seq_length, batch_size), dtype=torch.float, device=get_device())
             for i in range(batch_size):
@@ -424,11 +440,14 @@ class Traj(object):
         -------
         data_map : dict of torch.Tensor
         """
+        data_map = dict()
+        for key in self.data_map:
+            data_map[key] = self.data_map[key].to(get_device())
         for _ in range(epoch):
             if return_indices:
-                yield self.data_map, torch.arange(self.num_step, device=get_device())
+                yield data_map, torch.arange(self.num_step)
             else:
-                yield self.data_map
+                yield data_map
 
     def iterate_epi(self, shuffle=True):
         """
@@ -446,7 +465,7 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]                                                   :self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i+1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
@@ -506,6 +525,7 @@ class Traj(object):
                 _batch = dict()
                 keys = batch[0].keys()
                 for key in keys:
-                    _batch[key] = pad_sequence([b[key] for b in batch])
-                _batch['out_masks'] = out_masks
+                    _batch[key] = pad_sequence(
+                        [b[key] for b in batch]).to(get_device())
+                _batch['out_masks'] = out_masks.to(get_device())
                 yield _batch

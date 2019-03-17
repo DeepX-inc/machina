@@ -53,6 +53,7 @@ parser.add_argument('--max_steps_per_iter', type=int, default=10000,
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--sampling', type=int, default=1,
                     help='Number of sampling in calculation of expectation.')
+parser.add_argument('--no_reparam', action='store_true', default=False)
 parser.add_argument('--pol_lr', type=float, default=1e-4,
                     help='Policy learning rate')
 parser.add_argument('--qf_lr', type=float, default=3e-4,
@@ -126,7 +127,7 @@ optim_qf2 = torch.optim.Adam(qf_net2.parameters(), args.qf_lr)
 optim_qfs = [optim_qf1, optim_qf2]
 optim_alpha = torch.optim.Adam([log_alpha], args.pol_lr)
 
-off_traj = Traj(args.max_steps_off)
+off_traj = Traj(args.max_steps_off, traj_device='cpu')
 
 total_epi = 0
 total_step = 0
@@ -137,7 +138,7 @@ while args.max_epis > total_epi:
         epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
 
     with measure('train'):
-        on_traj = Traj()
+        on_traj = Traj(traj_device='cpu')
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
@@ -151,7 +152,9 @@ while args.max_epis > total_epi:
 
         if args.data_parallel:
             pol.dp_run = True
-            qf.dp_run = True
+            for qf, targ_qf in zip(qfs, targ_qfs):
+                qf.dp_run = True
+                targ_qf.dp_run = True
 
         result_dict = sac.train(
             off_traj,
@@ -163,7 +166,9 @@ while args.max_epis > total_epi:
 
         if args.data_parallel:
             pol.dp_run = False
-            qf.dp_run = False
+            for qf, targ_qf in zip(qfs, targ_qfs):
+                qf.dp_run = False
+                targ_qf.dp_run = False
 
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)

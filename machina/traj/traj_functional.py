@@ -31,7 +31,7 @@ def update_pris(traj, td_loss, indices, alpha=0.6, epsilon=1e-6, update_epi_pris
     data : Traj
     """
     pris = (torch.abs(td_loss) + epsilon) ** alpha
-    traj.data_map['pris'][indices] = pris.detach()
+    traj.data_map['pris'][indices] = pris.detach().to(traj.traj_device())
 
     if update_epi_pris:
         epi_start = -1
