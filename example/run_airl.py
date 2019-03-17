@@ -75,8 +75,6 @@ parser.add_argument('--pol_ent_beta', type=float, default=0,
 parser.add_argument('--discrim_ent_beta', type=float, default=0,
                     help='Entropy coefficient for discriminator.')
 
-parser.add_argument('--rnn', action='store_true',
-                    default=False, help='If True, network is reccurent.')
 parser.add_argument('--max_grad_norm', type=float, default=10,
                     help='Value of maximum gradient norm.')
 
@@ -142,38 +140,33 @@ if args.c2d:
 ob_space = env.observation_space
 ac_space = env.action_space
 
-if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
-else:
-    pol_net = PolNet(ob_space, ac_space)
+
+pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = GaussianPol(ob_space, ac_space, pol_net, data_parallel=args.data_parallel)
 elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = CategoricalPol(ob_space, ac_space, pol_net, data_parallel=args.data_parallel)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, data_parallel=args.data_parallel)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
-if args.rnn:
-    vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
-else:
-    vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net, args.rnn,
-                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+vf_net = VNet(ob_space)
+vf = DeterministicSVfunc(ob_space, vf_net,
+                         data_parallel=args.data_parallel)
 
 if args.rew_type == 'rew':
     rewf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
-    rewf = DeterministicSVfunc(ob_space, rewf_net)
+    rewf = DeterministicSVfunc(ob_space, rewf_net, data_parallel=args.data_parallel)
     shaping_vf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
-    shaping_vf = DeterministicSVfunc(ob_space, shaping_vf_net)
+    shaping_vf = DeterministicSVfunc(ob_space, shaping_vf_net, data_parallel=args.data_parallel)
     optim_discrim = torch.optim.Adam(
         list(rewf_net.parameters()) + list(shaping_vf_net.parameters()), args.discrim_lr)
     advf = None
 elif args.rew_type == 'adv':
     advf_net = DiscrimNet(ob_space, ac_space,
                           h1=args.discrim_h1, h2=args.discrim_h2)
-    advf = DeterministicSAVfunc(ob_space, ac_space, advf_net)
+    advf = DeterministicSAVfunc(ob_space, ac_space, advf_net, data_parallel=args.data_parallel)
     optim_discrim = torch.optim.Adam(advf_net.parameters(), args.discrim_lr)
     rewf = None
     shaping_vf = None
