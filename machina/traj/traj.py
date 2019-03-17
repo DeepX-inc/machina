@@ -440,11 +440,14 @@ class Traj(object):
         -------
         data_map : dict of torch.Tensor
         """
+        data_map = dict()
+        for key in self.data_map:
+            data_map[key] = self.data_map[key].to(get_device())
         for _ in range(epoch):
             if return_indices:
-                yield self.data_map.to(get_device()), torch.arange(self.num_step, device=get_device())
+                yield data_map, torch.arange(self.num_step)
             else:
-                yield self.data_map
+                yield data_map
 
     def iterate_epi(self, shuffle=True):
         """
