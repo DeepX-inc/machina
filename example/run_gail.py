@@ -26,7 +26,7 @@ from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import measure, set_device
 
-from simple_net import PolNet, PolNetLSTM, VNet, DiscrimNet
+from simple_net import PolNet, PolNetLSTM, VNet, VNetLSTM, DiscrimNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', type=str, default='garbage',
@@ -43,6 +43,8 @@ parser.add_argument('--max_epis', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
+parser.add_argument('--data_parallel', action='store_true', default=False,
+                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis',
                     help='Directory path storing file of expert trajectory.')
@@ -134,20 +136,29 @@ if args.rnn:
 else:
     pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn,
+                      data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                              data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
-vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
+if args.rnn:
+    vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
+else:
+    vf_net = VNet(ob_space)
+vf = DeterministicSVfunc(ob_space, vf_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
+
 
 discrim_net = DiscrimNet(
     ob_space, ac_space, h1=args.discrim_h1, h2=args.discrim_h2)
-discrim = DeterministicSAVfunc(ob_space, ac_space, discrim_net)
+discrim = DeterministicSAVfunc(
+    ob_space, ac_space, discrim_net, data_parallel=args.data_parallel)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
@@ -193,6 +204,11 @@ while args.max_epis > total_epi:
         agent_traj = ef.compute_h_masks(agent_traj)
         agent_traj.register_epis()
 
+        if args.data_parallel:
+            pol.dp_run = True
+            vf.dp_run = True
+            discrim.dp_run = True
+
         if args.rl_type == 'trpo':
             result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
                                      rl_type=args.rl_type,
@@ -222,6 +238,11 @@ while args.max_epis > total_epi:
                                      optim_pol=optim_pol,
                                      kl_beta=kl_beta, kl_targ=args.kl_targ, max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
+
+        if args.data_parallel:
+            pol.dp_run = False
+            vf.dp_run = False
+            discrim.dp_run = False
 
     total_epi += agent_traj.num_epi
     step = agent_traj.num_step
