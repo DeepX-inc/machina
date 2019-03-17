@@ -579,7 +579,8 @@ def monte_carlo(vf, batch, clip_param=0.2, clip=False):
         vpredclipped = old_vs + \
             torch.clamp(vs - old_vs, -clip_param, clip_param)
         vfloss2 = (vpredclipped - rets)**2
-        vf_loss = 0.5 * torch.sum(torch.max(vfloss1, vfloss2) * out_masks) / torch.sum(out_masks)
+        vf_loss = 0.5 * torch.sum(torch.max(vfloss1, vfloss2)
+                                  * out_masks) / torch.sum(out_masks)
     else:
         vf_loss = 0.5 * torch.sum(vfloss1 * out_masks) / torch.sum(out_masks)
     return vf_loss
@@ -619,7 +620,8 @@ def dynamics(dm, batch, target='next_obs', td=True):
         dm_loss = (pred - batch[target])**2
     else:
         dm_loss = (pred - (batch['next_obs'] - batch['obs']))**2
-    dm_loss = 0.5 * torch.sum(torch.mean(dm_loss, dim=-1) * out_masks) / torch.sum(out_masks)
+    dm_loss = 0.5 * torch.sum(torch.mean(dm_loss, dim=-1)
+                              * out_masks) / torch.sum(out_masks)
 
     return dm_loss
 
