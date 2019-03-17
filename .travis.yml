@@ -7,6 +7,7 @@ python:
 install:
     - pip install --upgrade pip setuptools wheel
     - pip install --default-timeout=2000 -q -e .
+    - pip list
     - pip install autopep8
     - curl -sc /tmp/cookie "https://drive.google.com/uc?export=download&id=1hzRxBhnkQA3lWLzTFdVuJ0t5Cj1IvVIU" > /dev/null
     - CODE="$(awk '/_warning_/ {print $NF}' /tmp/cookie)"
