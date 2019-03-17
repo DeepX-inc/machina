@@ -107,7 +107,7 @@ def pg_kl(pol, batch, kl_beta, ent_beta=0):
     )
 
     kl_loss = kl_beta * torch.sum(kl * out_masks) / torch.sum(out_masks)
-    pol_loss = -(pol_loss + kl_loss)
+    pol_loss = -pol_loss + kl_loss
 
     ent = pd.ent(pd_params)
     pol_loss -= ent_beta * torch.sum(ent * out_masks) / torch.sum(out_masks)
