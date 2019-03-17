@@ -21,9 +21,9 @@ install_requires = [
 ]
 
 setup(
-    name='machina',
+    name='machina-rl',
     version='0.2.0',
-    description='Machina is a library for a deep reinforcement learning.',
+    description='machina is a library for a deep reinforcement learning.',
     long_description=readme,
     author='Reiji Hatsugai',
     author_email='reiji.hatsugai@deepx.co.jp',
