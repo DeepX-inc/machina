@@ -22,6 +22,13 @@ class Traj(object):
     An episode is a sequence of steps.
 
     This class provides batch methods.
+
+    Parameters
+    ----------
+    max_steps: None or int
+        Specifying maximum steps to be saved in Traj.
+    traj_device: None or str or torch.device
+        Device name Traj is allocated.
     """
 
     def __init__(self, max_steps=None, traj_device=None):
