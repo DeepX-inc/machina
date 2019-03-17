@@ -134,12 +134,12 @@ class Traj(object):
             self._epis_index = traj._epis_index[:remain_index+1]
 
     def _shuffled_indices(self, indices):
-        return indices[torch.randperm(len(indices), device=self.traj_device())]
+        return indices[torch.randperm(len(indices))]
 
     def _get_indices(self, indices=None, shuffle=True):
         if indices is None:
             indices = torch.arange(
-                self.num_step, device=self.traj_device(), dtype=torch.long)
+                self.num_step, dtype=torch.long)
         if shuffle:
             indices = self._shuffled_indices(indices)
         return indices
