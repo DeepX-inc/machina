@@ -9,6 +9,7 @@ import torch.nn.functional as F
 
 from machina.utils import get_device
 from machina import loss_functional as lf
+from machina.traj import Traj
 
 
 def compute_vs(data, vf):
@@ -17,14 +18,19 @@ def compute_vs(data, vf):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
     vf : SVFunction
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     vf.reset()
     with torch.no_grad():
         for epi in epis:
@@ -40,16 +46,59 @@ def compute_vs(data, vf):
 
 
 def set_all_pris(data, pri):
-    epis = data.current_epis
+    """
+    Set prioritization to all episodes.
+
+    Parameters
+    ----------
+    data : Traj or epis(dict of ndarray)
+    pri : torch.Tensor
+
+    Returns
+    -------
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
+    """
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     for epi in epis:
         pris = pri.repeat(len(epi['obs']))
         epi['pris'] = pris.cpu().numpy()
+
     return data
 
 
 def compute_pris(data, qf, targ_qf, pol, gamma, continuous=True, deterministic=True, rnn=False, sampling=1, alpha=0.6, epsilon=1e-6):
+    """
+    Compute prioritization.
+
+    Parameters
+    ----------
+    data : Traj or epis(dict of ndarray)
+    qf : SAVfunction
+    targ_qf : SAVfunction
+    pol : Pol
+    gamma : float
+    continuous : bool
+    deterministic : bool
+    rnn : bool
+    sampling : int
+    alpha : float
+    epsilen : float
+
+    Returns
+    -------
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
+    """
     if continuous:
-        epis = data.current_epis
+        if isinstance(data, Traj):
+            epis = data.current_epis
+        else:
+            epis = data
         for epi in epis:
             data_map = dict()
             keys = ['obs', 'acs', 'rews', 'next_obs', 'dones']
@@ -80,16 +129,21 @@ def compute_seq_pris(data, seq_length, eta=0.9):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
     seq_length : int
         Length of batch
     eta : float
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     for epi in epis:
         n_seq = len(epi['pris']) - seq_length + 1
         abs_pris = np.abs(epi['pris'])
@@ -97,6 +151,7 @@ def compute_seq_pris(data, seq_length, eta=0.9):
                              np.mean(abs_pris[i:i+seq_length]) for i in range(n_seq)], dtype='float32')
         pad = np.zeros((seq_length - 1,), dtype='float32')
         epi['seq_pris'] = np.concatenate([seq_pris, pad])
+
     return data
 
 
@@ -106,15 +161,20 @@ def compute_rets(data, gamma):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
     gamma : float
         Discount rate
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     for epi in epis:
         rews = epi['rews']
         rets = np.empty(len(rews), dtype=np.float32)
@@ -132,7 +192,7 @@ def compute_advs(data, gamma, lam):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
     gamma : float
         Discount rate
     lam : float
@@ -140,9 +200,14 @@ def compute_advs(data, gamma, lam):
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     for epi in epis:
         rews = epi['rews']
         vs = epi['vs']
@@ -163,15 +228,20 @@ def compute_hs(data, func, hs_name='hs', input_acs=False):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
     func : 
         Any function. for example pols, vf and qf.
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     func.reset()
     with torch.no_grad():
         for epi in epis:
@@ -201,15 +271,20 @@ def centerize_advs(data, eps=1e-6):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
     eps : float
         Small value for preventing 0 division.
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     _advs = np.concatenate([epi['advs'] for epi in epis])
     for epi in epis:
         epi['advs'] = (epi['advs'] - np.mean(_advs)) / (np.std(_advs) + eps)
@@ -223,13 +298,18 @@ def add_next_obs(data):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     for epi in epis:
         obs = epi['obs']
         _obs = [ob for ob in obs]
@@ -246,13 +326,18 @@ def compute_h_masks(data):
 
     Parameters
     ----------
-    data : Traj
+    data : Traj or epis(dict of ndarray)
 
     Returns
     -------
-    data : Traj
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
     """
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     for epi in epis:
         h_masks = np.zeros_like(epi['rews'])
         h_masks[0] = 1
@@ -262,7 +347,11 @@ def compute_h_masks(data):
 
 
 def compute_pseudo_rews(data, rew_giver, state_only=False):
-    epis = data.current_epis
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
     for epi in epis:
         obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
         if state_only:
@@ -275,6 +364,7 @@ def compute_pseudo_rews(data, rew_giver, state_only=False):
             rews = -F.logsigmoid(-logits).cpu().numpy()
         epi['real_rews'] = copy.deepcopy(epi['rews'])
         epi['rews'] = rews
+
     return data
 
 
@@ -290,7 +380,10 @@ def train_test_split(epis, train_size):
 
 def normalize_obs_and_acs(data, mean_obs=None, std_obs=None, mean_acs=None, std_acs=None, return_statistic=True, eps=1e-6):
     with torch.no_grad():
-        epis = data.current_epis
+        if isinstance(data, Traj):
+            epis = data.current_epis
+        else:
+            epis = data
         obs = []
         acs = []
         for epi in epis:
