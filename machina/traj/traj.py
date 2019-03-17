@@ -524,5 +524,5 @@ class Traj(object):
                 for key in keys:
                     _batch[key] = pad_sequence(
                         [b[key] for b in batch]).to(get_device())
-                _batch['out_masks'] = out_masks.get_device()
+                _batch['out_masks'] = out_masks.to(get_device())
                 yield _batch
