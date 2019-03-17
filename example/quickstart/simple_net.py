@@ -62,7 +62,8 @@ class PolNet(nn.Module):
         if not self.discrete:
             mean = torch.tanh(self.mean_layer(h))
             if not self.deterministic:
-                return mean, self.log_std_param
+                log_std = self.log_std_param.expand_as(mean)
+                return mean, log_std
             else:
                 return mean
         else:
