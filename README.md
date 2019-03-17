@@ -121,7 +121,7 @@ The algorithms classes described below are useful for real-world Deep Reinforcem
 <TABLE>
 <TR>
   <TH> CLASS</TH>
-  <TH> Merit</TH>
+  <TH> MERIT</TH>
   <TH> ALGORITHM</TH>
   <TH> SUPPORT</TH>
 </TR>
