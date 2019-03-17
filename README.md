@@ -116,31 +116,71 @@ You can see the full example code [here](https://github.com/DeepX-inc/machina/bl
 
 To obtain this composability, machina's sampling method is deliberatly restricted to be episode-based because episode-based sampling is suitable for real-world environments. Moreover, some algorithms which update networks step by step (e.g. DQN, DDPG) are not reproduced in machina.
 
-
 ## Implemented Algorithms
 The algorithms classes described below are useful for real-world Deep Reinforcement Learning.
-### Model-Free On-Policy RL
-This class enables stable policy learning.
-+ [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347) (RNN is supported.)
-+ [Trust Region Policy Optimization](https://arxiv.org/abs/1502.05477) (RNN is supported.)
-### Model-Free Off-Policy RL
-This class enables high generalization.
-+ [Soft Actor Critic](https://arxiv.org/abs/1801.01290) (RNN is supported with R2D2 like burn in and saving hidden states methods.)
-+ [QT-Opt](https://arxiv.org/abs/1806.10293)
-+ [Deep Deterministic Policy Gradient](https://arxiv.org/abs/1509.02971)
-+ [Stochastic Value Gradient](https://arxiv.org/abs/1510.09142)
-### Model-Based RL
-This class enables high sample efficiency.
-+ [Model Predictive Control](https://arxiv.org/abs/1708.02596) (RNN is supported)
-### Imitation Learning
-This class removes the need for reward designing.
-+ Behavior Cloning
-+ [Generative Adversarial Imitation Learning](https://arxiv.org/abs/1606.03476)
-+ [Adversatial Inverse Reinforcement Learning](https://arxiv.org/abs/1710.11248)
-### Policy Distillation
-This class enables fast forward computation and reduces necessary computation resources during deployment of policy.
-+ [Teacher Distillation](https://arxiv.org/abs/1902.02186)
-
+<TABLE>
+<TR>
+  <TH> CLASS</TH>
+  <TH> MERIT</TH>
+  <TH> ALGORITHM</TH>
+  <TH> SUPPORT</TH>
+</TR>
+<TR>
+  <TD rowspan="2">Model-Free On-Policy RL</TD>
+  <TD rowspan="2"> stable policy learning</TD>
+  <TD><a href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization</a></TD>
+  <TD>RNN</TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1502.05477">Trust Region Policy Optimization</a></TD>
+  <TD>RNN</TD>
+</TR>
+<TR>
+  <TD rowspan="4">Model-Free Off-Policy RL</TD>
+  <TD rowspan="4"> high generalization</TD>
+  <TD><a href="https://arxiv.org/abs/1801.01290">Soft Actor Critic</a></TD>
+  <TD><font color="Red">R2D2<sup>&lowast;</sup></font></TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1806.10293">QT-Opt</a></TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1509.02971">Deep Deterministic Policy Gradient</a></TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1510.09142">Stochastic Value Gradient</a></TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD>Model-Based RL</TD>
+  <TD> high sample efficiency</TD>
+  <TD><a href="https://arxiv.org/abs/1708.02596">Model Predictive Control</a></TD>
+  <TD>RNN</TD>
+</TR>
+<TR>
+  <TD rowspan="3">Imitation Learning</TD>
+  <TD rowspan="3">removal of the need for reward designing</TD>
+  <TD>Behavior Cloning</TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1606.03476">Generative Adversarial Imitation Learning</a></TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1710.11248">Adversatial Inverse Reinforcement Learning</a></TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD>Policy Distillation</TD>
+  <TD>reduction of necessary computation resources during deployment of policy</TD>
+  <TD><a href="https://arxiv.org/abs/1902.02186">Teacher Distillation</a></TD>
+  <TD></TD>
+</TR>
+</TABLE>
+* R2D2 like burn in and saving hidden states methods
 
 ## Installation
 
