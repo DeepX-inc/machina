@@ -188,7 +188,7 @@ machina supports Ubuntu, Python3.5, 3.6, 3.7 and PyTorch1.0.0+.
 
 machina can be directly installed using PyPI.
 ```
-pip install machina
+pip install machina-rl
 ```
 
 Or you can install machina from source code.
