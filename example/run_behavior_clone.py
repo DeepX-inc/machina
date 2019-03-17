@@ -39,6 +39,8 @@ parser.add_argument('--max_epis', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
+parser.add_argument('--data_parallel', action='store_true', default=False,
+                    help='If True, inference is done in parallel on gpus.')
 parser.add_argument('--rnn', action='store_true',
                     default=False, help='If True, network is reccurent.')
 
@@ -100,18 +102,18 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=args.h1, cell_size=256)
+    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
 else:
-    pol_net = PolNet(ob_space, ac_space, h1=args.h1, h2=args.h2)
+    pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    if args.deterministic:
-        pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net)
-    else:
-        pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn,
+                      data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn,
+                              data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
@@ -136,11 +138,18 @@ logger.log('num_train_epi={}'.format(train_traj.num_epi))
 max_rew = -1e6
 
 for curr_epoch in range(args.epoch):
+    if args.data_parallel:
+        pol.dp_run = True
+
     result_dict = behavior_clone.train(
         train_traj, pol, optim_pol,
         args.batch_size
     )
     test_result_dict = behavior_clone.test(test_traj, pol)
+
+    if args.data_parallel:
+        pol.dp_run = False
+
     for key in test_result_dict.keys():
         result_dict[key] = test_result_dict[key]
 
