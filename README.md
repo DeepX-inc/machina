@@ -125,12 +125,8 @@ This class enables stable policy learning.
 This class enables high generalization.
 ### Model-Based RL
 This class enables high sample efficiency.
-+ [Model Predictive Control](https://arxiv.org/abs/1708.02596) (RNN is supported)
 ### Imitation Learning
 This class removes the need for reward designing.
-+ Behavior Cloning
-+ [Generative Adversarial Imitation Learning](https://arxiv.org/abs/1606.03476)
-+ [Adversatial Inverse Reinforcement Learning](https://arxiv.org/abs/1710.11248)
 ### Policy Distillation
 This class enables fast forward computation and reduces necessary computation resources during deployment of policy.
 + [Teacher Distillation](https://arxiv.org/abs/1902.02186)
@@ -153,11 +149,11 @@ This class enables fast forward computation and reduces necessary computation re
 <TR>
   <TD rowspan="4">Model-Free Off-Policy RL</TD>
   <TD><a href="https://arxiv.org/abs/1801.01290">Soft Actor Critic</a></TD>
-  <TD>R2D2</TD>
+  <TD><font color="Red">R2D2<sup>&lowast;</sup></font></TD>
 </TR>
 <TR>
   <TD><a href="https://arxiv.org/abs/1806.10293">QT-Opt</a></TD>
-  <TD>RNN</TD>
+  <TD></TD>
 </TR>
 <TR>
   <TD><a href="https://arxiv.org/abs/1509.02971">Deep Deterministic Policy Gradient</a></TD>
@@ -167,7 +163,31 @@ This class enables fast forward computation and reduces necessary computation re
   <TD><a href="https://arxiv.org/abs/1510.09142">Stochastic Value Gradient</a></TD>
   <TD></TD>
 </TR>
+<TR>
+  <TD>Model-Based RL</TD>
+  <TD><a href="https://arxiv.org/abs/1708.02596">Model Predictive Control</a></TD>
+  <TD>RNN</TD>
+</TR>
+<TR>
+  <TD rowspan="3">Imitation Learning</TD>
+  <TD>Behavior Cloning</TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1606.03476">Generative Adversarial Imitation Learning</a></TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD><a href="https://arxiv.org/abs/1710.11248">Adversatial Inverse Reinforcement Learning</a></TD>
+  <TD></TD>
+</TR>
+<TR>
+  <TD>Policy Distillation</TD>
+  <TD><a href="https://arxiv.org/abs/1902.02186">Teacher Distillation</a></TD>
+  <TD></TD>
+</TR>
 </TABLE>
+* R2D2 like burn in and saving hidden states methods
 
 ## Installation
 
