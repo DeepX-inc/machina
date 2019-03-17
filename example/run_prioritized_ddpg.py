@@ -23,7 +23,7 @@ from machina.envs import GymEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
-from machina.misc import logger
+from machina import logger
 from machina.utils import set_device, measure
 
 from simple_net import PolNet, QNet
