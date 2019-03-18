@@ -50,7 +50,7 @@ parser.add_argument('--data_parallel', action='store_true', default=False,
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000,
                     help='Number of steps to use in an iteration.')
-parser.add_argument('--rnn_batch_size', type=int, default=32,
+parser.add_argument('--rnn_batch_size', type=int, default=8,
                     help='Number of sequences included in batch of rnn.')
 parser.add_argument('--seq_length', type=int, default=60,
                     help='Length of batches.')
