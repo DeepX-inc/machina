@@ -40,6 +40,8 @@ parser.add_argument('--epoch_per_iter', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--rnn', action='store_true', default=False)
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
 
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
@@ -110,7 +112,7 @@ while args.max_epis > total_epi:
         traj.register_epis()
 
         result_dict = trpo.train(
-            traj, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
+            traj, pol, vf, optim_vf, args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
 
     total_epi += traj.num_epi
     step = traj.num_step
