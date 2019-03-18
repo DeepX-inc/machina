@@ -167,7 +167,7 @@ The algorithms classes described below are useful for real-world Deep Reinforcem
 </TR>
 <TR>
   <TD><a href="https://arxiv.org/abs/1606.03476">Generative Adversarial Imitation Learning</a></TD>
-  <TD></TD>
+  <TD>RNN</TD>
 </TR>
 <TR>
   <TD><a href="https://arxiv.org/abs/1710.11248">Adversatial Inverse Reinforcement Learning</a></TD>
