@@ -47,9 +47,11 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
     recun_losses = []
     divergence_losses = []
 
-    reward_loss_scale = 10.0
-    overshooting_reward_loss_scale = 100.0
+    reward_loss_scale = 1.0
+    overshooting_reward_loss_scale = 10.0
+    divergence_loss_scale = 1.0
     global_divergence_loss_scale = 0.1
+    free_nats = 2
 
     logger.log("Optimizing...")
 
@@ -108,18 +110,21 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
         sum_rews_loss = 0
         sum_recun_loss = 0
         sum_divergence_loss = 0
+        divergence_loss = 0
+        latent_overshooting_rew_loss = 0
         for t in range(pred_steps-1):
             # zero step recunstruction loss
             features = rssm.features_from_state(posteriors[t])
-            pred_obs, obs_dict = ob_model(features, acs=None)
             pred_rews, rews_dict = rew_model(
                 features, acs=None)
             obs_loss = 0
-            # if t == 0:
-            obs_loss = 0.5 * \
-                ((obs_dict['mean'] - batch['obs'][t]) ** 2)
-            obs_loss = torch.mean(torch.sum(obs_loss, dim=-1))
+            if t == 0:
+                _, obs_dict = ob_model(features, acs=None)
+                obs_loss = 0.5 * \
+                    ((obs_dict['mean'] - batch['obs'][t]) ** 2)
+                obs_loss = torch.mean(torch.sum(obs_loss, dim=-1))
             rews_loss = 0.5 * ((rews_dict['mean'] - batch['rews'][t]) ** 2)
+
             if t == 0:
                 rews_loss = torch.mean(rews_loss) * reward_loss_scale
             else:
@@ -144,9 +149,19 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                     global_kl, dim=0) * global_divergence_loss_scale
 
             # latent overshooting loss
-            divergence_loss = 0
             latend_pred_steps = min(max_latend_pred_steps, pred_steps-1-t)
             for d in range(1, latend_pred_steps+1):
+                # latent overshooting reward model loss
+                features = rssm.features_from_state(priors[t][t+d]).detach()
+                pred_rews, rews_dict = rew_model(features, acs=None)
+                rews_loss = 0.5 * \
+                    ((rews_dict['mean'] - batch['rews'][t+d]) ** 2)
+                rews_loss = torch.mean(rews_loss) * \
+                    overshooting_reward_loss_scale
+                if d == 1:
+                    rews_loss *= max_latend_pred_steps
+                latent_overshooting_rew_loss += rews_loss
+
                 # divergence loss
                 posterior_params = {
                     'mean': posteriors[t+d]['mean'], 'log_std': posteriors[t+d]['log_std']}
@@ -154,18 +169,22 @@ def train(traj, rssm, ob_model, rew_model, optim_rssm, optim_om, optim_rm, sched
                     'mean': priors[t][t+d]['mean'], 'log_std': priors[t][t+d]['log_std']}
                 # free nats
                 kl = rssm.pd.kl_pq(
-                    posterior_params, prior_params).clamp(max=2.0)
-                kl = torch.mean(kl, dim=0)
-                divergence_loss += kl
+                    posterior_params, prior_params).clamp(min=free_nats)
+                kl = torch.mean(kl, dim=0) * divergence_loss_scale
                 if d == 1:
-                    divergence_loss *= max_latend_pred_steps
+                    kl *= max_latend_pred_steps
+                divergence_loss += kl
 
-            divergence_loss /= max_latend_pred_steps
-            divergence_loss += global_divergence_loss
-
-            loss += recun_loss + divergence_loss
+            loss += recun_loss + global_divergence_loss
             sum_recun_loss += recun_loss
-            sum_divergence_loss += divergence_loss
+            sum_divergence_loss += global_divergence_loss
+
+        all_latent_pred_steps = sum([i for i in range(1, latend_pred_steps+1)])
+        latent_overshooting_rew_loss /= all_latent_pred_steps
+        divergence_loss /= all_latent_pred_steps
+        sum_rews_loss += latent_overshooting_rew_loss
+        sum_divergence_loss += divergence_loss
+        loss += latent_overshooting_rew_loss + divergence_loss
 
         # update
         optim_rssm.zero_grad()
