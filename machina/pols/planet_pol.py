@@ -49,6 +49,7 @@ class PlanetPol(BasePol):
         self.n_optim_iters = n_optim_iters
         self.n_samples = n_samples
         self.n_refit_samples = n_refit_samples
+        self.exploration_noise_std = 0.3
         self.prev_state = torch.zeros(
             1, self.rssm.state_size, dtype=torch.float)
         self.prev_acs = torch.zeros(
@@ -56,6 +57,8 @@ class PlanetPol(BasePol):
         self.hs = torch.zeros(
             1, self.rssm.belief_size, dtype=torch.float)
         self.to(get_device())
+        if data_parallel:
+            self = nn.DataParallel(self, dim=parallel_dim)
 
     def to(self, device):
         super().to(device)
@@ -86,18 +89,18 @@ class PlanetPol(BasePol):
         curr_hs = posterior_state['belief']
 
         with torch.no_grad():
-            self.n_optim_iters = 1
-            self.n_refit_samples = 1
+            #self.n_optim_iters = 1
+            #self.n_refit_samples = 1
             for iters in range(self.n_optim_iters):
                 sum_rews = 0
                 state = curr_state.repeat(self.n_samples, 1)
                 hs = curr_hs.repeat(self.n_samples, 1)
 
                 # randomly sample N candidate action sequences
-                # candidate_acs = torch.randn(
-                #    self.horizon, self.n_samples, self.ac_space.shape[0]) * std.unsqueeze(1) + mean.unsqueeze(1)
-                candidate_acs = torch.empty(self.horizon, self.n_samples, self.ac_space.shape[0], dtype=torch.float).uniform_(
-                    self.ac_space.low[0], self.ac_space.high[0])
+                candidate_acs = torch.randn(
+                    self.horizon, self.n_samples, self.ac_space.shape[0]) * std.unsqueeze(1) + mean.unsqueeze(1)
+                # candidate_acs = torch.empty(self.horizon, self.n_samples, self.ac_space.shape[0], dtype=torch.float).uniform_(
+                #    self.ac_space.low[0], self.ac_space.high[0])
                 for i in range(candidate_acs.size()[-1]):
                     candidate_acs[:, :, i] = candidate_acs[:, :, i].clamp(
                         min=self.ac_space.low[i], max=self.ac_space.high[i])
@@ -121,9 +124,10 @@ class PlanetPol(BasePol):
                 std = torch.sum(torch.abs(
                     candidate_acs[:, k_best_acs_indices, :] - mean), dim=1) / (self.n_refit_samples - 1)
                 mean = mean.squeeze(1)
-                std = std.squeeze(1)
 
         ac = mean[0]
+        ac += torch.randn_like(ac, dtype=torch.float,
+                               device=get_device()) * self.exploration_noise_std
         ac_real = ac.cpu().numpy()
 
         # Actual latent transition
