@@ -74,6 +74,8 @@ parser.add_argument('--discrim_ent_beta', type=float, default=0,
 
 parser.add_argument('--rnn', action='store_true',
                     default=False, help='If True, network is reccurent.')
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
 parser.add_argument('--max_grad_norm', type=float, default=10,
                     help='Value of maximum gradient norm.')
 
@@ -213,14 +215,14 @@ while args.max_epis > total_epi:
             result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
                                      rl_type=args.rl_type,
                                      epoch=args.epoch_per_iter,
-                                     batch_size=args.batch_size, discrim_batch_size=args.discrim_batch_size,
+                                     batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, discrim_batch_size=args.discrim_batch_size,
                                      discrim_step=args.discrim_step,
                                      pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta)
         elif args.rl_type == 'ppo_clip':
             result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
                                      rl_type=args.rl_type,
                                      epoch=args.epoch_per_iter,
-                                     batch_size=args.batch_size,
+                                     batch_size=args.batch_size if not args.rnn else args.rnn_batch_size,
                                      discrim_batch_size=args.discrim_batch_size,
                                      discrim_step=args.discrim_step,
                                      pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta,
@@ -232,7 +234,7 @@ while args.max_epis > total_epi:
                                      rl_type=args.rl_type,
                                      pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta,
                                      epoch=args.epoch_per_iter,
-                                     batch_size=args.batch_size,
+                                     batch_size=args.batch_size if not args.rnn else args.rnn_batch_size,
                                      discrim_batch_size=args.discrim_batch_size,
                                      discrim_step=args.discrim_step,
                                      optim_pol=optim_pol,

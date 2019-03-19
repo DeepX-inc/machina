@@ -47,7 +47,8 @@ parser.add_argument('--max_epis_per_iter', type=int,
                     default=1024, help='Number of episodes in an iteration.')
 parser.add_argument('--epoch_per_iter', type=int, default=10,
                     help='Number of epoch in an iteration')
-parser.add_argument('--batch_size', type=int, default=256)
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
 parser.add_argument('--pol_lr', type=float, default=3e-4,
                     help='Policy learning rate')
 parser.add_argument('--vf_lr', type=float, default=3e-4,
@@ -159,7 +160,7 @@ while args.max_epis > total_epi:
             vf.dp_run = True
 
         result_dict = ppo_clip.train(traj=traj1, pol=pol, vf=vf, clip_param=args.clip_param,
-                                     optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+                                     optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
 
         if args.data_parallel:
             pol.dp_run = False
