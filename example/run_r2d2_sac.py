@@ -50,7 +50,8 @@ parser.add_argument('--data_parallel', action='store_true', default=False,
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000,
                     help='Number of steps to use in an iteration.')
-parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
 parser.add_argument('--seq_length', type=int, default=60,
                     help='Length of batches.')
 parser.add_argument('--burn_in_length', type=int, default=20,
@@ -173,7 +174,7 @@ while args.max_epis > total_epi:
             off_traj,
             pol, qfs, targ_qfs, log_alpha,
             optim_pol, optim_qfs, optim_alpha,
-            step//50, args.batch_size, args.seq_length, args.burn_in_length,
+            step//50, args.rnn_batch_size, args.seq_length, args.burn_in_length,
             args.tau, args.gamma, args.sampling, not args.no_reparam
         )
 
