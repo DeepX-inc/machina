@@ -34,19 +34,19 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
+parser.add_argument('--max_epis', type=int,
                     default=100000000, help='Number of episodes to run.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--rnn', action='store_true',
-                    default=False, help='If True, network is reccurent.')
+parser.add_argument('--data_parallel', action='store_true', default=False,
+                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
 parser.add_argument('--expert_fname', type=str,
                     default='Pendulum-v0_100epis.pkl')
 
-parser.add_argument('--max_episodes_per_iter', type=int,
+parser.add_argument('--max_epis_per_iter', type=int,
                     default=10, help='Number of episodes in an iteration.')
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--pol_lr', type=float, default=1e-4,
@@ -99,19 +99,16 @@ if args.c2d:
 ob_space = env.observation_space
 ac_space = env.action_space
 
-if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=args.h1, cell_size=256)
-else:
-    pol_net = PolNet(ob_space, ac_space, h1=args.h1, h2=args.h2)
+pol_net = PolNet(ob_space, ac_space)
 if isinstance(ac_space, gym.spaces.Box):
-    if args.deterministic:
-        pol = DeterministicActionNoisePol(ob_space, ac_space, pol_net)
-    else:
-        pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = GaussianPol(ob_space, ac_space, pol_net,
+                      data_parallel=args.data_parallel)
 elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = CategoricalPol(ob_space, ac_space, pol_net,
+                         data_parallel=args.data_parallel)
 elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol = MultiCategoricalPol(
+        ob_space, ac_space, pol_net, data_parallel=args.data_parallel)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
@@ -136,18 +133,25 @@ logger.log('num_train_epi={}'.format(train_traj.num_epi))
 max_rew = -1e6
 
 for curr_epoch in range(args.epoch):
+    if args.data_parallel:
+        pol.dp_run = True
+
     result_dict = behavior_clone.train(
         train_traj, pol, optim_pol,
         args.batch_size
     )
     test_result_dict = behavior_clone.test(test_traj, pol)
+
+    if args.data_parallel:
+        pol.dp_run = False
+
     for key in test_result_dict.keys():
         result_dict[key] = test_result_dict[key]
 
         if curr_epoch % int(args.check_rate * args.epoch) == 0 or curr_epoch == 0:
             with measure('sample'):
                 paths = sampler.sample(
-                    pol, max_episodes=args.max_episodes_per_iter)
+                    pol, max_epis=args.max_epis_per_iter)
             rewards = [np.sum(path['rews']) for path in paths]
             mean_rew = np.mean([np.sum(path['rews']) for path in paths])
             logger.record_results_bc(args.log, result_dict, score_file,

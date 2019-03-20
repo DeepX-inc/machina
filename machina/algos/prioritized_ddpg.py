@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from machina import loss_functional as lf
 from machina.traj import traj_functional as tf
-from machina.misc import logger
+from machina import logger
 
 
 def train(traj,

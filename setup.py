@@ -21,14 +21,14 @@ install_requires = [
 ]
 
 setup(
-    name='machina',
+    name='machina-rl',
     version='0.2.0',
-    description='Machina is a library for a deep reinforcement learning.',
+    description='machina is a library for a deep reinforcement learning.',
     long_description=readme,
     author='Reiji Hatsugai',
     author_email='reiji.hatsugai@deepx.co.jp',
     url='https://github.com/DeepX-inc/machina',
-    license='Apache License',
+    license='MIT License',
     packages=find_packages(),
     zip_safe=False,
     install_requires=install_requires,

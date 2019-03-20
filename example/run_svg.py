@@ -33,7 +33,7 @@ parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
+parser.add_argument('--max_epis', type=int, default=1000000)
 parser.add_argument('--max_steps_off', type=int,
                     default=1000000000000, help='Number of episodes stored in off traj.')
 parser.add_argument('--num_parallel', type=int, default=4)
@@ -96,16 +96,16 @@ sampler = EpiSampler(env, pol, args.num_parallel, seed=args.seed)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 
-off_traj = Traj(args.max_steps_off)
+off_traj = Traj(args.max_steps_off, traj_device='cpu')
 
 total_epi = 0
 total_step = 0
 max_rew = -1e6
-while args.max_episodes > total_epi:
+while args.max_epis > total_epi:
     with measure('sample'):
         epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
     with measure('train'):
-        on_traj = Traj()
+        on_traj = Traj(traj_device='cpu')
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
