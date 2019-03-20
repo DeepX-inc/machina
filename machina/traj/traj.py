@@ -323,7 +323,7 @@ class Traj(object):
             if return_indices:
                 batch, indices = self.random_batch_once(
                     batch_size, indices, return_indices)
-                yield batch. indices
+                yield batch, indices
             else:
                 batch = self.random_batch_once(
                     batch_size, indices, return_indices)
