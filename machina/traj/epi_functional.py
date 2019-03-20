@@ -207,12 +207,12 @@ def compute_pseudo_rews(data, rew_giver, state_only=False):
     return data
 
 
-def compute_diayn_rews(data, discrim):
+def compute_diayn_rews(data, rew_giver):
     epis = data.current_epis
     for epi in epis:
         obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
         with torch.no_grad():
-            rews, info = discrim(obs)
+            rews, info = rew_giver(obs)
         epi['rews'] = rews.cpu().numpy()
     return data
 

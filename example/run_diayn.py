@@ -174,7 +174,8 @@ while args.max_episodes > total_epi:
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
-        on_traj = ef.compute_diayn_rews(on_traj, discrim)
+        on_traj = ef.compute_diayn_rews(
+            on_traj, lambda x: diayn_sac.calc_rewards(x, args.num_skill, discrim))
         on_traj.register_epis()
         off_traj.add_traj(on_traj)
 
