@@ -5,7 +5,6 @@ https://arxiv.org/abs/1802.06070
 """
 
 import os
-import csv
 import gym
 import torch
 import argparse
@@ -14,7 +13,6 @@ import pybullet_envs
 
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
 
 from machina import logger
@@ -139,7 +137,7 @@ optim_qf1 = torch.optim.Adam(qf_net1.parameters(), args.qf_lr)
 optim_qf2 = torch.optim.Adam(qf_net2.parameters(), args.qf_lr)
 optim_qfs = [optim_qf1, optim_qf2]
 optim_alpha = torch.optim.Adam([log_alpha], args.pol_lr)
-optim_discrim = optim.SGD(discrim.parameters(
+optim_discrim = torch.optim.SGD(discrim.parameters(
 ), lr=args.discrim_lr, momentum=args.discrim_momentum)
 
 off_traj = Traj()
@@ -195,7 +193,7 @@ while args.max_episodes > total_epi:
             not args.no_reparam)
         discrim_losses = diayn.train(discrim, optim_discrim, on_traj,
                                      args.discrim_batch_size, args.epoch_per_iter,
-                                     args.num_skill, f_dim, device)
+                                     args.num_skill)
     # update counter and record
     rewards = [np.sum(epi['rews']) for epi in epis]
     result_dict['discrimloss'] = discrim_losses

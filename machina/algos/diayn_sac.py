@@ -11,7 +11,7 @@ from machina import logger
 
 
 def calc_rewards(obskill, num_skill, discrim):
-    ob = obskill[:, :num_skill]
+    ob = obskill[:, :-num_skill]
     skill = obskill[:, -num_skill:]
     logit, info = discrim(ob)
     logqz = torch.sum(torch.log(torch.softmax(logit, dim=1))*skill, dim=1)
