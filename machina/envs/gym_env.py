@@ -120,3 +120,7 @@ class GymEnv(gym.Env):
     def terminate(self):
         if self.monitoring:
             self.env._close()
+
+    @property
+    def unwrapped(self):
+        return self.env.unwrapped

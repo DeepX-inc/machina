@@ -311,3 +311,17 @@ class DiscrimNet(nn.Module):
         h = torch.tanh(self.fc1(torch.cat([ob, ac], dim=1)))
         h = torch.tanh(self.fc2(h))
         return self.output_layer(h)
+
+
+class DiaynDiscrimNet(nn.Module):
+    def __init__(self, f_space, skill_space, h_size=300, discrim_f=lambda x: x,):
+        nn.Module.__init__(self)
+        self.fc1 = nn.Linear(f_space.shape[0], h_size)
+        self.output_layer = nn.Linear(h_size, skill_space.shape[0])
+        self.apply(weight_init)
+        self.discrim_f = discrim_f
+
+    def forward(self, ob):
+        feat = self.discrim_f(ob)
+        h = torch.relu(self.fc1(feat))
+        return self.output_layer(h)
