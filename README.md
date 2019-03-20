@@ -139,7 +139,7 @@ The algorithms classes described below are useful for real-world Deep Reinforcem
   <TD rowspan="4">Model-Free Off-Policy RL</TD>
   <TD rowspan="4"> high generalization</TD>
   <TD><a href="https://arxiv.org/abs/1801.01290">Soft Actor Critic</a></TD>
-  <TD><font color="Red">R2D2<sup>&lowast;</sup></font></TD>
+  <TD><a href="https://openreview.net/forum?id=r1lyTjAqYX">R2D2</a><sup>&lowast;</sup></TD>
 </TR>
 <TR>
   <TD><a href="https://arxiv.org/abs/1806.10293">QT-Opt</a></TD>
