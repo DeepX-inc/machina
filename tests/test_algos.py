@@ -26,7 +26,7 @@ from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import measure, set_device
-from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM, ModelNetLSTM, QNet, QNetLSTM, DiscrimNet,DiaynDiscrimNet
+from simple_net import PolNet, VNet, ModelNet, PolNetLSTM, VNetLSTM, ModelNetLSTM, QNet, QNetLSTM, DiscrimNet, DiaynDiscrimNet
 
 
 class TestPPOContinuous(unittest.TestCase):
@@ -797,7 +797,7 @@ class TestR2D2SAC(unittest.TestCase):
             2, 32, 4, 2,
             0.01, 0.99, 2,
         )
-        
+
         del sampler
 
 
@@ -843,7 +843,7 @@ class TestDIAYN(unittest.TestCase):
         optim_qfs = [optim_qf1, optim_qf2]
         optim_alpha = torch.optim.Adam([log_alpha], 1e-4)
         optim_discrim = torch.optim.SGD(discrim.parameters(),
-                                  lr=0.001, momentum=0.9)
+                                        lr=0.001, momentum=0.9)
 
         off_traj = Traj()
         sampler = EpiSampler(self.env, pol, num_parallel=1)
@@ -864,7 +864,7 @@ class TestDIAYN(unittest.TestCase):
             step, 128, 5e-3, 0.99, 1, discrim, 4, True)
         discrim_losses = diayn.train(
             discrim, optim_discrim, on_traj, 32, 100, 4)
-        
+
         del sampler
 
 
