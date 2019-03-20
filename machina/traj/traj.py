@@ -224,8 +224,10 @@ class Traj(object):
         -------
         data_map : dict of torch.Tensor
         """
-        #indices = self._get_indices(indices, shuffle=True)
-        indices = torch.randint(0, self.num_step - 1, size=(batch_size, ))
+        if indices is not None:
+            indices = self._get_indices(indices, shuffle=True)
+        else:
+            indices = torch.randint(0, self.num_step - 1, size=(batch_size, ))
 
         data_map = dict()
         for key in self.data_map:
@@ -323,7 +325,7 @@ class Traj(object):
             if return_indices:
                 batch, indices = self.random_batch_once(
                     batch_size, indices, return_indices)
-                yield batch. indices
+                yield batch, indices
             else:
                 batch = self.random_batch_once(
                     batch_size, indices, return_indices)
