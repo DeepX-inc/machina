@@ -210,7 +210,7 @@ def compute_pseudo_rews(data, rew_giver, state_only=False):
 def compute_diayn_rews(data, rew_giver):
     epis = data.current_epis
     for epi in epis:
-        obs = torch.tensor(epi['obs'], dtype=torch.float, device=get_device())
+        obs = torch.as_tensor(epi['obs'], dtype=torch.float, device=get_device())
         with torch.no_grad():
             rews, info = rew_giver(obs)
         epi['rews'] = rews.cpu().numpy()
