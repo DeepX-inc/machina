@@ -36,7 +36,7 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
+parser.add_argument('--max_epis', type=int,
                     default=1000000, help='Number of episodes to run.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
@@ -56,6 +56,8 @@ parser.add_argument('--vf_lr', type=float, default=3e-4,
 
 parser.add_argument('--rnn', action='store_true',
                     default=False, help='If True, network is reccurent.')
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
 parser.add_argument('--max_grad_norm', type=float, default=10,
                     help='Value of maximum gradient norm.')
 
@@ -137,7 +139,7 @@ total_epi = 0
 total_step = 0
 max_rew = -1e6
 kl_beta = args.init_kl_beta
-while args.max_episodes > total_epi:
+while args.max_epis > total_epi:
     with measure('sample'):
         epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
     with measure('train'):
@@ -157,10 +159,10 @@ while args.max_episodes > total_epi:
 
         if args.ppo_type == 'clip':
             result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=args.clip_param,
-                                         optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+                                         optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
         else:
             result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
-                                       optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+                                       optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
 
         if args.data_parallel:

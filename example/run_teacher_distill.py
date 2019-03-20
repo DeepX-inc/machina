@@ -37,14 +37,14 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
+parser.add_argument('--max_epis', type=int,
                     default=1000000, help='Number of episodes to run')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes used to sample')
 parser.add_argument('--cuda', type=int, default=-1, help='Cuda device number')
 parser.add_argument('--max_steps_per_iter', type=int,
                     default=10000, help='Maximum steps per iteration')
-parser.add_argument('--max_episodes_per_iter', type=int,
+parser.add_argument('--max_epis_per_iter', type=int,
                     default=256, help='Maximum episodes per iteration')
 parser.add_argument('--epoch_per_iter', type=int, default=10,
                     help='Number of epochs per optimization iteration')
@@ -141,14 +141,14 @@ total_epi = 0
 total_step = 0
 max_rew = -1e6
 
-while args.max_episodes > total_epi:
+while args.max_epis > total_epi:
     with measure('sample'):
         if args.sampling_policy == 'teacher':
             epis = teacher_sampler.sample(
-                t_pol, max_episodes=args.max_episodes_per_iter)
+                t_pol, max_epis=args.max_epis_per_iter)
         else:
             epis = student_sampler.sample(
-                s_pol, max_episodes=args.max_episodes_per_iter)
+                s_pol, max_epis=args.max_epis_per_iter)
     with measure('train'):
         traj = Traj()
         traj.add_epis(epis)
@@ -165,7 +165,7 @@ while args.max_episodes > total_epi:
     logger.log('Testing Student-policy')
     with measure('sample'):
         epis_measure = student_sampler.sample(
-            s_pol, max_episodes=args.max_episodes_per_iter)
+            s_pol, max_epis=args.max_epis_per_iter)
 
     with measure('measure'):
         traj_measure = Traj()

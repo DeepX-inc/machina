@@ -23,7 +23,7 @@ from machina.envs import GymEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
-from machina.misc import logger
+from machina import logger
 from machina.utils import set_device, measure
 
 from simple_net import PolNet, QNet
@@ -39,10 +39,10 @@ parser.add_argument('--c2d', action='store_true',
 parser.add_argument('--record', action='store_true',
                     default=False, help='If True, movie is saved.')
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int,
-                    default=1000000, help='Number of episodes to run.')
+parser.add_argument('--max_epis', type=int,
+                    default=1000000, help='Number of episodesodes to run.')
 parser.add_argument('--max_steps_off', type=int,
-                    default=1000000000000, help='Number of episodes stored in off traj.')
+                    default=1000000000000, help='Number of steps stored in off traj.')
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
@@ -95,13 +95,13 @@ ob_space = env.observation_space
 ac_space = env.action_space
 
 pol_net = PolNet(ob_space, ac_space, args.h1, args.h2, deterministic=True)
-noise = OUActionNoise(ac_space.shape)
+noise = OUActionNoise(ac_space)
 pol = DeterministicActionNoisePol(
     ob_space, ac_space, pol_net, noise, data_parallel=args.data_parallel)
 
 targ_pol_net = PolNet(ob_space, ac_space, args.h1, args.h2, deterministic=True)
 targ_pol_net.load_state_dict(pol_net.state_dict())
-targ_noise = OUActionNoise(ac_space.shape)
+targ_noise = OUActionNoise(ac_space)
 targ_pol = DeterministicActionNoisePol(
     ob_space, ac_space, targ_pol_net, targ_noise, data_parallel=args.data_parallel)
 
@@ -119,17 +119,17 @@ sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_qf = torch.optim.Adam(qf_net.parameters(), args.qf_lr)
 
-off_traj = Traj(args.max_steps_off)
+off_traj = Traj(args.max_steps_off, traj_device='cpu')
 
 total_epi = 0
 total_step = 0
 max_rew = -1e6
 
-while args.max_episodes > total_epi:
+while args.max_epis > total_epi:
     with measure('sample'):
         epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
     with measure('train'):
-        on_traj = Traj()
+        on_traj = Traj(traj_device='cpu')
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)

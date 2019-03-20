@@ -31,9 +31,8 @@ parser.add_argument('--log', type=str, default='garbage')
 parser.add_argument('--env_name', type=str, default='Pendulum-v0')
 parser.add_argument('--c2d', action='store_true', default=False)
 parser.add_argument('--record', action='store_true', default=False)
-parser.add_argument('--episode', type=int, default=1000000)
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--max_episodes', type=int, default=1000000)
+parser.add_argument('--max_epis', type=int, default=1000000)
 parser.add_argument('--num_parallel', type=int, default=4)
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000)
@@ -41,6 +40,8 @@ parser.add_argument('--epoch_per_iter', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--vf_lr', type=float, default=3e-4)
 parser.add_argument('--rnn', action='store_true', default=False)
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
 
 parser.add_argument('--gamma', type=float, default=0.995)
 parser.add_argument('--lam', type=float, default=1)
@@ -96,7 +97,7 @@ optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
 total_epi = 0
 total_step = 0
 max_rew = -1e6
-while args.max_episodes > total_epi:
+while args.max_epis > total_epi:
     with measure('sample'):
         epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
     with measure('train'):
@@ -111,7 +112,7 @@ while args.max_episodes > total_epi:
         traj.register_epis()
 
         result_dict = trpo.train(
-            traj, pol, vf, optim_vf, args.epoch_per_iter, args.batch_size)
+            traj, pol, vf, optim_vf, args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
 
     total_epi += traj.num_epi
     step = traj.num_step
