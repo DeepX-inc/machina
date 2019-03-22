@@ -30,4 +30,4 @@ class CategoricalPd(BasePd):
 
     def ent(self, params):
         pi = params['pi']
-        return Categorical(pi).entropy()
+        return torch.sum(Categorical(pi).entropy(), dim=-1)
