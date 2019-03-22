@@ -66,4 +66,4 @@ def train(traj,
 
         qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
     logger.log("Optimization finished!")
-    return {'QfLoss': qf_losses, 'grad_step': epoch}
+    return {'QfLoss': qf_losses}
