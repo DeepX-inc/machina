@@ -152,6 +152,7 @@ while args.max_epis > total_epi:
         total_epi += on_traj.num_epi
         step = on_traj.num_step
         total_step += step
+        epoch = step
 
         if args.data_parallel:
             qf.dp_run = True
@@ -161,7 +162,7 @@ while args.max_epis > total_epi:
 
         result_dict = qtopt.train(
             off_traj, qf, lagged_qf, targ_qf1, targ_qf2,
-            optim_qf, step, args.batch_size,
+            optim_qf, epoch, args.batch_size,
             args.tau, args.gamma, loss_type=args.loss_type
         )
 
@@ -171,7 +172,7 @@ while args.max_epis > total_epi:
             targ_qf1.dp_run = False
             targ_qf2.dp_run = False
 
-    total_grad_step += result_dict['grad_step']
+    total_grad_step += epoch
     if total_grad_step >= args.lag * num_update_lagged:
         logger.log('Updated lagged qf!!')
         lagged_qf_net.load_state_dict(qf_net.state_dict())
