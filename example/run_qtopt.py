@@ -162,7 +162,7 @@ while args.max_epis > total_epi:
 
         result_dict = qtopt.train(
             off_traj, qf, lagged_qf, targ_qf1, targ_qf2,
-            optim_qf, step, args.batch_size,
+            optim_qf, epoch, args.batch_size,
             args.tau, args.gamma, loss_type=args.loss_type
         )
 
@@ -181,7 +181,7 @@ while args.max_epis > total_epi:
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)
     logger.record_results(args.log, result_dict, score_file,
-                          total_epi, epoch, total_step,
+                          total_epi, step, total_step,
                           rewards,
                           plot_title=args.env_name)
 
