@@ -205,9 +205,10 @@ if args.rl_type == 'ppo_kl':
 
 if args.pretrain:
     with measure('bc pretrain'):
-        _ = behavior_clone.train(
-            expert_traj, pol, optim_pol, args.bc_batch_size, args.bc_epoch
-        )
+        for _ in range(args.bc_epoch):
+            _ = behavior_clone.train(
+                expert_traj, pol, optim_pol, args.bc_batch_size
+            )
 
 while args.max_epis > total_epi:
     with measure('sample'):
