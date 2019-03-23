@@ -40,5 +40,5 @@ class MultiCategoricalPd(BasePd):
         pis = params['pis']
         ents = []
         for pi in torch.chunk(pis, pis.size(-2), -2):
-            ents.append(Categorical(pi).entropy())
+            ents.append(torch.sum(Categorical(pi).entropy(), dim=-1))
         return sum(ents)

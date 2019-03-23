@@ -51,8 +51,7 @@ def train(traj,
     logger.log("Optimizing...")
 
     iterator = traj.random_batch(batch_size, epoch)
-    grad_step = len(list(iterator))
-    for batch in traj.random_batch(batch_size, epoch):
+    for batch in iterator:
         qf_bellman_loss = lf.clipped_double_bellman(
             qf, targ_qf1, targ_qf2, batch, gamma, loss_type=loss_type)
         optim_qf.zero_grad()
@@ -67,4 +66,4 @@ def train(traj,
 
         qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
     logger.log("Optimization finished!")
-    return {'QfLoss': qf_losses, 'grad_step': grad_step}
+    return {'QfLoss': qf_losses}

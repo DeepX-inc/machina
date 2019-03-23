@@ -1,5 +1,5 @@
 """
-An example of Soft Actor Critic.
+An example of R2D2(Soft Actor Critic ver.).
 """
 
 import argparse
@@ -16,7 +16,7 @@ import gym
 
 import machina as mc
 from machina.pols import GaussianPol
-from machina.algos import sac
+from machina.algos import r2d2_sac
 from machina.vfuncs import DeterministicSAVfunc
 from machina.envs import GymEnv
 from machina.traj import Traj
@@ -25,7 +25,7 @@ from machina.samplers import EpiSampler
 from machina import logger
 from machina.utils import set_device, measure
 
-from simple_net import PolNet, QNet, VNet
+from simple_net import PolNetLSTM, QNetLSTM, VNetLSTM
 
 
 parser = argparse.ArgumentParser()
@@ -50,7 +50,12 @@ parser.add_argument('--data_parallel', action='store_true', default=False,
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000,
                     help='Number of steps to use in an iteration.')
-parser.add_argument('--batch_size', type=int, default=256)
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
+parser.add_argument('--seq_length', type=int, default=60,
+                    help='Length of batches.')
+parser.add_argument('--burn_in_length', type=int, default=20,
+                    help='Length of batches for burn-in.')
 parser.add_argument('--sampling', type=int, default=1,
                     help='Number of sampling in calculation of expectation.')
 parser.add_argument('--no_reparam', action='store_true', default=False)
@@ -94,25 +99,25 @@ env.env.seed(args.seed)
 ob_space = env.observation_space
 ac_space = env.action_space
 
-pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net,
-                  data_parallel=args.data_parallel, parallel_dim=0)
+pol_net = PolNetLSTM(ob_space, ac_space)
+pol = GaussianPol(ob_space, ac_space, pol_net, rnn=True,
+                  data_parallel=args.data_parallel, parallel_dim=1)
 
-qf_net1 = QNet(ob_space, ac_space)
-qf1 = DeterministicSAVfunc(ob_space, ac_space, qf_net1,
-                           data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net1 = QNet(ob_space, ac_space)
+qf_net1 = QNetLSTM(ob_space, ac_space)
+qf1 = DeterministicSAVfunc(ob_space, ac_space, qf_net1, rnn=True,
+                           data_parallel=args.data_parallel, parallel_dim=1)
+targ_qf_net1 = QNetLSTM(ob_space, ac_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
 targ_qf1 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net1, data_parallel=args.data_parallel, parallel_dim=0)
+    ob_space, ac_space, targ_qf_net1, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
 
-qf_net2 = QNet(ob_space, ac_space)
-qf2 = DeterministicSAVfunc(ob_space, ac_space, qf_net2,
-                           data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net2 = QNet(ob_space, ac_space)
+qf_net2 = QNetLSTM(ob_space, ac_space)
+qf2 = DeterministicSAVfunc(ob_space, ac_space, qf_net2, rnn=True,
+                           data_parallel=args.data_parallel, parallel_dim=1)
+targ_qf_net2 = QNetLSTM(ob_space, ac_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
 targ_qf2 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net2, data_parallel=args.data_parallel, parallel_dim=0)
+    ob_space, ac_space, targ_qf_net2, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
 
 qfs = [qf1, qf2]
 targ_qfs = [targ_qf1, targ_qf2]
@@ -142,6 +147,15 @@ while args.max_epis > total_epi:
         on_traj.add_epis(epis)
 
         on_traj = ef.add_next_obs(on_traj)
+        max_pri = on_traj.get_max_pri()
+        on_traj = ef.set_all_pris(on_traj, max_pri)
+        on_traj = ef.compute_seq_pris(on_traj, args.seq_length)
+        on_traj = ef.compute_h_masks(on_traj)
+        for i in range(len(qfs)):
+            on_traj = ef.compute_hs(
+                on_traj, qfs[i], hs_name='q_hs'+str(i), input_acs=True)
+            on_traj = ef.compute_hs(
+                on_traj, targ_qfs[i], hs_name='targ_q_hs'+str(i), input_acs=True)
         on_traj.register_epis()
 
         off_traj.add_traj(on_traj)
@@ -156,11 +170,11 @@ while args.max_epis > total_epi:
                 qf.dp_run = True
                 targ_qf.dp_run = True
 
-        result_dict = sac.train(
+        result_dict = r2d2_sac.train(
             off_traj,
             pol, qfs, targ_qfs, log_alpha,
             optim_pol, optim_qfs, optim_alpha,
-            step, args.batch_size,
+            step//50, args.rnn_batch_size, args.seq_length, args.burn_in_length,
             args.tau, args.gamma, args.sampling, not args.no_reparam
         )
 

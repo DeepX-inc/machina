@@ -16,7 +16,7 @@ class OUActionNoise(BaseActionNoise):
 
     def __init__(self, ac_space, sigma=0.2, theta=.15, dt=1e-2, x0=None):
         BaseActionNoise.__init__(self, ac_space)
-        self.mu = np.zeros(self.ac_space[0])
+        self.mu = np.zeros(self.ac_space.shape[0])
         self.theta = theta
         self.sigma = sigma * np.ones_like(self.mu)
         self.dt = dt

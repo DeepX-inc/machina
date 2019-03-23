@@ -82,6 +82,8 @@ parser.add_argument('--batch_size', type=int, default=512)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
 parser.add_argument('--rnn', action='store_true',
                     default=False, help='If True, network is reccurent.')
+parser.add_argument('--rnn_batch_size', type=int, default=8,
+                    help='Number of sequences included in batch of rnn.')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -130,7 +132,7 @@ rand_sampler = EpiSampler(
 
 epis = rand_sampler.sample(random_pol, max_epis=args.num_random_rollouts)
 epis = add_noise_to_init_obs(epis, args.noise_to_init_obs)
-traj = Traj()
+traj = Traj(traj_device='cpu')
 traj.add_epis(epis)
 traj = ef.add_next_obs(traj)
 traj = ef.compute_h_masks(traj)
@@ -165,7 +167,7 @@ max_rew = -1e+6
 while args.max_epis > total_epi:
     with measure('train model'):
         result_dict = mpc.train_dm(
-            traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size)
+            traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
     with measure('sample'):
         mpc_pol = MPCPol(ob_space, ac_space, dm.net, rew_func,
                          args.n_samples, args.horizon_of_samples,
@@ -173,7 +175,7 @@ while args.max_epis > total_epi:
         epis = rl_sampler.sample(
             mpc_pol, max_epis=args.max_epis_per_iter)
 
-        curr_traj = Traj()
+        curr_traj = Traj(traj_device='cpu')
         curr_traj.add_epis(epis)
 
         curr_traj = ef.add_next_obs(curr_traj)
