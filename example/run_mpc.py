@@ -17,7 +17,7 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol, MPCPol, RandomPol
 from machina.algos import mpc
 from machina.vfuncs import DeterministicSVfunc
-from machina.models import DeterministicSModel
+from machina.models import DeterministicSModel, GaussianSModel
 from machina.envs import GymEnv, C2DEnv
 from machina.traj import Traj
 from machina.traj import epi_functional as ef
@@ -39,6 +39,10 @@ def add_noise_to_init_obs(epis, std):
 def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
     next_obs = next_obs * std_obs + mean_obs
     acs = acs * std_acs + mean_acs
+    # Pendulum
+    # rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
+    #         0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+    #rews = rews.squeeze(0)
     # HarfCheetah
     index_of_velx = 3
     rews = next_obs[:, index_of_velx] - 0.01 * \
@@ -55,21 +59,21 @@ parser.add_argument('--c2d', action='store_true', default=False)
 parser.add_argument('--pybullet_env', action='store_true', default=True)
 parser.add_argument('--record', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=256)
-parser.add_argument('--num_parallel', type=int, default=4)
+parser.add_argument('--num_parallel', type=int, default=9)
 parser.add_argument('--cuda', type=int, default=-1)
 parser.add_argument('--data_parallel', action='store_true', default=False)
 
 parser.add_argument('--num_random_rollouts', type=int, default=60)
 parser.add_argument('--noise_to_init_obs', type=float, default=0.001)
-parser.add_argument('--n_samples', type=int, default=300)
+parser.add_argument('--n_samples', type=int, default=1000)
 parser.add_argument('--horizon_of_samples', type=int, default=4)
 parser.add_argument('--num_aggregation_iters', type=int, default=1000)
 parser.add_argument('--max_episodes_per_iter', type=int, default=9)
 parser.add_argument('--epoch_per_iter', type=int, default=60)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--dm_lr', type=float, default=1e-3)
-parser.add_argument('--rnn', action='store_true', default=False)
-parser.add_argument('--deterministic', action='store_true', default=True)
+parser.add_argument('--rnn', action='store_true', default=True)
+parser.add_argument('--deterministic', action='store_true', default=False)
 
 args = parser.parse_args()
 
@@ -144,7 +148,7 @@ else:
                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
 mpc_pol = MPCPol(ob_space, ac_space, dm_net, rew_func,
-                 args.n_samples, args.horizon_of_samples,
+                 args.n_samples, args.horizon_of_samples, args.deterministic,
                  mean_obs, std_obs, mean_acs, std_acs, args.rnn)
 optim_dm = torch.optim.Adam(dm_net.parameters(), args.dm_lr)
 
@@ -162,7 +166,7 @@ while args.num_aggregation_iters > counter_agg_iters:
             traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size)
     with measure('sample'):
         mpc_pol = MPCPol(ob_space, ac_space, dm.net, rew_func,
-                         args.n_samples, args.horizon_of_samples,
+                         args.n_samples, args.horizon_of_samples, args.deterministic,
                          mean_obs, std_obs, mean_acs, std_acs, args.rnn)
         epis = rl_sampler.sample(
             mpc_pol, max_episodes=args.max_episodes_per_iter)

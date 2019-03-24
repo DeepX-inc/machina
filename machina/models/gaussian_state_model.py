@@ -3,6 +3,7 @@ Gaussian State Dynamics Model
 """
 
 from machina.models.base import BaseModel
+from machina.pds.gaussian_pd import GaussianPd
 from machina.utils import get_device
 
 
