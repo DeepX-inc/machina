@@ -10,18 +10,7 @@ Welcome to machina's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   machina.traj
-   machina.algos
-   loss_functional
-   machina.envs
-   machina.samplers
-   machina.prepro
-   machina.pols
-   machina.vfuncs
-   machina.models
-   machina.pds
-   machina.noise
-   machina.optims
+   machina
 
 Indices and tables
 ==================
