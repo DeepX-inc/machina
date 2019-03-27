@@ -1,6 +1,11 @@
 machina.pds package
 ===================
 
+.. automodule:: machina.pds
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -53,10 +58,3 @@ machina.pds.multi\_categorical\_pd module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.pds
-    :members:
-    :undoc-members:
-    :show-inheritance:

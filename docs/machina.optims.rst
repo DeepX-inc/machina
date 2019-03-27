@@ -1,6 +1,11 @@
 machina.optims package
 ======================
 
+.. automodule:: machina.optims
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -29,10 +34,3 @@ machina.optims.distributed\_sgd module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.optims
-    :members:
-    :undoc-members:
-    :show-inheritance:

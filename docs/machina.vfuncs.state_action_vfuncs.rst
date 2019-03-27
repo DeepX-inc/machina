@@ -1,6 +1,11 @@
 machina.vfuncs.state\_action\_vfuncs package
 ============================================
 
+.. automodule:: machina.vfuncs.state_action_vfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -29,10 +34,3 @@ machina.vfuncs.state\_action\_vfuncs.deterministic\_state\_action\_vfunc module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.vfuncs.state_action_vfuncs
-    :members:
-    :undoc-members:
-    :show-inheritance:

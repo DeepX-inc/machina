@@ -1,6 +1,11 @@
 machina.envs package
 ====================
 
+.. automodule:: machina.envs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -45,10 +50,3 @@ machina.envs.skill\_env module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.envs
-    :members:
-    :undoc-members:
-    :show-inheritance:

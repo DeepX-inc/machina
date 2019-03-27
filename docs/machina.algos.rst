@@ -1,6 +1,11 @@
 machina.algos package
 =====================
 
+.. automodule:: machina.algos
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -141,10 +146,3 @@ machina.algos.vpg module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.algos
-    :members:
-    :undoc-members:
-    :show-inheritance:

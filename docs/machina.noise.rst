@@ -1,6 +1,11 @@
 machina.noise package
 =====================
 
+.. automodule:: machina.noise
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -21,10 +26,3 @@ machina.noise.ounoise module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.noise
-    :members:
-    :undoc-members:
-    :show-inheritance:

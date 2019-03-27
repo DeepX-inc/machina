@@ -1,6 +1,11 @@
 machina.pols package
 ====================
 
+.. automodule:: machina.pols
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -77,10 +82,3 @@ machina.pols.random\_pol module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.pols
-    :members:
-    :undoc-members:
-    :show-inheritance:

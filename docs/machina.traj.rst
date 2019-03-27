@@ -1,6 +1,11 @@
 machina.traj package
 ====================
 
+.. automodule:: machina.traj
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -29,10 +34,3 @@ machina.traj.traj\_functional module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.traj
-    :members:
-    :undoc-members:
-    :show-inheritance:

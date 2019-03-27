@@ -1,6 +1,11 @@
 machina package
 ===============
 
+.. automodule:: machina
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Subpackages
 -----------
 
@@ -46,10 +51,3 @@ machina.utils module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina
-    :members:
-    :undoc-members:
-    :show-inheritance:

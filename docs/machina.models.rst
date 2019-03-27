@@ -1,6 +1,11 @@
 machina.models package
 ======================
 
+.. automodule:: machina.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -21,10 +26,3 @@ machina.models.deterministic\_state\_model module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: machina.models
-    :members:
-    :undoc-members:
-    :show-inheritance:

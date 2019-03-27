@@ -6,6 +6,8 @@
 Welcome to machina's documentation!
 ===================================
 
+machina (mάkɪnə) is a library designed for applying Deep Reinforcement Learning (DRL) to real world tasks.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
