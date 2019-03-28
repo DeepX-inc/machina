@@ -7,7 +7,7 @@ from gym.utils import seeding
 import numpy as np
 from os import path
 
-class PendulumEnv(gym.Env):
+class PendulumDictEnv(gym.Env):
     metadata = {
         'render.modes' : ['human', 'rgb_array'],
         'video.frames_per_second' : 30
@@ -56,7 +56,10 @@ class PendulumEnv(gym.Env):
 
     def _get_obs(self):
         theta, thetadot = self.state
-        return np.array([np.cos(theta), np.sin(theta), thetadot])
+        return {
+            'ang': np.array([np.cos(theta), np.sin(theta)]),
+            'ang_vel': thetadot
+        }
 
     def render(self, mode='human'):
 
