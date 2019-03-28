@@ -1,3 +1,8 @@
+"""
+- This package trains :class:`Policy<machina.pols.base.BasePol>`, :class:`V function<machina.vfuncs.state_action_vfuncs.base.BaseSAVfunc>`, :class:`Q function<machina.vfuncs.state_vfuncs.base.BaseSVfunc>`, etc. by using :py:mod:`loss_functional<machina.loss_functional>`.
+- It is determined here which :py:mod:`loss_functional<machina.loss_functional>`, :py:meth:`iterater<machina.traj.traj.Traj.iterate>` are used.
+- Also, It is determined how `Policy<machina.pols.base.BasePol>`, :class:`V function<machina.vfuncs.state_action_vfuncs.base.BaseSAVfunc>`, :class:`Q function<machina.vfuncs.state_vfuncs.base.BaseSVfunc>`, etc. are updated.
+"""
 from machina.algos import airl  # NOQA
 from machina.algos import behavior_clone  # NOQA
 from machina.algos import ddpg  # NOQA
