@@ -19,6 +19,7 @@ from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
 from machina.algos import ppo_clip
 
+
 def test_continuous2discrete():
     continuous_env = GymEnv('Pendulum-v0', record_video=False)
     discrete_env = C2DEnv(continuous_env, n_bins=10)
@@ -28,26 +29,33 @@ def test_continuous2discrete():
     discrete_env.reset()
     out = discrete_env.step([3, 10])
 
+
 def test_flatten2dict():
     dict_env = PendulumDictEnv()
     dict_ob = dict_env.observation_space.sample()
-    env = FlattenDictWrapper(dict_env, dict_env.observation_space.spaces.keys())
+    env = FlattenDictWrapper(
+        dict_env, dict_env.observation_space.spaces.keys())
     flatten_ob = env.observation(dict_ob)
-    recovered_dict_ob = flatten_to_dict(flatten_ob, dict_env.observation_space, env.dict_keys)
+    recovered_dict_ob = flatten_to_dict(
+        flatten_ob, dict_env.observation_space, env.dict_keys)
     tf = []
     for (a_key, a_val), (b_key, b_val) in zip(dict_ob.items(), recovered_dict_ob.items()):
-        tf.append(a_key==b_key)
-        tf.append(all(a_val==b_val))
+        tf.append(a_key == b_key)
+        tf.append(all(a_val == b_val))
     assert all(tf)
+
 
 class TestFlatten2Dict(unittest.TestCase):
     def setUp(self):
         dict_env = PendulumDictEnv()
-        self.env = FlattenDictWrapper(dict_env, dict_env.observation_space.spaces.keys())
+        self.env = FlattenDictWrapper(
+            dict_env, dict_env.observation_space.spaces.keys())
 
     def test_learning(self):
-        pol_net = PolDictNet(self.env.env.observation_space, self.env.action_space, self.env.dict_keys, h1=32, h2=32)
-        pol = GaussianPol(self.env.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolDictNet(self.env.env.observation_space,
+                             self.env.action_space, self.env.dict_keys, h1=32, h2=32)
+        pol = GaussianPol(self.env.env.observation_space,
+                          self.env.action_space, pol_net)
 
         vf_net = VNet(self.env.observation_space, h1=32, h2=32)
         vf = DeterministicSVfunc(self.env.env.observation_space, vf_net)

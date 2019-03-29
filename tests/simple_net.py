@@ -327,6 +327,7 @@ class DiaynDiscrimNet(nn.Module):
         h = torch.relu(self.fc1(feat))
         return self.output_layer(h)
 
+
 class PolDictNet(nn.Module):
     def __init__(self, ob_space, ac_space, dict_keys, h1=200, h2=100, deterministic=False):
         super(PolDictNet, self).__init__()
@@ -345,7 +346,8 @@ class PolDictNet(nn.Module):
                 self.multi = False
 
         self.fc1 = nn.Linear(ob_space.spaces['angle'].shape[0], h1)
-        self.fc2 = nn.Linear(h1 + self.ob_space.spaces['angular_velocity'].shape[0], h2)
+        self.fc2 = nn.Linear(
+            h1 + self.ob_space.spaces['angular_velocity'].shape[0], h2)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
 
@@ -367,7 +369,8 @@ class PolDictNet(nn.Module):
     def forward(self, ob):
         dict_ob = flatten_to_dict(ob, self.ob_space, self.dict_keys)
         h = F.relu(self.fc1(dict_ob['angle']))
-        h = F.relu(self.fc2(torch.cat([h, dict_ob['angular_velocity']], dim=1)))
+        h = F.relu(
+            self.fc2(torch.cat([h, dict_ob['angular_velocity']], dim=1)))
         if not self.discrete:
             mean = torch.tanh(self.mean_layer(h))
             if not self.deterministic:
