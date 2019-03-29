@@ -32,12 +32,15 @@ def test_continuous2discrete():
 
 def test_flatten2dict():
     dict_env = PendulumDictEnv()
-    dict_ob = dict_env.observation_space.sample()
+    dict_env = GymEnv(dict_env)
+    dict_ob = dict_env.ob_space.sample()
+    dict_ob_space = dict_env.ob_space
     env = FlattenDictWrapper(
-        dict_env, dict_env.observation_space.spaces.keys())
+        dict_env, dict_env.ob_space.spaces.keys())
     flatten_ob = env.observation(dict_ob)
+    dict_keys = env.dict_keys
     recovered_dict_ob = flatten_to_dict(
-        flatten_ob, dict_env.observation_space, env.dict_keys)
+        flatten_ob, dict_ob_space, dict_keys)
     tf = []
     for (a_key, a_val), (b_key, b_val) in zip(dict_ob.items(), recovered_dict_ob.items()):
         tf.append(a_key == b_key)
@@ -48,17 +51,21 @@ def test_flatten2dict():
 class TestFlatten2Dict(unittest.TestCase):
     def setUp(self):
         dict_env = PendulumDictEnv()
-        self.env = FlattenDictWrapper(
+        dict_env = GymEnv(dict_env)
+        self.dict_ob_space = dict_env.ob_space
+        env = FlattenDictWrapper(
             dict_env, dict_env.observation_space.spaces.keys())
+        self.dict_keys = env.dict_keys
+        self.env = GymEnv(env)
 
     def test_learning(self):
-        pol_net = PolDictNet(self.env.env.observation_space,
-                             self.env.action_space, self.env.dict_keys, h1=32, h2=32)
-        pol = GaussianPol(self.env.env.observation_space,
-                          self.env.action_space, pol_net)
+        pol_net = PolDictNet(self.dict_ob_space,
+                             self.env.ac_space, self.dict_keys, h1=32, h2=32)
+        pol = GaussianPol(self.env.ob_space,
+                          self.env.ac_space, pol_net)
 
-        vf_net = VNet(self.env.observation_space, h1=32, h2=32)
-        vf = DeterministicSVfunc(self.env.env.observation_space, vf_net)
+        vf_net = VNet(self.env.ob_space, h1=32, h2=32)
+        vf = DeterministicSVfunc(self.env.ob_space, vf_net)
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
