@@ -11,7 +11,7 @@ from torch import nn
 
 from gym.wrappers import FlattenDictWrapper
 from machina.envs import GymEnv, C2DEnv, flatten_to_dict
-from simple_net import PolDictNet, VNet, QNet
+from simple_net import PolDictNet, VNet, QNet, VNetLSTM, PolNetDictLSTM
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
 from machina.pols import GaussianPol
 from machina.traj import Traj
@@ -91,6 +91,37 @@ class TestFlatten2DictPP0(unittest.TestCase):
 
         result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=0.2,
                                      optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32)
+
+        del sampler
+
+    def test_learning_rnn(self):
+        pol_net = PolNetDictLSTM(
+            self.dict_ob_space, self.env.ac_space, h_size=32, cell_size=32)
+        pol = GaussianPol(self.env.ob_space,
+                          self.env.ac_space, pol_net, rnn=True)
+
+        vf_net = VNetLSTM(self.env.ob_space, h_size=32, cell_size=32)
+        vf = DeterministicSVfunc(self.env.ob_space, vf_net, rnn=True)
+
+        sampler = EpiSampler(self.env, pol, num_parallel=1)
+
+        optim_pol = torch.optim.Adam(pol_net.parameters(), 3e-4)
+        optim_vf = torch.optim.Adam(vf_net.parameters(), 3e-4)
+
+        epis = sampler.sample(pol, max_steps=400)
+
+        traj = Traj()
+        traj.add_epis(epis)
+
+        traj = ef.compute_vs(traj, vf)
+        traj = ef.compute_rets(traj, 0.99)
+        traj = ef.compute_advs(traj, 0.99, 0.95)
+        traj = ef.centerize_advs(traj)
+        traj = ef.compute_h_masks(traj)
+        traj.register_epis()
+
+        result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=0.2,
+                                     optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=2)
 
         del sampler
 
