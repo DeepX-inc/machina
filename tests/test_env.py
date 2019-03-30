@@ -18,7 +18,13 @@ from machina.traj import Traj
 from machina.traj import epi_functional as ef
 from machina.samplers import EpiSampler
 from machina.algos import ppo_clip
+from gym.envs import register
 
+register(
+	id='PendulumDictEnv-v0',
+	entry_point='tests.env:PendulumDictEnv',
+	max_episode_steps=200
+	)
 
 def test_continuous2discrete():
     continuous_env = GymEnv('Pendulum-v0', record_video=False)
@@ -31,7 +37,7 @@ def test_continuous2discrete():
 
 
 def test_flatten2dict():
-    dict_env = PendulumDictEnv()
+    dict_env = gym.make('PendulumDictEnv-v0')
     dict_env = GymEnv(dict_env)
     dict_ob = dict_env.ob_space.sample()
     dict_ob_space = dict_env.ob_space
@@ -50,7 +56,7 @@ def test_flatten2dict():
 
 class TestFlatten2Dict(unittest.TestCase):
     def setUp(self):
-        dict_env = PendulumDictEnv()
+        dict_env = gym.make('PendulumDictEnv-v0')
         self.dict_ob_space = dict_env.observation_space
         env = FlattenDictWrapper(
             dict_env, dict_env.observation_space.spaces.keys())
