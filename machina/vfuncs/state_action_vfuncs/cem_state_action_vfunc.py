@@ -11,6 +11,7 @@ from torch.distributions import Normal, MultivariateNormal
 class CEMDeterministicSAVfunc(DeterministicSAVfunc):
     """
     Deterministic State Action Vfunction with Cross Entropy Method.
+
     Parameters
     ----------
     ob_space : gym.Space
@@ -44,14 +45,16 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     def max(self, obs):
         """
-        Max and Argmax of Qfunc
+        Perform max and argmax of Qfunc
+
         Parameters
         ----------
         obs : torch.Tensor
 
         Returns
         -------
-        max_qs, max_acs
+        max_qs : torch.Tensor
+        max_acs : torch.Tensor
         """
 
         obs = self._check_obs_shape(obs)
@@ -70,6 +73,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     def _cem(self, obs, init_samples):
         """
+        Perform cross entropy method
 
         Parameters
         ----------
@@ -113,7 +117,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     def _fitting_diag(self, best_samples):
         """
-        fitting diagonal covariance gaussian and sampling from it
+        Fit diagonal covariance gaussian and sampling from it
+
         Parameters
         ----------
         best_samples : torch.Tensor
@@ -138,7 +143,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     def _fitting_multivari(self, best_samples):
         """
-        fitting multivariate gaussian and sampling from it
+        Fit multivariate gaussian and sampling from it
+
         Parameters
         ----------
         best_samples : torch.Tensor
