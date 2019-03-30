@@ -329,11 +329,10 @@ class DiaynDiscrimNet(nn.Module):
 
 
 class PolDictNet(nn.Module):
-    def __init__(self, ob_space, ac_space, dict_keys, h1=200, h2=100, deterministic=False):
+    def __init__(self, ob_space, ac_space, h1=200, h2=100, deterministic=False):
         super(PolDictNet, self).__init__()
 
         self.ob_space = ob_space
-        self.dict_keys = dict_keys
         self.deterministic = deterministic
 
         if isinstance(ac_space, gym.spaces.Box):
@@ -367,7 +366,7 @@ class PolDictNet(nn.Module):
                 self.output_layer.apply(mini_weight_init)
 
     def forward(self, ob):
-        dict_ob = flatten_to_dict(ob, self.ob_space, self.dict_keys)
+        dict_ob = flatten_to_dict(ob, self.ob_space)
         h = F.relu(self.fc1(dict_ob['angle']))
         h = F.relu(
             self.fc2(torch.cat([h, dict_ob['angular_velocity']], dim=1)))

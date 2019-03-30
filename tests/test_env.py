@@ -51,16 +51,14 @@ def test_flatten2dict():
 class TestFlatten2Dict(unittest.TestCase):
     def setUp(self):
         dict_env = PendulumDictEnv()
-        dict_env = GymEnv(dict_env)
-        self.dict_ob_space = dict_env.ob_space
+        self.dict_ob_space = dict_env.observation_space
         env = FlattenDictWrapper(
             dict_env, dict_env.observation_space.spaces.keys())
-        self.dict_keys = env.dict_keys
         self.env = GymEnv(env)
 
     def test_learning(self):
         pol_net = PolDictNet(self.dict_ob_space,
-                             self.env.ac_space, self.dict_keys, h1=32, h2=32)
+                             self.env.ac_space, h1=32, h2=32)
         pol = GaussianPol(self.env.ob_space,
                           self.env.ac_space, pol_net)
 
