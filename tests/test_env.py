@@ -10,7 +10,6 @@ import torch
 
 from gym.wrappers import FlattenDictWrapper
 from machina.envs import GymEnv, C2DEnv, flatten_to_dict
-from env import PendulumDictEnv
 from simple_net import PolDictNet, VNet
 from machina.vfuncs import DeterministicSVfunc
 from machina.pols import GaussianPol
@@ -21,10 +20,11 @@ from machina.algos import ppo_clip
 from gym.envs import register
 
 register(
-	id='PendulumDictEnv-v0',
-	entry_point='tests.env:PendulumDictEnv',
-	max_episode_steps=200
-	)
+    id='PendulumDictEnv-v0',
+    entry_point='tests.env:PendulumDictEnv',
+    max_episode_steps=200
+)
+
 
 def test_continuous2discrete():
     continuous_env = GymEnv('Pendulum-v0', record_video=False)
