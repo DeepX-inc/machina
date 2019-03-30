@@ -334,7 +334,7 @@ class Traj(object):
     def random_batch_rnn(self, batch_size, seq_length=None, epoch=1):
         """
         Providing sequences of batch which is randomly sampled from trajectory.
-        batch shape is (seq_length, batch_size, *)
+        batch shape is (seq_length, batch_size, * )
 
         Parameters
         ----------
@@ -403,7 +403,7 @@ class Traj(object):
     def prioritized_random_batch_rnn(self, batch_size, seq_length, epoch=1, return_indices=False):
         """
         Providing sequences of batch which is prioritized randomly sampled from trajectory.
-        batch shape is (seq_length, batch_size, *)
+        batch shape is (seq_length, batch_size, * )
 
         Parameters
         ----------
@@ -480,7 +480,7 @@ class Traj(object):
     def iterate_rnn(self, batch_size, num_epi_per_seq=1, epoch=1):
         """
         Iterating batches for rnn.
-        batch shape is (max_seq, batch_size, *)
+        batch shape is (max_seq, batch_size, * )
 
         Parameters
         ----------
