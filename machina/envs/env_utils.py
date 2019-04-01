@@ -12,11 +12,7 @@ def flatten_to_dict(flatten_obs, dict_space, dict_keys=None):
         origin_shape = dict_space.spaces[key].shape
         end_index += np.prod(origin_shape)
         dim = len(flatten_obs.shape)
-        if dim == 2:  # not rnn
-            obs_dict[key] = flatten_obs[:, begin_index:end_index].reshape(
-                flatten_obs.shape[:-1] + origin_shape)
-        elif dim == 3:  # rnn
-            obs_dict[key] = flatten_obs[:, :, begin_index:end_index].reshape(
-                flatten_obs.shape[:-1] + origin_shape)
+        obs_dict[key] = flatten_obs[..., begin_index:end_index].reshape(
+            flatten_obs.shape[:-1] + origin_shape)
         begin_index = end_index
     return obs_dict
