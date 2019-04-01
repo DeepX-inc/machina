@@ -11,6 +11,6 @@ Then, we can get the html file of documentation as `./docs/_build/index.html`.
 Pubulish `index.html`
 Run the following command.
 `mv docs/_build/index.html docs/`
-Then, we can see updated html in this url.
+Then, we can see updated html in this [url](https://deepx.github.io/machina/).
 
 If possible, additional docstring should be written in codes rather than in created rst files.
