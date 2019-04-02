@@ -80,13 +80,17 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         obs : torch.Tensor
         init_samples : torch.Tensor
             shape (self.num_sampling, dim_ac)
+
         Returns
         -------
-
+        max_q : torch.Tensor
+        max_ac : torch.Tensor
         """
         obs = obs.repeat((1, self.num_sampling)).reshape(
-            (self.num_sampling * self.batch_size, self.dim_ob))
+            (self.batch_size * self.num_sampling, self.dim_ob))
+        # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, self.dim_ob)], dim=0)
         samples = init_samples.repeat((self.batch_size, 1))
+        # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, dim_ac)], dim=0)
         for i in range(self.num_iter):
             with torch.no_grad():
                 qvals, _ = self.forward(obs, samples)
@@ -96,7 +100,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                 best_indices = indices[:, :self.num_best_sampling]
                 best_indices = best_indices + \
                     torch.arange(0, self.num_sampling*self.batch_size,
-                                 self.num_sampling, device=get_device()).reshape(self.batch_size, 1)
+                                 self.num_sampling, device=get_device()).reshape((self.batch_size, 1))
                 best_indices = best_indices.reshape(
                     (self.num_best_sampling * self.batch_size,))
                 # (self.num_best_sampling * self.batch_size,  self.dim_ac)
@@ -132,7 +136,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
             best_samples, dim=1)  # (self.batch_size, self.dim_ac)
         std = torch.std(best_samples, dim=1)  # (self.batch_size, self.dim_ac)
         samples = Normal(loc=mean, scale=std).rsample(
-            torch.Size((self.num_sampling,)))  # (self.num_best_sampling, self.batch_size, , self.dim_ac)
+            torch.Size((self.num_sampling,)))  # (self.num_best_sampling, self.batch_size, self.dim_ac)
         # (self.num_best_sampling, self.batch_size, self.dim_ac)
         samples = samples.transpose(1, 0)
         samples = samples.reshape((self.num_sampling * self.batch_size,
