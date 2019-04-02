@@ -1,0 +1,870 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina.traj package &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="machina.vfuncs package" href="machina.vfuncs.html" />
+    <link rel="prev" title="machina.samplers package" href="machina.samplers.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="machina.html">machina package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="machina.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="machina.algos.html">machina.algos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.envs.html">machina.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.models.html">machina.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.noise.html">machina.noise package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.optims.html">machina.optims package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pds.html">machina.pds package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pols.html">machina.pols package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.prepro.html">machina.prepro package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.samplers.html">machina.samplers package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">machina.traj package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.traj.epi_functional">machina.traj.epi_functional module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.traj.traj">machina.traj.traj module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.traj.traj_functional">machina.traj.traj_functional module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="machina.vfuncs.html">machina.vfuncs package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.logger">machina.logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.loss_functional">machina.loss_functional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.utils">machina.utils module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="machina.html">machina package</a> &raquo;</li>
+        
+      <li>machina.traj package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/machina.traj.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-machina.traj">
+<span id="machina-traj-package"></span><h1>machina.traj package<a class="headerlink" href="#module-machina.traj" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>This package is the bockbone of machina.</dt>
+<dd><ul class="first last">
+<li><a class="reference internal" href="machina.envs.html#machina.envs.gym_env.GymEnv" title="machina.envs.gym_env.GymEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">Environment</span></code></a> and <a class="reference internal" href="machina.algos.html#module-machina.algos" title="machina.algos"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Algorithm</span></code></a> are seperated by this package.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Traj class</dt>
+<dd><ul class="first last">
+<li><code class="xref py py-data docutils literal notranslate"><span class="pre">epis</span></code> sampled by <a class="reference internal" href="machina.samplers.html#module-machina.samplers" title="machina.samplers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sampler</span></code></a> are changed into the class <a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><code class="xref py py-class docutils literal notranslate"><span class="pre">Traj</span></code></a>.</li>
+<li><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><code class="xref py py-class docutils literal notranslate"><span class="pre">Traj</span></code></a> is the <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Iterator</dt>
+<dd><ul class="first last">
+<li>Output is batch, a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> keys of which are MDP elements such as <code class="xref py py-data docutils literal notranslate"><span class="pre">obs</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">acs</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">rews</span></code>, etc.</li>
+<li>Methods of <a class="reference internal" href="#machina.traj.traj.Traj.iterate" title="machina.traj.traj.Traj.iterate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">iterate*</span></code></a> are used for On-Policy algorithms.</li>
+<li>Methods of <a class="reference internal" href="#machina.traj.traj.Traj.random_batch" title="machina.traj.traj.Traj.random_batch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">random*</span></code></a> are used for Off-Policy algorithms.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-machina.traj.epi_functional">
+<span id="machina-traj-epi-functional-module"></span><h2>machina.traj.epi_functional module<a class="headerlink" href="#module-machina.traj.epi_functional" title="Permalink to this headline">¶</a></h2>
+<p>These are functions which is applied to episodes.</p>
+<dl class="function">
+<dt id="machina.traj.epi_functional.add_next_obs">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">add_next_obs</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#add_next_obs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.add_next_obs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adding next observations to episodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>data</strong> – Corresponding to input</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.centerize_advs">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">centerize_advs</code><span class="sig-paren">(</span><em>data</em>, <em>eps=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#centerize_advs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.centerize_advs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Centerizing Advantage Function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Small value for preventing 0 division.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_advs">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_advs</code><span class="sig-paren">(</span><em>data</em>, <em>gamma</em>, <em>lam</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_advs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_advs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computing Advantage Function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Discount rate</li>
+<li><strong>lam</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Bias-Variance trade-off parameter</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_diayn_rews">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_diayn_rews</code><span class="sig-paren">(</span><em>data</em>, <em>rew_giver</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_diayn_rews"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_diayn_rews" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_h_masks">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_h_masks</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_h_masks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_h_masks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computing masks for hidden state.
+At the begining of an episode, it remarks 1.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>data</strong> – Corresponding to input</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_hs">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_hs</code><span class="sig-paren">(</span><em>data</em>, <em>func</em>, <em>hs_name='hs'</em>, <em>input_acs=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_hs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_hs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computing Hidden State of RNN Cell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>func</strong> – Any function. for example pols, vf and qf.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_pris">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_pris</code><span class="sig-paren">(</span><em>data</em>, <em>qf</em>, <em>targ_qf</em>, <em>pol</em>, <em>gamma</em>, <em>continuous=True</em>, <em>deterministic=True</em>, <em>rnn=False</em>, <em>sampling=1</em>, <em>alpha=0.6</em>, <em>epsilon=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_pris"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_pris" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute prioritization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>qf</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>targ_qf</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>pol</strong> (<em>Pol</em>) – </li>
+<li><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>continuous</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>deterministic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>sampling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>alpha</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>epsilen</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_pseudo_rews">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_pseudo_rews</code><span class="sig-paren">(</span><em>data</em>, <em>rew_giver</em>, <em>state_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_pseudo_rews"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_pseudo_rews" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_rets">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_rets</code><span class="sig-paren">(</span><em>data</em>, <em>gamma</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_rets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_rets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computing discounted cumulative returns.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Discount rate</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_seq_pris">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_seq_pris</code><span class="sig-paren">(</span><em>data</em>, <em>seq_length</em>, <em>eta=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_seq_pris"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_seq_pris" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computing priorities of each sequence in episodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>seq_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Length of batch</li>
+<li><strong>eta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.compute_vs">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">compute_vs</code><span class="sig-paren">(</span><em>data</em>, <em>vf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#compute_vs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.compute_vs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computing Value Function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>vf</strong> (<em>SVFunction</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.normalize_obs_and_acs">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">normalize_obs_and_acs</code><span class="sig-paren">(</span><em>data</em>, <em>mean_obs=None</em>, <em>std_obs=None</em>, <em>mean_acs=None</em>, <em>std_acs=None</em>, <em>return_statistic=True</em>, <em>eps=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#normalize_obs_and_acs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.normalize_obs_and_acs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.set_all_pris">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">set_all_pris</code><span class="sig-paren">(</span><em>data</em>, <em>pri</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#set_all_pris"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.set_all_pris" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set prioritization to all episodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a><em> or </em><em>epis</em><em>(</em><em>dict of ndarray</em><em>)</em>) – </li>
+<li><strong>pri</strong> (<em>torch.Tensor</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> – Corresponding to input</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a> or epi(dict of ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.traj.epi_functional.train_test_split">
+<code class="descclassname">machina.traj.epi_functional.</code><code class="descname">train_test_split</code><span class="sig-paren">(</span><em>epis</em>, <em>train_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/epi_functional.html#train_test_split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.epi_functional.train_test_split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-machina.traj.traj">
+<span id="machina-traj-traj-module"></span><h2>machina.traj.traj module<a class="headerlink" href="#module-machina.traj.traj" title="Permalink to this headline">¶</a></h2>
+<p>trajectory class</p>
+<dl class="class">
+<dt id="machina.traj.traj.Traj">
+<em class="property">class </em><code class="descclassname">machina.traj.traj.</code><code class="descname">Traj</code><span class="sig-paren">(</span><em>max_steps=None</em>, <em>traj_device=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Trajectory class.
+A Trajectory is a sequence of episodes.
+An episode is a sequence of steps.</p>
+<p>This class provides batch methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>max_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Specifying maximum steps to be saved in Traj.</li>
+<li><strong>traj_device</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>torch.device</em>) – Device name Traj is allocated.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.traj.traj.Traj.add_epis">
+<code class="descname">add_epis</code><span class="sig-paren">(</span><em>epis</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.add_epis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.add_epis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.add_traj">
+<code class="descname">add_traj</code><span class="sig-paren">(</span><em>traj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.add_traj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.add_traj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.full_batch">
+<code class="descname">full_batch</code><span class="sig-paren">(</span><em>epoch=1</em>, <em>return_indices=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.full_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.full_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Providing whole trajectory as batch.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>return_indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, indices are also returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data_map</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.get_max_pri">
+<code class="descname">get_max_pri</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.get_max_pri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.get_max_pri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.iterate">
+<code class="descname">iterate</code><span class="sig-paren">(</span><em>batch_size</em>, <em>epoch=1</em>, <em>indices=None</em>, <em>shuffle=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.iterate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.iterate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate a full of trajectory epoch times.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>indices</strong> (<em>ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – Selected indices for iteration.
+If None, whole trajectory is selected.</li>
+<li><strong>shuffle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data_map</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.iterate_epi">
+<code class="descname">iterate_epi</code><span class="sig-paren">(</span><em>shuffle=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.iterate_epi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.iterate_epi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterating episodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>shuffle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>epis</strong></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict of torch.Tensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.iterate_once">
+<code class="descname">iterate_once</code><span class="sig-paren">(</span><em>batch_size</em>, <em>indices=None</em>, <em>shuffle=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.iterate_once"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.iterate_once" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate a full of trajectory once.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>indices</strong> (<em>ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – Selected indices for iteration.
+If None, whole trajectory is selected.</li>
+<li><strong>shuffle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data_map</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.iterate_rnn">
+<code class="descname">iterate_rnn</code><span class="sig-paren">(</span><em>batch_size</em>, <em>num_epi_per_seq=1</em>, <em>epoch=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.iterate_rnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.iterate_rnn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterating batches for rnn.
+batch shape is (max_seq, batch_size, * )</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>num_epi_per_seq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of episodes in one sequence for rnn.</li>
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>batch</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.iterate_step">
+<code class="descname">iterate_step</code><span class="sig-paren">(</span><em>batch_size</em>, <em>step=1</em>, <em>indices=None</em>, <em>shuffle=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.iterate_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.iterate_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="machina.traj.traj.Traj.num_epi">
+<code class="descname">num_epi</code><a class="headerlink" href="#machina.traj.traj.Traj.num_epi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="machina.traj.traj.Traj.num_step">
+<code class="descname">num_step</code><a class="headerlink" href="#machina.traj.traj.Traj.num_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.prioritized_random_batch">
+<code class="descname">prioritized_random_batch</code><span class="sig-paren">(</span><em>batch_size</em>, <em>epoch=1</em>, <em>return_indices=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.prioritized_random_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.prioritized_random_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.prioritized_random_batch_once">
+<code class="descname">prioritized_random_batch_once</code><span class="sig-paren">(</span><em>batch_size</em>, <em>return_indices=False</em>, <em>mode='proportional'</em>, <em>alpha=0.6</em>, <em>init_beta=0.4</em>, <em>beta_step=6.25e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.prioritized_random_batch_once"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.prioritized_random_batch_once" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.prioritized_random_batch_rnn">
+<code class="descname">prioritized_random_batch_rnn</code><span class="sig-paren">(</span><em>batch_size</em>, <em>seq_length</em>, <em>epoch=1</em>, <em>return_indices=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.prioritized_random_batch_rnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.prioritized_random_batch_rnn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Providing sequences of batch which is prioritized randomly sampled from trajectory.
+batch shape is (seq_length, batch_size, * )</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>seq_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Length of sequence of batch.
+If seq_length None, max episode length is selected.</li>
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>return_indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, indices are also returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>batch</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.prioritized_random_batch_rnn_once">
+<code class="descname">prioritized_random_batch_rnn_once</code><span class="sig-paren">(</span><em>batch_size</em>, <em>seq_length</em>, <em>return_indices=False</em>, <em>init_beta=0.4</em>, <em>beta_step=6.25e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.prioritized_random_batch_rnn_once"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.prioritized_random_batch_rnn_once" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.random_batch">
+<code class="descname">random_batch</code><span class="sig-paren">(</span><em>batch_size</em>, <em>epoch=1</em>, <em>indices=None</em>, <em>return_indices=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.random_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.random_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Providing batches which is randomly sampled from trajectory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>indices</strong> (<em>ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – Selected indices for iteration.
+If None, whole trajectory is selected.</li>
+<li><strong>return_indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, indices are also returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data_map</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.random_batch_once">
+<code class="descname">random_batch_once</code><span class="sig-paren">(</span><em>batch_size</em>, <em>indices=None</em>, <em>return_indices=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.random_batch_once"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.random_batch_once" title="Permalink to this definition">¶</a></dt>
+<dd><p>Providing a batch which is randomly sampled from trajectory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>indices</strong> (<em>ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – Selected indices for iteration.
+If None, whole trajectory is selected.</li>
+<li><strong>return_indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, indices are also returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data_map</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.random_batch_rnn">
+<code class="descname">random_batch_rnn</code><span class="sig-paren">(</span><em>batch_size</em>, <em>seq_length=None</em>, <em>epoch=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.random_batch_rnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.random_batch_rnn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Providing sequences of batch which is randomly sampled from trajectory.
+batch shape is (seq_length, batch_size, * )</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+<li><strong>seq_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Length of sequence of batch.
+If seq_length None, max episode length is selected.</li>
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>batch</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict of torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.traj.traj.Traj.register_epis">
+<code class="descname">register_epis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj.html#Traj.register_epis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj.Traj.register_epis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.traj.traj_functional">
+<span id="machina-traj-traj-functional-module"></span><h2>machina.traj.traj_functional module<a class="headerlink" href="#module-machina.traj.traj_functional" title="Permalink to this headline">¶</a></h2>
+<p>These are functions which is applied to trajectory.</p>
+<dl class="function">
+<dt id="machina.traj.traj_functional.update_pris">
+<code class="descclassname">machina.traj.traj_functional.</code><code class="descname">update_pris</code><span class="sig-paren">(</span><em>traj</em>, <em>td_loss</em>, <em>indices</em>, <em>alpha=0.6</em>, <em>epsilon=1e-06</em>, <em>update_epi_pris=False</em>, <em>seq_length=None</em>, <em>eta=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/traj/traj_functional.html#update_pris"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.traj.traj_functional.update_pris" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update priorities specified in indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj"><em>Traj</em></a>) – </li>
+<li><strong>td_loss</strong> (<em>torch.Tensor</em>) – </li>
+<li><strong>indices</strong> (<em>torch.Tensor ot List of int</em>) – </li>
+<li><strong>alpha</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>epsilon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>update_epi_pris</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, all priorities of a episode including indices[0] are updated.</li>
+<li><strong>seq_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Length of batch.</li>
+<li><strong>eta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#machina.traj.traj.Traj" title="machina.traj.traj.Traj">Traj</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="machina.vfuncs.html" class="btn btn-neutral float-right" title="machina.vfuncs package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="machina.samplers.html" class="btn btn-neutral float-left" title="machina.samplers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

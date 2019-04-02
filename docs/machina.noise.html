@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina.noise package &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="machina.optims package" href="machina.optims.html" />
+    <link rel="prev" title="machina.models package" href="machina.models.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="machina.html">machina package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="machina.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="machina.algos.html">machina.algos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.envs.html">machina.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.models.html">machina.models package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">machina.noise package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.noise.base">machina.noise.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.noise.ounoise">machina.noise.ounoise module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="machina.optims.html">machina.optims package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pds.html">machina.pds package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pols.html">machina.pols package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.prepro.html">machina.prepro package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.samplers.html">machina.samplers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.traj.html">machina.traj package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.vfuncs.html">machina.vfuncs package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.logger">machina.logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.loss_functional">machina.loss_functional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.utils">machina.utils module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="machina.html">machina package</a> &raquo;</li>
+        
+      <li>machina.noise package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/machina.noise.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-machina.noise">
+<span id="machina-noise-package"></span><h1>machina.noise package<a class="headerlink" href="#module-machina.noise" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-machina.noise.base">
+<span id="machina-noise-base-module"></span><h2>machina.noise.base module<a class="headerlink" href="#module-machina.noise.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.noise.base.BaseActionNoise">
+<em class="property">class </em><code class="descclassname">machina.noise.base.</code><code class="descname">BaseActionNoise</code><span class="sig-paren">(</span><em>ac_space</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/noise/base.html#BaseActionNoise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.noise.base.BaseActionNoise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class of action noise.</p>
+<dl class="method">
+<dt id="machina.noise.base.BaseActionNoise.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/noise/base.html#BaseActionNoise.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.noise.base.BaseActionNoise.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.noise.ounoise">
+<span id="machina-noise-ounoise-module"></span><h2>machina.noise.ounoise module<a class="headerlink" href="#module-machina.noise.ounoise" title="Permalink to this headline">¶</a></h2>
+<p>This is implementation of Ornstein-Uhlenbeck process.</p>
+<dl class="class">
+<dt id="machina.noise.ounoise.OUActionNoise">
+<em class="property">class </em><code class="descclassname">machina.noise.ounoise.</code><code class="descname">OUActionNoise</code><span class="sig-paren">(</span><em>ac_space</em>, <em>sigma=0.2</em>, <em>theta=0.15</em>, <em>dt=0.01</em>, <em>x0=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/noise/ounoise.html#OUActionNoise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.noise.ounoise.OUActionNoise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.noise.base.BaseActionNoise" title="machina.noise.base.BaseActionNoise"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.noise.base.BaseActionNoise</span></code></a></p>
+<p>noise produced by Ornstein-Uhlenbeck process.</p>
+<dl class="method">
+<dt id="machina.noise.ounoise.OUActionNoise.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/noise/ounoise.html#OUActionNoise.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.noise.ounoise.OUActionNoise.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="machina.optims.html" class="btn btn-neutral float-right" title="machina.optims package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="machina.models.html" class="btn btn-neutral float-left" title="machina.models package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina.vfuncs.state_vfuncs package &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="machina.vfuncs.state_action_vfuncs package" href="machina.vfuncs.state_action_vfuncs.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="machina.html">machina package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="machina.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="machina.algos.html">machina.algos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.envs.html">machina.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.models.html">machina.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.noise.html">machina.noise package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.optims.html">machina.optims package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pds.html">machina.pds package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pols.html">machina.pols package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.prepro.html">machina.prepro package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.samplers.html">machina.samplers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.traj.html">machina.traj package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="machina.vfuncs.html">machina.vfuncs package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="machina.vfuncs.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.logger">machina.logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.loss_functional">machina.loss_functional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.utils">machina.utils module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="machina.html">machina package</a> &raquo;</li>
+        
+          <li><a href="machina.vfuncs.html">machina.vfuncs package</a> &raquo;</li>
+        
+      <li>machina.vfuncs.state_vfuncs package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/machina.vfuncs.state_vfuncs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-machina.vfuncs.state_vfuncs">
+<span id="machina-vfuncs-state-vfuncs-package"></span><h1>machina.vfuncs.state_vfuncs package<a class="headerlink" href="#module-machina.vfuncs.state_vfuncs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-machina.vfuncs.state_vfuncs.base">
+<span id="machina-vfuncs-state-vfuncs-base-module"></span><h2>machina.vfuncs.state_vfuncs.base module<a class="headerlink" href="#module-machina.vfuncs.state_vfuncs.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.vfuncs.state_vfuncs.base.BaseSVfunc">
+<em class="property">class </em><code class="descclassname">machina.vfuncs.state_vfuncs.base.</code><code class="descname">BaseSVfunc</code><span class="sig-paren">(</span><em>ob_space</em>, <em>net</em>, <em>rnn=False</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/base.html#BaseSVfunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.base.BaseSVfunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Base function of State Value Function.
+It takes observations and then output value.
+For example V Func.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – </li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.vfuncs.state_vfuncs.base.BaseSVfunc.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/base.html#BaseSVfunc.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.base.BaseSVfunc.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset for rnn’s hidden state.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.vfuncs.state_vfuncs.deterministic_state_vfunc">
+<span id="machina-vfuncs-state-vfuncs-deterministic-state-vfunc-module"></span><h2>machina.vfuncs.state_vfuncs.deterministic_state_vfunc module<a class="headerlink" href="#module-machina.vfuncs.state_vfuncs.deterministic_state_vfunc" title="Permalink to this headline">¶</a></h2>
+<p>Deterministic State Value function</p>
+<dl class="class">
+<dt id="machina.vfuncs.state_vfuncs.deterministic_state_vfunc.DeterministicSVfunc">
+<em class="property">class </em><code class="descclassname">machina.vfuncs.state_vfuncs.deterministic_state_vfunc.</code><code class="descname">DeterministicSVfunc</code><span class="sig-paren">(</span><em>ob_space</em>, <em>net</em>, <em>rnn=False</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/deterministic_state_vfunc.html#DeterministicSVfunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.deterministic_state_vfunc.DeterministicSVfunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.vfuncs.state_vfuncs.base.BaseSVfunc" title="machina.vfuncs.state_vfuncs.base.BaseSVfunc"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.vfuncs.state_vfuncs.base.BaseSVfunc</span></code></a></p>
+<p>Deterministic version of State Action Value Function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – </li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.vfuncs.state_vfuncs.deterministic_state_vfunc.DeterministicSVfunc.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/deterministic_state_vfunc.html#DeterministicSVfunc.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.deterministic_state_vfunc.DeterministicSVfunc.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculating values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc">
+<em class="property">class </em><code class="descclassname">machina.vfuncs.state_vfuncs.deterministic_state_vfunc.</code><code class="descname">NormalizedDeterministicSVfunc</code><span class="sig-paren">(</span><em>ob_space</em>, <em>net</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/deterministic_state_vfunc.html#NormalizedDeterministicSVfunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.vfuncs.state_vfuncs.deterministic_state_vfunc.DeterministicSVfunc" title="machina.vfuncs.state_vfuncs.deterministic_state_vfunc.DeterministicSVfunc"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.vfuncs.state_vfuncs.deterministic_state_vfunc.DeterministicSVfunc</span></code></a></p>
+<dl class="method">
+<dt id="machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/deterministic_state_vfunc.html#NormalizedDeterministicSVfunc.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculating values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc.set_mean">
+<code class="descname">set_mean</code><span class="sig-paren">(</span><em>mean</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/deterministic_state_vfunc.html#NormalizedDeterministicSVfunc.set_mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc.set_mean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc.set_std">
+<code class="descname">set_std</code><span class="sig-paren">(</span><em>std</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/vfuncs/state_vfuncs/deterministic_state_vfunc.html#NormalizedDeterministicSVfunc.set_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.vfuncs.state_vfuncs.deterministic_state_vfunc.NormalizedDeterministicSVfunc.set_std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="machina.vfuncs.state_action_vfuncs.html" class="btn btn-neutral float-left" title="machina.vfuncs.state_action_vfuncs package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
