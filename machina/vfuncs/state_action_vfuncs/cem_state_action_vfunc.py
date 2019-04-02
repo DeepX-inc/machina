@@ -32,7 +32,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         Coefficient used for making covariance matrix positive definite.
     """
 
-    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64, num_best_sampling=6, num_iter=2, multivari=True, delta=1e-4):
+    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64,
+                 num_best_sampling=6, num_iter=2, multivari=True, delta=1e-4, save_memory=False):
         super().__init__(ob_space, ac_space, net, rnn, data_parallel, parallel_dim)
         self.num_sampling = num_sampling
         self.delta = delta
@@ -41,6 +42,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         self.net = net
         self.dim_ac = self.ac_space.shape[0]
         self.multivari = multivari
+        self.save_memory = save_memory
         self.to(get_device())
 
     def max(self, obs):
@@ -59,26 +61,49 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
         obs = self._check_obs_shape(obs)
 
-        self.batch_size = obs.shape[0]
         self.dim_ob = obs.shape[1]
         high = torch.tensor(self.ac_space.high,
                             dtype=torch.float, device=get_device())
         low = torch.tensor(
             self.ac_space.low, dtype=torch.float, device=get_device())
-        init_samples = torch.linspace(0, 1, self.num_sampling, device=get_device()).reshape(
+        init_samples = torch.linspace(
+            0, 1, self.num_sampling, device=get_device())
+        init_samples = init_samples.reshape(
             self.num_sampling, -1) * (high - low) + low  # (self.num_sampling, dim_ac)
         init_samples = self._clamp(init_samples)
-        max_qs, max_acs = self._cem(obs, init_samples)
+        if not self.save_memory:  # batch
+            self.cem_batch_size = obs.shape[0]
+            obs = obs.repeat((1, self.num_sampling)).reshape(
+                (self.cem_batch_size * self.num_sampling, self.dim_ob))
+            # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, self.dim_ob)], dim=0)
+            init_samples = init_samples.repeat((self.cem_batch_size, 1))
+            # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, dim_ac)], dim=0)
+            max_qs, max_acs = self._cem(obs, init_samples)
+        else:  # for-sentence
+            self.cem_batch_size = 1
+            max_acs = []
+            max_qs = []
+            for ob in obs:
+                ob = ob.repeat((1, self.num_sampling)).reshape(
+                    (self.cem_batch_size * self.num_sampling, self.dim_ob))
+                ob = self._check_obs_shape(ob)
+                max_q, max_ac = self._cem(ob, init_samples)
+                max_qs.append(max_q)
+                max_acs.append(max_ac)
+            max_qs = torch.tensor(
+                max_qs, dtype=torch.float, device=obs.device)
+            max_acs = torch.cat(max_acs, dim=0)
+        max_acs = self._check_acs_shape(max_acs)
         return max_qs, max_acs
 
-    def _cem(self, obs, init_samples):
+    def _cem(self, obs, samples):
         """
         Perform cross entropy method
 
         Parameters
         ----------
         obs : torch.Tensor
-        init_samples : torch.Tensor
+        samples : torch.Tensor
             shape (self.num_sampling, dim_ac)
 
         Returns
@@ -86,37 +111,31 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         max_q : torch.Tensor
         max_ac : torch.Tensor
         """
-        obs = obs.repeat((1, self.num_sampling)).reshape(
-            (self.batch_size * self.num_sampling, self.dim_ob))
-        # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, self.dim_ob)], dim=0)
-        samples = init_samples.repeat((self.batch_size, 1))
-        # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, dim_ac)], dim=0)
         for i in range(self.num_iter):
             with torch.no_grad():
                 qvals, _ = self.forward(obs, samples)
             if i != self.num_iter-1:
-                qvals = qvals.reshape((self.batch_size, self.num_sampling))
+                qvals = qvals.reshape((self.cem_batch_size, self.num_sampling))
                 _, indices = torch.sort(qvals, dim=1, descending=True)
                 best_indices = indices[:, :self.num_best_sampling]
                 best_indices = best_indices + \
-                    torch.arange(0, self.num_sampling*self.batch_size,
-                                 self.num_sampling, device=get_device()).reshape((self.batch_size, 1))
+                    torch.arange(0, self.num_sampling*self.cem_batch_size,
+                                 self.num_sampling, device=get_device()).reshape((self.cem_batch_size, 1))
                 best_indices = best_indices.reshape(
-                    (self.num_best_sampling * self.batch_size,))
-                # (self.num_best_sampling * self.batch_size,  self.dim_ac)
+                    (self.num_best_sampling * self.cem_batch_size,))
+                # (self.num_best_sampling * self.cem_batch_size,  self.dim_ac)
                 best_samples = samples[best_indices, :]
-                # (self.batch_size, self.num_best_sampling, self.dim_ac)
+                # (self.cem_batch_size, self.num_best_sampling, self.dim_ac)
                 best_samples = best_samples.reshape(
-                    (self.batch_size, self.num_best_sampling, self.dim_ac))
+                    (self.cem_batch_size, self.num_best_sampling, self.dim_ac))
                 samples = self._fitting_diag(
                     best_samples) if not self.multivari else self._fitting_multivari(best_samples)
-        qvals = qvals.reshape((self.batch_size, self.num_sampling))
+        qvals = qvals.reshape((self.cem_batch_size, self.num_sampling))
         samples = samples.reshape(
-            (self.batch_size, self.num_sampling, self.dim_ac))
+            (self.cem_batch_size, self.num_sampling, self.dim_ac))
         max_q, ind = torch.max(qvals, dim=1)
         max_ac = samples[torch.arange(
-            self.batch_size, device=get_device()), ind]
-        max_ac = self._check_acs_shape(max_ac)
+            self.cem_batch_size, device=get_device()), ind]
         return max_q, max_ac
 
     def _fitting_diag(self, best_samples):
@@ -126,22 +145,23 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         Parameters
         ----------
         best_samples : torch.Tensor
-            shape (self.batch_size, self.num_best_sampling, self.dim_ac)
+            shape (self.cem_batch_size, self.num_best_sampling, self.dim_ac)
 
         Returns
         -------
         samples : torch.Tensor
         """
         mean = torch.mean(
-            best_samples, dim=1)  # (self.batch_size, self.dim_ac)
-        std = torch.std(best_samples, dim=1)  # (self.batch_size, self.dim_ac)
+            best_samples, dim=1)  # (self.cem_batch_size, self.dim_ac)
+        # (self.cem_batch_size, self.dim_ac)
+        std = torch.std(best_samples, dim=1)
         samples = Normal(loc=mean, scale=std).rsample(
-            torch.Size((self.num_sampling,)))  # (self.num_best_sampling, self.batch_size, self.dim_ac)
-        # (self.num_best_sampling, self.batch_size, self.dim_ac)
+            torch.Size((self.num_sampling,)))  # (self.num_best_sampling, self.cem_batch_size, self.dim_ac)
+        # (self.num_best_sampling, self.cem_batch_size, self.dim_ac)
         samples = samples.transpose(1, 0)
-        samples = samples.reshape((self.num_sampling * self.batch_size,
-                                   self.dim_ac))  # (self.num_best_sampling * self.batch_size,  self.dim_ac)
-        # (self.num_best_sampling * self.batch_size,  self.dim_ac)
+        samples = samples.reshape((self.num_sampling * self.cem_batch_size,
+                                   self.dim_ac))  # (self.num_best_sampling * self.cem_batch_size,  self.dim_ac)
+        # (self.num_best_sampling * self.cem_batch_size,  self.dim_ac)
         samples = self._clamp(samples)
         return samples
 
@@ -152,7 +172,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         Parameters
         ----------
         best_samples : torch.Tensor
-            shape (self.batch_size, self.num_best_sampling, self.dim_ac)
+            shape (self.cem_batch_size, self.num_best_sampling, self.dim_ac)
 
         Returns
         -------
