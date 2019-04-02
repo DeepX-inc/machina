@@ -1,0 +1,252 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina.vfuncs package &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="machina.vfuncs.state_action_vfuncs package" href="machina.vfuncs.state_action_vfuncs.html" />
+    <link rel="prev" title="machina.traj package" href="machina.traj.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="machina.html">machina package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="machina.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="machina.algos.html">machina.algos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.envs.html">machina.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.models.html">machina.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.noise.html">machina.noise package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.optims.html">machina.optims package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pds.html">machina.pds package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pols.html">machina.pols package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.prepro.html">machina.prepro package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.samplers.html">machina.samplers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.traj.html">machina.traj package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">machina.vfuncs package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.logger">machina.logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.loss_functional">machina.loss_functional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.utils">machina.utils module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="machina.html">machina package</a> &raquo;</li>
+        
+      <li>machina.vfuncs package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/machina.vfuncs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-machina.vfuncs">
+<span id="machina-vfuncs-package"></span><h1>machina.vfuncs package<a class="headerlink" href="#module-machina.vfuncs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html">machina.vfuncs.state_action_vfuncs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#module-machina.vfuncs.state_action_vfuncs.base">machina.vfuncs.state_action_vfuncs.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#module-machina.vfuncs.state_action_vfuncs.cem_state_action_vfunc">machina.vfuncs.state_action_vfuncs.cem_state_action_vfunc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#module-machina.vfuncs.state_action_vfuncs.deterministic_state_action_vfunc">machina.vfuncs.state_action_vfuncs.deterministic_state_action_vfunc module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html">machina.vfuncs.state_vfuncs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html#module-machina.vfuncs.state_vfuncs.base">machina.vfuncs.state_vfuncs.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html#module-machina.vfuncs.state_vfuncs.deterministic_state_vfunc">machina.vfuncs.state_vfuncs.deterministic_state_vfunc module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="machina.vfuncs.state_action_vfuncs.html" class="btn btn-neutral float-right" title="machina.vfuncs.state_action_vfuncs package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="machina.traj.html" class="btn btn-neutral float-left" title="machina.traj package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
