@@ -72,8 +72,6 @@ parser.add_argument('--lam', type=float, default=0.97,
                     help='Tradeoff value of bias variance.')
 parser.add_argument('--pol_ent_beta', type=float, default=0,
                     help='Entropy coefficient for policy.')
-parser.add_argument('--discrim_ent_beta', type=float, default=0,
-                    help='Entropy coefficient for discriminator.')
 
 parser.add_argument('--max_grad_norm', type=float, default=10,
                     help='Value of maximum gradient norm.')
@@ -205,9 +203,10 @@ if args.rl_type == 'ppo_kl':
 
 if args.pretrain:
     with measure('bc pretrain'):
-        _ = behavior_clone.train(
-            expert_traj, pol, optim_pol, args.bc_batch_size, args.bc_epoch
-        )
+        for _ in range(args.bc_epoch):
+            _ = behavior_clone.train(
+                expert_traj, pol, optim_pol, args.bc_batch_size
+            )
 
 while args.max_epis > total_epi:
     with measure('sample'):
@@ -236,29 +235,29 @@ while args.max_epis > total_epi:
 
         if args.rl_type == 'trpo':
             result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
-                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, rew_type=args.rew_type,
+                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf,
                                      rl_type=args.rl_type,
                                      epoch=args.epoch_per_iter,
                                      batch_size=args.batch_size, discrim_batch_size=args.discrim_batch_size,
                                      discrim_step=args.discrim_step,
-                                     pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta, gamma=args.gamma)
+                                     pol_ent_beta=args.pol_ent_beta, gamma=args.gamma)
         elif args.rl_type == 'ppo_clip':
             result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
-                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, rew_type=args.rew_type,
+                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf,
                                      rl_type=args.rl_type,
                                      epoch=args.epoch_per_iter,
                                      batch_size=args.batch_size,
                                      discrim_batch_size=args.discrim_batch_size,
                                      discrim_step=args.discrim_step,
-                                     pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta,
+                                     pol_ent_beta=args.pol_ent_beta,
                                      optim_pol=optim_pol,
                                      clip_param=args.clip_param, max_grad_norm=args.max_grad_norm, gamma=args.gamma)
 
         else:
             result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
-                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf, rew_type=args.rew_type,
+                                     rewf=rewf, shaping_vf=shaping_vf, advf=advf,
                                      rl_type=args.rl_type,
-                                     pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta,
+                                     pol_ent_beta=args.pol_ent_beta,
                                      epoch=args.epoch_per_iter,
                                      batch_size=args.batch_size,
                                      discrim_batch_size=args.discrim_batch_size,

@@ -1,0 +1,665 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina.pols package &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="machina.prepro package" href="machina.prepro.html" />
+    <link rel="prev" title="machina.pds package" href="machina.pds.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="machina.html">machina package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="machina.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="machina.algos.html">machina.algos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.envs.html">machina.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.models.html">machina.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.noise.html">machina.noise package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.optims.html">machina.optims package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pds.html">machina.pds package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">machina.pols package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.argmax_qf_pol">machina.pols.argmax_qf_pol module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.base">machina.pols.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.categorical_pol">machina.pols.categorical_pol module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.deterministic_action_noise_pol">machina.pols.deterministic_action_noise_pol module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.gaussian_pol">machina.pols.gaussian_pol module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.mixture_gaussian_pol">machina.pols.mixture_gaussian_pol module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.mpc_pol">machina.pols.mpc_pol module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.multi_categorical_pol">machina.pols.multi_categorical_pol module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-machina.pols.random_pol">machina.pols.random_pol module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="machina.prepro.html">machina.prepro package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.samplers.html">machina.samplers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.traj.html">machina.traj package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.vfuncs.html">machina.vfuncs package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.logger">machina.logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.loss_functional">machina.loss_functional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.html#module-machina.utils">machina.utils module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="machina.html">machina package</a> &raquo;</li>
+        
+      <li>machina.pols package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/machina.pols.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-machina.pols">
+<span id="machina-pols-package"></span><h1>machina.pols package<a class="headerlink" href="#module-machina.pols" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-machina.pols.argmax_qf_pol">
+<span id="machina-pols-argmax-qf-pol-module"></span><h2>machina.pols.argmax_qf_pol module<a class="headerlink" href="#module-machina.pols.argmax_qf_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.argmax_qf_pol.ArgmaxQfPol">
+<em class="property">class </em><code class="descclassname">machina.pols.argmax_qf_pol.</code><code class="descname">ArgmaxQfPol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>qfunc</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em>, <em>eps=0.2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/argmax_qf_pol.html#ArgmaxQfPol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.argmax_qf_pol.ArgmaxQfPol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<p>Policy with Continuous Qfunction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space
+This should be gym.spaces.Box</li>
+<li><strong>qfunc</strong> (<em>SAVfunc</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+<li><strong>eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Probability of random action</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.argmax_qf_pol.ArgmaxQfPol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/argmax_qf_pol.html#ArgmaxQfPol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.argmax_qf_pol.ArgmaxQfPol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.base">
+<span id="machina-pols-base-module"></span><h2>machina.pols.base module<a class="headerlink" href="#module-machina.pols.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.base.BasePol">
+<em class="property">class </em><code class="descclassname">machina.pols.base.</code><code class="descname">BasePol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/base.html#BasePol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.base.BasePol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Base class of Policy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space</li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.base.BasePol.convert_ac_for_real">
+<code class="descname">convert_ac_for_real</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/base.html#BasePol.convert_ac_for_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.base.BasePol.convert_ac_for_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converting action which is output of network for real world value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.base.BasePol.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/base.html#BasePol.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.base.BasePol.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset for rnn’s hidden state.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.categorical_pol">
+<span id="machina-pols-categorical-pol-module"></span><h2>machina.pols.categorical_pol module<a class="headerlink" href="#module-machina.pols.categorical_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.categorical_pol.CategoricalPol">
+<em class="property">class </em><code class="descclassname">machina.pols.categorical_pol.</code><code class="descname">CategoricalPol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/categorical_pol.html#CategoricalPol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.categorical_pol.CategoricalPol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<p>Policy with Categorical distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space
+This should be gym.spaces.Discrete</li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.categorical_pol.CategoricalPol.deterministic_ac_real">
+<code class="descname">deterministic_ac_real</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/categorical_pol.html#CategoricalPol.deterministic_ac_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.categorical_pol.CategoricalPol.deterministic_ac_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>action for deployment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.categorical_pol.CategoricalPol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/categorical_pol.html#CategoricalPol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.categorical_pol.CategoricalPol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.deterministic_action_noise_pol">
+<span id="machina-pols-deterministic-action-noise-pol-module"></span><h2>machina.pols.deterministic_action_noise_pol module<a class="headerlink" href="#module-machina.pols.deterministic_action_noise_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol">
+<em class="property">class </em><code class="descclassname">machina.pols.deterministic_action_noise_pol.</code><code class="descname">DeterministicActionNoisePol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>noise=None</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/deterministic_action_noise_pol.html#DeterministicActionNoisePol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<p>Policy with deterministic distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space.
+This should be gym.spaces.Box</li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>noise</strong> (<em>Noise</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol.deterministic_ac_real">
+<code class="descname">deterministic_ac_real</code><span class="sig-paren">(</span><em>obs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/deterministic_action_noise_pol.html#DeterministicActionNoisePol.deterministic_ac_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol.deterministic_ac_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>action for deployment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em>, <em>no_noise=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/deterministic_action_noise_pol.html#DeterministicActionNoisePol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/deterministic_action_noise_pol.html#DeterministicActionNoisePol.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.deterministic_action_noise_pol.DeterministicActionNoisePol.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset for rnn’s hidden state.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.gaussian_pol">
+<span id="machina-pols-gaussian-pol-module"></span><h2>machina.pols.gaussian_pol module<a class="headerlink" href="#module-machina.pols.gaussian_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.gaussian_pol.GaussianPol">
+<em class="property">class </em><code class="descclassname">machina.pols.gaussian_pol.</code><code class="descname">GaussianPol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/gaussian_pol.html#GaussianPol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.gaussian_pol.GaussianPol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<p>Policy with Gaussian distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space
+This should be gym.spaces.Box</li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.gaussian_pol.GaussianPol.deterministic_ac_real">
+<code class="descname">deterministic_ac_real</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/gaussian_pol.html#GaussianPol.deterministic_ac_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.gaussian_pol.GaussianPol.deterministic_ac_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>action for deployment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.gaussian_pol.GaussianPol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/gaussian_pol.html#GaussianPol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.gaussian_pol.GaussianPol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.mixture_gaussian_pol">
+<span id="machina-pols-mixture-gaussian-pol-module"></span><h2>machina.pols.mixture_gaussian_pol module<a class="headerlink" href="#module-machina.pols.mixture_gaussian_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.mixture_gaussian_pol.MixtureGaussianPol">
+<em class="property">class </em><code class="descclassname">machina.pols.mixture_gaussian_pol.</code><code class="descname">MixtureGaussianPol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>normalize_ac=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/mixture_gaussian_pol.html#MixtureGaussianPol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.mixture_gaussian_pol.MixtureGaussianPol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<dl class="method">
+<dt id="machina.pols.mixture_gaussian_pol.MixtureGaussianPol.deterministic_ac_real">
+<code class="descname">deterministic_ac_real</code><span class="sig-paren">(</span><em>obs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/mixture_gaussian_pol.html#MixtureGaussianPol.deterministic_ac_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.mixture_gaussian_pol.MixtureGaussianPol.deterministic_ac_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>action for deployment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.mixture_gaussian_pol.MixtureGaussianPol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/mixture_gaussian_pol.html#MixtureGaussianPol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.mixture_gaussian_pol.MixtureGaussianPol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.mpc_pol">
+<span id="machina-pols-mpc-pol-module"></span><h2>machina.pols.mpc_pol module<a class="headerlink" href="#module-machina.pols.mpc_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.mpc_pol.MPCPol">
+<em class="property">class </em><code class="descclassname">machina.pols.mpc_pol.</code><code class="descname">MPCPol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>rew_func</em>, <em>n_samples=1000</em>, <em>horizon=20</em>, <em>mean_obs=0.0</em>, <em>std_obs=1.0</em>, <em>mean_acs=0.0</em>, <em>std_acs=1.0</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/mpc_pol.html#MPCPol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.mpc_pol.MPCPol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<p>Policy with model predictive control.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space.
+This should be gym.spaces.Box</li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – dymamics model</li>
+<li><strong>rew_func</strong> (<em>function</em>) – rt = rew_func(st+1, at). rt, st+1 and at are torch.tensor.</li>
+<li><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – num of action samples in the model predictive control</li>
+<li><strong>horizon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – horizon of prediction</li>
+<li><strong>mean_obs</strong> (<em>np.array</em>) – </li>
+<li><strong>std_obs</strong> (<em>np.array</em>) – </li>
+<li><strong>mean_acs</strong> (<em>np.array</em>) – </li>
+<li><strong>std_acs</strong> (<em>np.array</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.mpc_pol.MPCPol.deterministic_ac_real">
+<code class="descname">deterministic_ac_real</code><span class="sig-paren">(</span><em>obs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/mpc_pol.html#MPCPol.deterministic_ac_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.mpc_pol.MPCPol.deterministic_ac_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>action for deployment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.mpc_pol.MPCPol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ob</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/mpc_pol.html#MPCPol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.mpc_pol.MPCPol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.mpc_pol.MPCPol.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/mpc_pol.html#MPCPol.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.mpc_pol.MPCPol.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset for rnn’s hidden state.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.multi_categorical_pol">
+<span id="machina-pols-multi-categorical-pol-module"></span><h2>machina.pols.multi_categorical_pol module<a class="headerlink" href="#module-machina.pols.multi_categorical_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.multi_categorical_pol.MultiCategoricalPol">
+<em class="property">class </em><code class="descclassname">machina.pols.multi_categorical_pol.</code><code class="descname">MultiCategoricalPol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/multi_categorical_pol.html#MultiCategoricalPol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.multi_categorical_pol.MultiCategoricalPol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<p>Policy with Categorical distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space.
+This should be gym.spaces.MultiDiscrete</li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.multi_categorical_pol.MultiCategoricalPol.deterministic_ac_real">
+<code class="descname">deterministic_ac_real</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/multi_categorical_pol.html#MultiCategoricalPol.deterministic_ac_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.multi_categorical_pol.MultiCategoricalPol.deterministic_ac_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>action for deployment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="machina.pols.multi_categorical_pol.MultiCategoricalPol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/multi_categorical_pol.html#MultiCategoricalPol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.multi_categorical_pol.MultiCategoricalPol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.pols.random_pol">
+<span id="machina-pols-random-pol-module"></span><h2>machina.pols.random_pol module<a class="headerlink" href="#module-machina.pols.random_pol" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="machina.pols.random_pol.RandomPol">
+<em class="property">class </em><code class="descclassname">machina.pols.random_pol.</code><code class="descname">RandomPol</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net=None</em>, <em>rnn=False</em>, <em>normalize_ac=True</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/random_pol.html#RandomPol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.random_pol.RandomPol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.pols.base.BasePol</span></code></a></p>
+<p>Policy with uniform distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ob_space</strong> (<em>gym.Space</em>) – observation’s space</li>
+<li><strong>ac_space</strong> (<em>gym.Space</em>) – action’s space.
+This should be gym.spaces.Box</li>
+<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
+<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+<li><strong>normalize_ac</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, the output of network is spreaded for ac_space.
+In this situation the output of network is expected to be in -1~1.</li>
+<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
+<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="machina.pols.random_pol.RandomPol.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ob</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/pols/random_pol.html#RandomPol.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.pols.random_pol.RandomPol.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="machina.prepro.html" class="btn btn-neutral float-right" title="machina.prepro package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="machina.pds.html" class="btn btn-neutral float-left" title="machina.pds package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
