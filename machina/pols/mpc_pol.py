@@ -3,6 +3,7 @@ import torch
 
 from machina.pds import DeterministicPd
 from machina.pols import BasePol
+from machina.pds.gaussian_pd import GaussianPd
 from machina.utils import get_device
 
 
@@ -39,7 +40,7 @@ class MPCPol(BasePol):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, net, rew_func, n_samples=1000, horizon=20,
+    def __init__(self, ob_space, ac_space, net, rew_func, n_samples=1000, horizon=20, deterministic=False,
                  mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=False,
                  normalize_ac=True, data_parallel=False, parallel_dim=0):
         BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac,
@@ -47,6 +48,9 @@ class MPCPol(BasePol):
         self.rew_func = rew_func
         self.n_samples = n_samples
         self.horizon = horizon
+        self.deterministic = deterministic
+        if not deterministic:
+            self.pd = GaussianPd()
         self.to(get_device())
 
         self.mean_obs = torch.tensor(
@@ -91,8 +95,14 @@ class MPCPol(BasePol):
             for i in range(self.horizon):
                 ac = normalized_acs[i]
                 if self.rnn:
-                    d_ob, hs = self.net(obs[i].unsqueeze(
-                        0), ac.unsqueeze(0), hs, h_masks)
+                    if self.deterministic:
+                        d_ob, hs = self.net(obs[i].unsqueeze(
+                            0), ac.unsqueeze(0), hs, h_masks)
+                    else:
+                        mean, log_std, hs = self.net(obs[i].unsqueeze(
+                            0), ac.unsqueeze(0), hs, h_masks)
+                        log_std = log_std.expand_as(mean)
+                        d_ob = self.pd.sample(dict(mean=mean, log_std=log_std))
                     obs[i+1] = obs[i] + d_ob
                 else:
                     obs[i+1] = obs[i] + self.net(obs[i], ac)
@@ -107,8 +117,12 @@ class MPCPol(BasePol):
             normalized_ac = normalized_acs[0][best_sample_index].repeat(
                 self.n_samples, 1)
             with torch.no_grad():
-                _, self.hs = self.net(obs[0].unsqueeze(
-                    0), normalized_ac.unsqueeze(0), self.hs, h_masks)
+                if self.deterministic:
+                    _, self.hs = self.net(obs[0].unsqueeze(
+                        0), normalized_ac.unsqueeze(0), self.hs, h_masks)
+                else:
+                    _, _, self.hs = self.net(obs[0].unsqueeze(
+                        0), normalized_ac.unsqueeze(0), self.hs, h_masks)
 
         return ac_real, ac, dict(mean=ac)
 

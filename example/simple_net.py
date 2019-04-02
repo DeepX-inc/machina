@@ -245,7 +245,7 @@ class ModelNetLSTM(nn.Module):
             self.softplus = nn.Softplus()
         self.output_layer.apply(weight_init)
         self.log_std_param = nn.Parameter(torch.log(torch.full(
-            (ob_space.shape[0],), 0., dtype=torch.float)))
+            (ob_space.shape[0],), 0.02, dtype=torch.float)))
 
     def init_hs(self, batch_size=1):
         new_hs = (next(self.parameters()).new(batch_size, self.cell_size).zero_(), next(
@@ -272,8 +272,9 @@ class ModelNetLSTM(nn.Module):
         if self.deterministic:
             return outs, hs
         else:
-            log_std = torch.log(self.softplus(self.std_layer(hiddens)))
-            return outs, log_std, hs  # self.log_std_param, hs
+            #log_std = torch.log(self.softplus(self.std_layer(hiddens)))
+            # outs, log_std, hs  # self.log_std_param, hs
+            return outs, self.log_std_param, hs
 
 
 class DiscrimNet(nn.Module):
