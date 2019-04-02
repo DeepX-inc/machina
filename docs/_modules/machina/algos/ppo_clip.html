@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina.algos.ppo_clip &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../machina.html">machina package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>machina.algos.ppo_clip</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for machina.algos.ppo_clip</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This is an implementation of Proximal Policy Optimization</span>
+<span class="sd">in which gradient is clipped by the size especially.</span>
+<span class="sd">See https://arxiv.org/abs/1707.06347</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="kn">from</span> <span class="nn">machina</span> <span class="k">import</span> <span class="n">loss_functional</span> <span class="k">as</span> <span class="n">lf</span>
+<span class="kn">from</span> <span class="nn">machina</span> <span class="k">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="update_pol"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.ppo_clip.update_pol">[docs]</a><span class="k">def</span> <span class="nf">update_pol</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">optim_pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">clip_param</span><span class="p">,</span> <span class="n">ent_beta</span><span class="p">,</span> <span class="n">max_grad_norm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update function for Policy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pol : Pol</span>
+<span class="sd">        Policy.</span>
+<span class="sd">    optim_pol : torch.optim.Optimizer</span>
+<span class="sd">        Optimizer for Policy.</span>
+<span class="sd">    batch : dict</span>
+<span class="sd">        Batch of trajectory</span>
+<span class="sd">    clip_param : float</span>
+<span class="sd">        Clipping ratio of objective function.</span>
+<span class="sd">    ent_beta : float</span>
+<span class="sd">        Entropy coefficient.</span>
+<span class="sd">    max_grad_norm : float</span>
+<span class="sd">        Maximum gradient norm.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pol_loss : ndarray</span>
+<span class="sd">        Value of loss function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pol_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">pg_clip</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">clip_param</span><span class="p">,</span> <span class="n">ent_beta</span><span class="p">)</span>
+    <span class="n">optim_pol</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">pol_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_grad_norm</span><span class="p">)</span>
+    <span class="n">optim_pol</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pol_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="update_vf"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.ppo_clip.update_vf">[docs]</a><span class="k">def</span> <span class="nf">update_vf</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">optim_vf</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">clip_param</span><span class="p">,</span> <span class="n">clip</span><span class="p">,</span> <span class="n">max_grad_norm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update function for V function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vf : SVfunction</span>
+<span class="sd">        V function.</span>
+<span class="sd">    optim_vf : torch.optim.Optimizer</span>
+<span class="sd">        Optimizer for V function.</span>
+<span class="sd">    batch : dict</span>
+<span class="sd">        Batch of trajectory</span>
+<span class="sd">    clip_param : float</span>
+<span class="sd">        Clipping ratio of objective function.</span>
+<span class="sd">    clip: bool</span>
+<span class="sd">        If True, vfunc is also updated by clipped objective function.</span>
+<span class="sd">    max_grad_norm : float</span>
+<span class="sd">        Maximum gradient norm.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    vf_loss : ndarray</span>
+<span class="sd">        Value of loss function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vf_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">monte_carlo</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">clip_param</span><span class="p">,</span> <span class="n">clip</span><span class="p">)</span>
+    <span class="n">optim_vf</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">vf_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">vf</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_grad_norm</span><span class="p">)</span>
+    <span class="n">optim_vf</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">vf_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="train"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.ppo_clip.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">vf</span><span class="p">,</span>
+          <span class="n">optim_pol</span><span class="p">,</span> <span class="n">optim_vf</span><span class="p">,</span>
+          <span class="n">epoch</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">num_epi_per_seq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># optimization hypers</span>
+          <span class="n">clip_param</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">ent_beta</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+          <span class="n">max_grad_norm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+          <span class="n">clip_vfunc</span><span class="o">=</span><span class="kc">False</span>
+          <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Train function for proximal policy optimization (clip).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    traj : Traj</span>
+<span class="sd">        On policy trajectory.</span>
+<span class="sd">    pol : Pol</span>
+<span class="sd">        Policy.</span>
+<span class="sd">    vf : SVfunction</span>
+<span class="sd">        V function.</span>
+<span class="sd">    optim_pol : torch.optim.Optimizer</span>
+<span class="sd">        Optimizer for Policy.</span>
+<span class="sd">    optim_vf : torch.optim.Optimizer</span>
+<span class="sd">        Optimizer for V function.</span>
+<span class="sd">    epoch : int</span>
+<span class="sd">        Number of iteration.</span>
+<span class="sd">    batch_size : int</span>
+<span class="sd">        Number of batches.</span>
+<span class="sd">    num_epi_per_seq : int</span>
+<span class="sd">        Number of episodes in one sequence for rnn.</span>
+<span class="sd">    clip_param : float</span>
+<span class="sd">        Clipping ratio of objective function.</span>
+<span class="sd">    ent_beta : float</span>
+<span class="sd">        Entropy coefficient.</span>
+<span class="sd">    max_grad_norm : float</span>
+<span class="sd">        Maximum gradient norm.</span>
+<span class="sd">    clip_vfunc: bool</span>
+<span class="sd">        If True, vfunc is also updated by clipped objective function.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result_dict : dict</span>
+<span class="sd">        Dictionary which contains losses information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pol_losses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vf_losses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Optimizing...&quot;</span><span class="p">)</span>
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">iterate</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pol</span><span class="o">.</span><span class="n">rnn</span> <span class="k">else</span> <span class="n">traj</span><span class="o">.</span><span class="n">iterate_rnn</span><span class="p">(</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">num_epi_per_seq</span><span class="o">=</span><span class="n">num_epi_per_seq</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
+        <span class="n">pol_loss</span> <span class="o">=</span> <span class="n">update_pol</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">optim_pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span>
+                              <span class="n">clip_param</span><span class="p">,</span> <span class="n">ent_beta</span><span class="p">,</span> <span class="n">max_grad_norm</span><span class="p">)</span>
+        <span class="n">vf_loss</span> <span class="o">=</span> <span class="n">update_vf</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">optim_vf</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">clip_param</span><span class="p">,</span>
+                            <span class="n">clip_vfunc</span><span class="p">,</span> <span class="n">max_grad_norm</span><span class="p">)</span>
+
+        <span class="n">pol_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pol_loss</span><span class="p">)</span>
+        <span class="n">vf_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vf_loss</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Optimization finished!&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">PolLoss</span><span class="o">=</span><span class="n">pol_losses</span><span class="p">,</span> <span class="n">VfLoss</span><span class="o">=</span><span class="n">vf_losses</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
