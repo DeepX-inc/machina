@@ -1,0 +1,910 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina package &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="machina.algos package" href="machina.algos.html" />
+    <link rel="prev" title="Welcome to machina’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">machina package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="machina.algos.html">machina.algos package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.envs.html">machina.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.models.html">machina.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.noise.html">machina.noise package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.optims.html">machina.optims package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pds.html">machina.pds package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.pols.html">machina.pols package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.prepro.html">machina.prepro package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.samplers.html">machina.samplers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.traj.html">machina.traj package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machina.vfuncs.html">machina.vfuncs package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-machina.logger">machina.logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-machina.loss_functional">machina.loss_functional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-machina.utils">machina.utils module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>machina package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/machina.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-machina">
+<span id="machina-package"></span><h1>machina package<a class="headerlink" href="#module-machina" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="machina.algos.html">machina.algos package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.airl">machina.algos.airl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.behavior_clone">machina.algos.behavior_clone module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.ddpg">machina.algos.ddpg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.diayn">machina.algos.diayn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.diayn_sac">machina.algos.diayn_sac module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.gail">machina.algos.gail module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.mpc">machina.algos.mpc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.on_pol_teacher_distill">machina.algos.on_pol_teacher_distill module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.ppo_clip">machina.algos.ppo_clip module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.ppo_kl">machina.algos.ppo_kl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.prioritized_ddpg">machina.algos.prioritized_ddpg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.qtopt">machina.algos.qtopt module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.r2d2_sac">machina.algos.r2d2_sac module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.sac">machina.algos.sac module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.svg">machina.algos.svg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.trpo">machina.algos.trpo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.algos.html#module-machina.algos.vpg">machina.algos.vpg module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.envs.html">machina.envs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.envs.html#module-machina.envs.ac_in_ob_env">machina.envs.ac_in_ob_env module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.envs.html#module-machina.envs.continuous2discrete_env">machina.envs.continuous2discrete_env module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.envs.html#module-machina.envs.gym_env">machina.envs.gym_env module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.envs.html#module-machina.envs.rew_in_ob_env">machina.envs.rew_in_ob_env module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.envs.html#module-machina.envs.skill_env">machina.envs.skill_env module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.models.html">machina.models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.models.html#module-machina.models.base">machina.models.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.models.html#module-machina.models.deterministic_state_model">machina.models.deterministic_state_model module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.noise.html">machina.noise package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.noise.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.noise.html#module-machina.noise.base">machina.noise.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.noise.html#module-machina.noise.ounoise">machina.noise.ounoise module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.optims.html">machina.optims package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.optims.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.optims.html#module-machina.optims.adamw">machina.optims.adamw module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.optims.html#module-machina.optims.distributed_adamw">machina.optims.distributed_adamw module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.optims.html#module-machina.optims.distributed_sgd">machina.optims.distributed_sgd module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.pds.html">machina.pds package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.pds.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pds.html#module-machina.pds.base">machina.pds.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pds.html#module-machina.pds.categorical_pd">machina.pds.categorical_pd module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pds.html#module-machina.pds.deterministic_pd">machina.pds.deterministic_pd module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pds.html#module-machina.pds.gaussian_pd">machina.pds.gaussian_pd module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pds.html#module-machina.pds.mixture_gaussian_pd">machina.pds.mixture_gaussian_pd module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pds.html#module-machina.pds.multi_categorical_pd">machina.pds.multi_categorical_pd module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.pols.html">machina.pols package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.argmax_qf_pol">machina.pols.argmax_qf_pol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.base">machina.pols.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.categorical_pol">machina.pols.categorical_pol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.deterministic_action_noise_pol">machina.pols.deterministic_action_noise_pol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.gaussian_pol">machina.pols.gaussian_pol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.mixture_gaussian_pol">machina.pols.mixture_gaussian_pol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.mpc_pol">machina.pols.mpc_pol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.multi_categorical_pol">machina.pols.multi_categorical_pol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.pols.html#module-machina.pols.random_pol">machina.pols.random_pol module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.prepro.html">machina.prepro package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.prepro.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.prepro.html#module-machina.prepro.base">machina.prepro.base module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.samplers.html">machina.samplers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.samplers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.samplers.html#module-machina.samplers.epi_sampler">machina.samplers.epi_sampler module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.traj.html">machina.traj package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.traj.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.traj.html#module-machina.traj.epi_functional">machina.traj.epi_functional module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.traj.html#module-machina.traj.traj">machina.traj.traj module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machina.traj.html#module-machina.traj.traj_functional">machina.traj.traj_functional module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machina.vfuncs.html">machina.vfuncs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="machina.vfuncs.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html">machina.vfuncs.state_action_vfuncs package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#module-machina.vfuncs.state_action_vfuncs.base">machina.vfuncs.state_action_vfuncs.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#module-machina.vfuncs.state_action_vfuncs.cem_state_action_vfunc">machina.vfuncs.state_action_vfuncs.cem_state_action_vfunc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="machina.vfuncs.state_action_vfuncs.html#module-machina.vfuncs.state_action_vfuncs.deterministic_state_action_vfunc">machina.vfuncs.state_action_vfuncs.deterministic_state_action_vfunc module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html">machina.vfuncs.state_vfuncs package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html#module-machina.vfuncs.state_vfuncs.base">machina.vfuncs.state_vfuncs.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="machina.vfuncs.state_vfuncs.html#module-machina.vfuncs.state_vfuncs.deterministic_state_vfunc">machina.vfuncs.state_vfuncs.deterministic_state_vfunc module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-machina.logger">
+<span id="machina-logger-module"></span><h2>machina.logger module<a class="headerlink" href="#module-machina.logger" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="machina.logger.tabulate">
+<code class="descclassname">machina.logger.</code><code class="descname">tabulate</code><span class="sig-paren">(</span><em>tabular_data</em>, <em>headers=[]</em>, <em>tablefmt='simple'</em>, <em>floatfmt='g'</em>, <em>numalign='decimal'</em>, <em>stralign='left'</em>, <em>missingval=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/logger.html#tabulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.logger.tabulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format a fixed width table for pretty printing.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">2.34</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">56</span><span class="p">,</span> <span class="s2">&quot;8.999&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;10001&quot;</span><span class="p">]]))</span>
+<span class="go">---  ---------</span>
+<span class="go">  1      2.34</span>
+<span class="go">-56      8.999</span>
+<span class="go">  2  10001</span>
+<span class="go">---  ---------</span>
+</pre></div>
+</div>
+<p>The first required argument (<cite>tabular_data</cite>) can be a
+list-of-lists (or another iterable of iterables), a list of named
+tuples, a dictionary of iterables, a two-dimensional NumPy array,
+NumPy record array, or a Pandas’ dataframe.</p>
+<p>To print nice column headers, supply the second argument (<cite>headers</cite>):</p>
+<blockquote>
+<div><ul class="simple">
+<li><cite>headers</cite> can be an explicit list of column headers</li>
+<li>if <cite>headers=”firstrow”</cite>, then the first row of data is used</li>
+<li>if <cite>headers=”keys”</cite>, then dictionary keys or column indices are used</li>
+</ul>
+</div></blockquote>
+<p>Otherwise a headerless table is produced.</p>
+<p>If the number of headers is less than the number of columns, they
+are supposed to be names of the last columns. This is consistent
+with the plain-text format of R and Pandas’ dataframes.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;sex&quot;</span><span class="p">,</span><span class="s2">&quot;age&quot;</span><span class="p">],[</span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span><span class="s2">&quot;F&quot;</span><span class="p">,</span><span class="mi">24</span><span class="p">],[</span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="mi">19</span><span class="p">]],</span>
+<span class="gp">... </span>      <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">))</span>
+<span class="go">       sex      age</span>
+<span class="go">-----  -----  -----</span>
+<span class="go">Alice  F         24</span>
+<span class="go">Bob    M         19</span>
+</pre></div>
+</div>
+<p><cite>tabulate</cite> tries to detect column types automatically, and aligns
+the values properly. By default it aligns decimal points of the
+numbers (or flushes integer numbers to the right), and flushes
+everything else to the left. Possible column alignments
+(<cite>numalign</cite>, <cite>stralign</cite>) are: “right”, “center”, “left”, “decimal”
+(only for <cite>numalign</cite>), and None (to disable alignment).</p>
+<p><cite>floatfmt</cite> is a format specification used for columns which
+contain numeric data with a decimal point.</p>
+<p><cite>None</cite> values are replaced with a <cite>missingval</cite> string:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="s2">&quot;other&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">2.7</span><span class="p">]],</span> <span class="n">missingval</span><span class="o">=</span><span class="s2">&quot;?&quot;</span><span class="p">))</span>
+<span class="go">-----  --  ----</span>
+<span class="go">spam    1  ?</span>
+<span class="go">eggs   42  3.14</span>
+<span class="go">other   ?  2.7</span>
+<span class="go">-----  --  ----</span>
+</pre></div>
+</div>
+<p>Various plain-text table formats (<cite>tablefmt</cite>) are supported:
+‘plain’, ‘simple’, ‘grid’, ‘pipe’, ‘orgtbl’, ‘rst’, ‘mediawiki’,
+and ‘latex’. Variable <cite>tabulate_formats</cite> contains the list of
+currently supported formats.</p>
+<p>“plain” format doesn’t use any pseudographics to draw tables,
+it separates columns with a double space:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="s2">&quot;strings&quot;</span><span class="p">,</span> <span class="s2">&quot;numbers&quot;</span><span class="p">],</span> <span class="s2">&quot;plain&quot;</span><span class="p">))</span>
+<span class="go">strings      numbers</span>
+<span class="go">spam         41.9999</span>
+<span class="go">eggs        451</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;plain&quot;</span><span class="p">))</span>
+<span class="go">spam   41.9999</span>
+<span class="go">eggs  451</span>
+</pre></div>
+</div>
+<p>“simple” format is like Pandoc simple_tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="s2">&quot;strings&quot;</span><span class="p">,</span> <span class="s2">&quot;numbers&quot;</span><span class="p">],</span> <span class="s2">&quot;simple&quot;</span><span class="p">))</span>
+<span class="go">strings      numbers</span>
+<span class="go">---------  ---------</span>
+<span class="go">spam         41.9999</span>
+<span class="go">eggs        451</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;simple&quot;</span><span class="p">))</span>
+<span class="go">----  --------</span>
+<span class="go">spam   41.9999</span>
+<span class="go">eggs  451</span>
+<span class="go">----  --------</span>
+</pre></div>
+</div>
+<p>“grid” is similar to tables produced by Emacs table.el package or
+Pandoc grid_tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span>
+<span class="gp">... </span>               <span class="p">[</span><span class="s2">&quot;strings&quot;</span><span class="p">,</span> <span class="s2">&quot;numbers&quot;</span><span class="p">],</span> <span class="s2">&quot;grid&quot;</span><span class="p">))</span>
+<span class="go">+-----------+-----------+</span>
+<span class="go">| strings   |   numbers |</span>
+<span class="go">+===========+===========+</span>
+<span class="go">| spam      |   41.9999 |</span>
+<span class="go">+-----------+-----------+</span>
+<span class="go">| eggs      |  451      |</span>
+<span class="go">+-----------+-----------+</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;grid&quot;</span><span class="p">))</span>
+<span class="go">+------+----------+</span>
+<span class="go">| spam |  41.9999 |</span>
+<span class="go">+------+----------+</span>
+<span class="go">| eggs | 451      |</span>
+<span class="go">+------+----------+</span>
+</pre></div>
+</div>
+<p>“pipe” is like tables in PHP Markdown Extra extension or Pandoc
+pipe_tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span>
+<span class="gp">... </span>               <span class="p">[</span><span class="s2">&quot;strings&quot;</span><span class="p">,</span> <span class="s2">&quot;numbers&quot;</span><span class="p">],</span> <span class="s2">&quot;pipe&quot;</span><span class="p">))</span>
+<span class="go">| strings   |   numbers |</span>
+<span class="go">|:----------|----------:|</span>
+<span class="go">| spam      |   41.9999 |</span>
+<span class="go">| eggs      |  451      |</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;pipe&quot;</span><span class="p">))</span>
+<span class="go">|:-----|---------:|</span>
+<span class="go">| spam |  41.9999 |</span>
+<span class="go">| eggs | 451      |</span>
+</pre></div>
+</div>
+<p>“orgtbl” is like tables in Emacs org-mode and orgtbl-mode. They
+are slightly different from “pipe” format by not using colons to
+define column alignment, and using a “+” sign to indicate line
+intersections:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span>
+<span class="gp">... </span>               <span class="p">[</span><span class="s2">&quot;strings&quot;</span><span class="p">,</span> <span class="s2">&quot;numbers&quot;</span><span class="p">],</span> <span class="s2">&quot;orgtbl&quot;</span><span class="p">))</span>
+<span class="go">| strings   |   numbers |</span>
+<span class="go">|-----------+-----------|</span>
+<span class="go">| spam      |   41.9999 |</span>
+<span class="go">| eggs      |  451      |</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;orgtbl&quot;</span><span class="p">))</span>
+<span class="go">| spam |  41.9999 |</span>
+<span class="go">| eggs | 451      |</span>
+</pre></div>
+</div>
+<p>“rst” is like a simple table format from reStructuredText; please
+note that reStructuredText accepts also “grid” tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span>
+<span class="gp">... </span>               <span class="p">[</span><span class="s2">&quot;strings&quot;</span><span class="p">,</span> <span class="s2">&quot;numbers&quot;</span><span class="p">],</span> <span class="s2">&quot;rst&quot;</span><span class="p">))</span>
+<span class="go">=========  =========</span>
+<span class="go">strings      numbers</span>
+<span class="go">=========  =========</span>
+<span class="go">spam         41.9999</span>
+<span class="go">eggs        451</span>
+<span class="go">=========  =========</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;rst&quot;</span><span class="p">))</span>
+<span class="go">====  ========</span>
+<span class="go">spam   41.9999</span>
+<span class="go">eggs  451</span>
+<span class="go">====  ========</span>
+</pre></div>
+</div>
+<p>“mediawiki” produces a table markup used in Wikipedia and on other
+MediaWiki-based sites:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;strings&quot;</span><span class="p">,</span> <span class="s2">&quot;numbers&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span>
+<span class="gp">... </span>               <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;mediawiki&quot;</span><span class="p">))</span>
+<span class="go">{| class=&quot;wikitable&quot; style=&quot;text-align: left;&quot;</span>
+<span class="go">|+ &lt;!-- caption --&gt;</span>
+<span class="go">|-</span>
+<span class="go">! strings   !! align=&quot;right&quot;|   numbers</span>
+<span class="go">|-</span>
+<span class="go">| spam      || align=&quot;right&quot;|   41.9999</span>
+<span class="go">|-</span>
+<span class="go">| eggs      || align=&quot;right&quot;|  451</span>
+<span class="go">|}</span>
+</pre></div>
+</div>
+<p>“latex” produces a tabular environment of LaTeX document markup:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mf">41.9999</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;eggs&quot;</span><span class="p">,</span> <span class="s2">&quot;451.0&quot;</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;latex&quot;</span><span class="p">))</span>
+<span class="go">\begin{tabular}{lr}</span>
+<span class="go">\hline</span>
+<span class="go"> spam &amp;  41.9999 \\</span>
+<span class="go"> eggs &amp; 451      \\</span>
+<span class="go">\hline</span>
+<span class="go">\end{tabular}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.logger.simple_separated_format">
+<code class="descclassname">machina.logger.</code><code class="descname">simple_separated_format</code><span class="sig-paren">(</span><em>separator</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/logger.html#simple_separated_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.logger.simple_separated_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a simple TableFormat with columns separated by a separator.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tsv</span> <span class="o">=</span> <span class="n">simple_separated_format</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="p">;</span>         <span class="n">tabulate</span><span class="p">([[</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;spam&quot;</span><span class="p">,</span> <span class="mi">23</span><span class="p">]],</span> <span class="n">tablefmt</span><span class="o">=</span><span class="n">tsv</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;foo </span><span class="se">\t</span><span class="s1"> 1</span><span class="se">\n</span><span class="s1">spam</span><span class="se">\t</span><span class="s1">23&#39;</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.loss_functional">
+<span id="machina-loss-functional-module"></span><h2>machina.loss_functional module<a class="headerlink" href="#module-machina.loss_functional" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>This module is the main part of <a class="reference internal" href="machina.algos.html#module-machina.algos" title="machina.algos"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Algorithms</span></code></a>.</dt>
+<dd><ul class="first last">
+<li>If you’d like to only loss function of certain algorithm, you have only to change this module.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>Inputs are <code class="xref py py-data docutils literal notranslate"><span class="pre">batch</span></code> generated by <a class="reference internal" href="machina.traj.html#machina.traj.traj.Traj.iterate" title="machina.traj.traj.Traj.iterate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">iterater</span></code></a>.</li>
+<li>Output is loss.</li>
+</ul>
+<dl class="function">
+<dt id="machina.loss_functional.ag">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">ag</code><span class="sig-paren">(</span><em>pol</em>, <em>qf</em>, <em>batch</em>, <em>sampling=1</em>, <em>no_noise=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#ag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.ag" title="Permalink to this definition">¶</a></dt>
+<dd><p>DDPG style action gradient.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pol</strong> (<em>Pol</em>) – </li>
+<li><strong>qf</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>sampling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of sampling in calculating expectation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pol_loss</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.bellman">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">bellman</code><span class="sig-paren">(</span><em>qf</em>, <em>targ_qf</em>, <em>targ_pol</em>, <em>batch</em>, <em>gamma</em>, <em>continuous=True</em>, <em>deterministic=True</em>, <em>sampling=1</em>, <em>reduction='elementwise_mean'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#bellman"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.bellman" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bellman loss.
+Mean Squared Error of left hand side and right hand side of Bellman Equation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qf</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>targ_qf</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>targ_pol</strong> (<em>Pol</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>continuous</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – action space is continuous or not</li>
+<li><strong>sampling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of sampling in calculating expectation.</li>
+<li><strong>reduction</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – This argument takes only elementwise, sum, and none.
+Loss shape is pytorch’s manner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>bellman_loss</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.clipped_double_bellman">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">clipped_double_bellman</code><span class="sig-paren">(</span><em>qf</em>, <em>targ_qf1</em>, <em>targ_qf2</em>, <em>batch</em>, <em>gamma</em>, <em>loss_type='bce'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#clipped_double_bellman"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.clipped_double_bellman" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bellman loss of Clipped Double DQN.
+Mean Squared Error of left hand side and right hand side of Bellman Equation.
+or
+Binary Cross Entropy of left hand side and right hand side of Bellman Equation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qf</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>targ_qf1</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>targ_qf2</strong> (<em>SAVfunction</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>type</strong> (<em>loss</em>) – This argument takes only bce and mse.
+Loss shape is pytorch’s manner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ret</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.cross_ent">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">cross_ent</code><span class="sig-paren">(</span><em>discrim</em>, <em>batch</em>, <em>expert_or_agent</em>, <em>ent_beta</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#cross_ent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.cross_ent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.cross_ent_diayn">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">cross_ent_diayn</code><span class="sig-paren">(</span><em>discrim</em>, <em>batch</em>, <em>num_skill</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#cross_ent_diayn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.cross_ent_diayn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.density_ratio_cross_ent">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">density_ratio_cross_ent</code><span class="sig-paren">(</span><em>pol</em>, <em>batch</em>, <em>expert_or_agent</em>, <em>gamma</em>, <em>rewf=None</em>, <em>shaping_vf=None</em>, <em>advf=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#density_ratio_cross_ent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.density_ratio_cross_ent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.dynamics">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">dynamics</code><span class="sig-paren">(</span><em>dm</em>, <em>batch</em>, <em>target='next_obs'</em>, <em>td=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#dynamics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.dynamics" title="Permalink to this definition">¶</a></dt>
+<dd><p>MSE loss for Dynamics models.
+:param dm:
+:type dm: Dynamics Model
+:param batch:
+:type batch: dict of torch.Tensor
+:param target: Prediction target is next_obs or rews.
+:type target: string
+:param td: If True, the dynamics model learn temporal difference of dynamics.
+:type td: bool</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>model_loss</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.Tensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.log_likelihood">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">log_likelihood</code><span class="sig-paren">(</span><em>pol</em>, <em>batch</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#log_likelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.log_likelihood" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.monte_carlo">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">monte_carlo</code><span class="sig-paren">(</span><em>vf</em>, <em>batch</em>, <em>clip_param=0.2</em>, <em>clip=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#monte_carlo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.monte_carlo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Montecarlo loss for V function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>vf</strong> (<em>SVfunction</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>clip_param</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.pg">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">pg</code><span class="sig-paren">(</span><em>pol</em>, <em>batch</em>, <em>ent_beta=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#pg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.pg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy Gradient.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pol</strong> (<em>Pol</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pol_loss</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.pg_clip">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">pg_clip</code><span class="sig-paren">(</span><em>pol</em>, <em>batch</em>, <em>clip_param</em>, <em>ent_beta</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#pg_clip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.pg_clip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy Gradient with clipping.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pol</strong> (<em>Pol</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>clip_param</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>ent_beta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – entropy coefficient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pol_loss</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.pg_kl">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">pg_kl</code><span class="sig-paren">(</span><em>pol</em>, <em>batch</em>, <em>kl_beta</em>, <em>ent_beta=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#pg_kl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.pg_kl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy Gradient with KL divergence restriction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pol</strong> (<em>Pol</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>kl_beta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – KL divergence coefficient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pol_loss</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.r2d2_sac">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">r2d2_sac</code><span class="sig-paren">(</span><em>pol</em>, <em>qfs</em>, <em>targ_qfs</em>, <em>log_alpha</em>, <em>batch</em>, <em>gamma</em>, <em>sampling=1</em>, <em>burn_in_length=40</em>, <em>reparam=True</em>, <em>normalize=False</em>, <em>eps=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#r2d2_sac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.r2d2_sac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loss for soft actor critic.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pol</strong> (<em>Pol</em>) – </li>
+<li><strong>qfs</strong> (<em>list of SAVfunction</em>) – </li>
+<li><strong>targ_qfs</strong> (<em>list of SAVfunction</em>) – </li>
+<li><strong>log_alpha</strong> (<em>torch.Tensor</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>sampling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of sampling in calculating expectation.</li>
+<li><strong>burn_in_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Length of batches for burn-in.</li>
+<li><strong>reparam</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Reparameterization trick is used or not.</li>
+<li><strong>normalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, normalize value of log likelihood.</li>
+<li><strong>eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pol_loss, qf_loss, alpha_loss, td_losses</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.sac">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">sac</code><span class="sig-paren">(</span><em>pol</em>, <em>qfs</em>, <em>targ_qfs</em>, <em>log_alpha</em>, <em>batch</em>, <em>gamma</em>, <em>sampling=1</em>, <em>reparam=True</em>, <em>normalize=False</em>, <em>eps=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#sac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.sac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loss for soft actor critic.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pol</strong> (<em>Pol</em>) – </li>
+<li><strong>qfs</strong> (<em>list of SAVfunction</em>) – </li>
+<li><strong>targ_qfs</strong> (<em>list of SAVfunction</em>) – </li>
+<li><strong>log_alpha</strong> (<em>torch.Tensor</em>) – </li>
+<li><strong>batch</strong> (<em>dict of torch.Tensor</em>) – </li>
+<li><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+<li><strong>sampling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of sampling in calculating expectation.</li>
+<li><strong>reparam</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Reparameterization trick is used or not.</li>
+<li><strong>normalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, normalize value of log likelihood.</li>
+<li><strong>eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pol_loss, qf_loss, alpha_loss</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.Tensor, torch.Tensor, torch.Tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="machina.loss_functional.shannon_cross_entropy">
+<code class="descclassname">machina.loss_functional.</code><code class="descname">shannon_cross_entropy</code><span class="sig-paren">(</span><em>student_pol</em>, <em>teacher_pol</em>, <em>batch</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/loss_functional.html#shannon_cross_entropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.loss_functional.shannon_cross_entropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shannon-cross-entropy for policy distillation
+See <a class="reference external" href="https://arxiv.org/abs/1902.02186">https://arxiv.org/abs/1902.02186</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>student_pol</strong> (<em>Student Policy</em>) – </li>
+<li><strong>teacher_pol</strong> (<em>Teacher Policy</em>) – </li>
+<li><strong>batch</strong> (<em>data containing the observations</em><em>, </em><em>actions and rewards</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>cross_entropy_loss</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Cross entropy loss between teacher and student policy</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-machina.utils">
+<span id="machina-utils-module"></span><h2>machina.utils module<a class="headerlink" href="#module-machina.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="machina.utils.cpu_mode">
+<code class="descclassname">machina.utils.</code><code class="descname">cpu_mode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/utils.html#cpu_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.utils.cpu_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.utils.detach_tensor_dict">
+<code class="descclassname">machina.utils.</code><code class="descname">detach_tensor_dict</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/utils.html#detach_tensor_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.utils.detach_tensor_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.utils.get_device">
+<code class="descclassname">machina.utils.</code><code class="descname">get_device</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/utils.html#get_device"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.utils.get_device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.utils.measure">
+<code class="descclassname">machina.utils.</code><code class="descname">measure</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/utils.html#measure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.utils.measure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="machina.utils.set_device">
+<code class="descclassname">machina.utils.</code><code class="descname">set_device</code><span class="sig-paren">(</span><em>device</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/utils.html#set_device"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.utils.set_device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="machina.algos.html" class="btn btn-neutral float-right" title="machina.algos package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to machina’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
