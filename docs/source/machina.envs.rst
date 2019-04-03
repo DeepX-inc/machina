@@ -25,6 +25,14 @@ machina.envs.continuous2discrete\_env module
     :undoc-members:
     :show-inheritance:
 
+machina.envs.env\_utils module
+------------------------------
+
+.. automodule:: machina.envs.env_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 machina.envs.gym\_env module
 ----------------------------
 
