@@ -92,8 +92,8 @@
 <li class="toctree-l3"><a class="reference internal" href="machina.envs.html">machina.envs package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">machina.models package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-machina.models.base">machina.models.base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-machina.models.deterministic_state_model">machina.models.deterministic_state_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#machina-models-base-module">machina.models.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#machina-models-deterministic-state-model-module">machina.models.deterministic_state_model module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="machina.noise.html">machina.noise package</a></li>
@@ -178,83 +178,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-machina.models">
-<span id="machina-models-package"></span><h1>machina.models package<a class="headerlink" href="#module-machina.models" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="machina-models-package">
+<h1>machina.models package<a class="headerlink" href="#machina-models-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-machina.models.base">
-<span id="machina-models-base-module"></span><h2>machina.models.base module<a class="headerlink" href="#module-machina.models.base" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="machina.models.base.BaseModel">
-<em class="property">class </em><code class="descclassname">machina.models.base.</code><code class="descname">BaseModel</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>rnn=False</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/models/base.html#BaseModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.models.base.BaseModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
-<p>Base class of Model.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ob_space</strong> (<em>gym.Space</em>) – </li>
-<li><strong>ac_space</strong> (<em>gym.Space</em>) – </li>
-<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
-<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
-<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
-<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="machina.models.base.BaseModel.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/models/base.html#BaseModel.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.models.base.BaseModel.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>reset for rnn’s hidden state.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="machina-models-base-module">
+<h2>machina.models.base module<a class="headerlink" href="#machina-models-base-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-machina.models.deterministic_state_model">
-<span id="machina-models-deterministic-state-model-module"></span><h2>machina.models.deterministic_state_model module<a class="headerlink" href="#module-machina.models.deterministic_state_model" title="Permalink to this headline">¶</a></h2>
-<p>Deterministic State Dynamics Model</p>
-<dl class="class">
-<dt id="machina.models.deterministic_state_model.DeterministicSModel">
-<em class="property">class </em><code class="descclassname">machina.models.deterministic_state_model.</code><code class="descname">DeterministicSModel</code><span class="sig-paren">(</span><em>ob_space</em>, <em>ac_space</em>, <em>net</em>, <em>rnn=False</em>, <em>data_parallel=False</em>, <em>parallel_dim=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/models/deterministic_state_model.html#DeterministicSModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.models.deterministic_state_model.DeterministicSModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#machina.models.base.BaseModel" title="machina.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">machina.models.base.BaseModel</span></code></a></p>
-<p>Deterministic version of State Dynamics Model.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ob_space</strong> (<em>gym.Space</em>) – </li>
-<li><strong>ac_space</strong> (<em>gym.Space</em>) – </li>
-<li><strong>net</strong> (<em>torch.nn.Module</em>) – </li>
-<li><strong>rnn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – </li>
-<li><strong>data_parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, network computation is executed in parallel.</li>
-<li><strong>parallel_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Splitted dimension in data parallel.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="machina.models.deterministic_state_model.DeterministicSModel.forward">
-<code class="descname">forward</code><span class="sig-paren">(</span><em>obs</em>, <em>acs</em>, <em>hs=None</em>, <em>h_masks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/models/deterministic_state_model.html#DeterministicSModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.models.deterministic_state_model.DeterministicSModel.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="machina-models-deterministic-state-model-module">
+<h2>machina.models.deterministic_state_model module<a class="headerlink" href="#machina-models-deterministic-state-model-module" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 

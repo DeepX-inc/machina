@@ -11,3 +11,5 @@ docs/_build/
 *.json
 *.pkl
 *.csv
+docs/source/modules.rst
+docs/.doctrees

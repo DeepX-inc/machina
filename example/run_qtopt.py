@@ -78,6 +78,8 @@ parser.add_argument('--eps', type=float, default=0.2,
 parser.add_argument('--loss_type', type=str,
                     choices=['mse', 'bce'], default='mse',
                     help='Choice for type of belleman loss.')
+parser.add_argument('--save_memory', action='store_true',
+                    help='If true, save memory while need more computation time by for-sentence.')
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
@@ -119,7 +121,8 @@ qf = DeterministicSAVfunc(ob_space, ac_space, qf_net,
 lagged_qf = DeterministicSAVfunc(
     ob_space, ac_space, lagged_qf_net, data_parallel=args.data_parallel)
 targ_qf1 = CEMDeterministicSAVfunc(ob_space, ac_space, targ_qf1_net, num_sampling=args.num_sampling,
-                                   num_best_sampling=args.num_best_sampling, num_iter=args.num_iter, multivari=args.multivari, data_parallel=args.data_parallel)
+                                   num_best_sampling=args.num_best_sampling, num_iter=args.num_iter,
+                                   multivari=args.multivari, data_parallel=args.data_parallel, save_memory=args.save_memory)
 targ_qf2 = DeterministicSAVfunc(
     ob_space, ac_space, targ_qf2_net, data_parallel=args.data_parallel)
 

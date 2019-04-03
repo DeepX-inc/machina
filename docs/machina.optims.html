@@ -96,7 +96,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-machina.optims.adamw">machina.optims.adamw module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-machina.optims.distributed_adamw">machina.optims.distributed_adamw module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-machina.optims.distributed_sgd">machina.optims.distributed_sgd module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#machina-optims-distributed-sgd-module">machina.optims.distributed_sgd module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="machina.pds.html">machina.pds package</a></li>
@@ -272,49 +272,8 @@ and returns the loss.</td>
 </dd></dl>
 
 </div>
-<div class="section" id="module-machina.optims.distributed_sgd">
-<span id="machina-optims-distributed-sgd-module"></span><h2>machina.optims.distributed_sgd module<a class="headerlink" href="#module-machina.optims.distributed_sgd" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="machina.optims.distributed_sgd.DistributedSGD">
-<em class="property">class </em><code class="descclassname">machina.optims.distributed_sgd.</code><code class="descname">DistributedSGD</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/optims/distributed_sgd.html#DistributedSGD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.optims.distributed_sgd.DistributedSGD" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.optim.sgd.SGD</span></code></p>
-<p>Distributed SGD optimizer.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>iterable</em>) – iterable of parameters to optimize or dicts defining
-parameter groups</li>
-<li><strong>lr</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – learning rate</li>
-<li><strong>momentum</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em>) – momentum factor (default: 0)</li>
-<li><strong>weight_decay</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em>) – weight decay (L2 penalty) (default: 0)</li>
-<li><strong>dampening</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em>) – dampening for momentum (default: 0)</li>
-<li><strong>nesterov</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – enables Nesterov momentum (default: False)</li>
-<li><strong>world_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – if not given, automatically set
-dist.get_world_size()</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="machina.optims.distributed_sgd.DistributedSGD.step">
-<code class="descname">step</code><span class="sig-paren">(</span><em>closure=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/optims/distributed_sgd.html#DistributedSGD.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.optims.distributed_sgd.DistributedSGD.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs a single optimization step.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>closure</strong> (<em>callable</em><em>, </em><em>optional</em>) – A closure that reevaluates the model
-and returns the loss.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="machina-optims-distributed-sgd-module">
+<h2>machina.optims.distributed_sgd module<a class="headerlink" href="#machina-optims-distributed-sgd-module" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 

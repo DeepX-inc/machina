@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>machina.algos.trpo &mdash; machina  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> machina
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../machina.html">machina package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">machina</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>machina.algos.trpo</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for machina.algos.trpo</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This is an implementation of Trust Region Policy Optimization.</span>
+<span class="sd">See https://arxiv.org/abs/1502.05477</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">machina</span> <span class="k">import</span> <span class="n">loss_functional</span> <span class="k">as</span> <span class="n">lf</span>
+<span class="kn">from</span> <span class="nn">machina.utils</span> <span class="k">import</span> <span class="n">detach_tensor_dict</span>
+<span class="kn">from</span> <span class="nn">machina</span> <span class="k">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="conjugate_gradients"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.trpo.conjugate_gradients">[docs]</a><span class="k">def</span> <span class="nf">conjugate_gradients</span><span class="p">(</span><span class="n">Avp</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">nsteps</span><span class="p">,</span> <span class="n">residual_tol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>  <span class="c1"># F^(-1)pを求める</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculating conjugate gradient</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+    <span class="n">rdotr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsteps</span><span class="p">):</span>
+        <span class="n">_Avp</span> <span class="o">=</span> <span class="n">Avp</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">rdotr</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">_Avp</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">+=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">p</span>
+        <span class="n">r</span> <span class="o">-=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">_Avp</span>
+        <span class="n">new_rdotr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">new_rdotr</span> <span class="o">/</span> <span class="n">rdotr</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">p</span>
+        <span class="n">rdotr</span> <span class="o">=</span> <span class="n">new_rdotr</span>
+        <span class="k">if</span> <span class="n">rdotr</span> <span class="o">&lt;</span> <span class="n">residual_tol</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="linesearch"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.trpo.linesearch">[docs]</a><span class="k">def</span> <span class="nf">linesearch</span><span class="p">(</span>
+    <span class="n">pol</span><span class="p">,</span>
+    <span class="n">batch</span><span class="p">,</span>
+    <span class="n">f</span><span class="p">,</span>
+    <span class="n">x</span><span class="p">,</span>
+    <span class="n">fullstep</span><span class="p">,</span>
+    <span class="n">expected_improve_rate</span><span class="p">,</span>
+    <span class="n">max_backtracks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">accept_ratio</span><span class="o">=.</span><span class="mi">1</span>
+<span class="p">):</span>
+    <span class="n">fval</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">_n_backtracks</span><span class="p">,</span> <span class="n">stepfrac</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_backtracks</span><span class="p">)):</span>
+        <span class="n">xnew</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">stepfrac</span> <span class="o">*</span> <span class="n">fullstep</span>  <span class="c1"># stepfracをどんどん小さくしていく、</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">vector_to_parameters</span><span class="p">(</span><span class="n">xnew</span><span class="p">,</span> <span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="n">newfval</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="n">actual_improve</span> <span class="o">=</span> <span class="n">fval</span> <span class="o">-</span> <span class="n">newfval</span>  <span class="c1"># pgがどれだけ改善したか</span>
+        <span class="n">expected_improve</span> <span class="o">=</span> <span class="n">expected_improve_rate</span> <span class="o">*</span> <span class="n">stepfrac</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">actual_improve</span> <span class="o">/</span> <span class="n">expected_improve</span>
+
+        <span class="k">if</span> <span class="n">ratio</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">accept_ratio</span> <span class="ow">and</span> <span class="n">actual_improve</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">xnew</span>
+    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="make_kl"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.trpo.make_kl">[docs]</a><span class="k">def</span> <span class="nf">make_kl</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
+
+    <span class="n">pol</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">pol</span><span class="o">.</span><span class="n">rnn</span><span class="p">:</span>
+        <span class="n">h_masks</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;h_masks&#39;</span><span class="p">]</span>
+        <span class="n">out_masks</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;out_masks&#39;</span><span class="p">]</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pd_params</span> <span class="o">=</span> <span class="n">pol</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">h_masks</span><span class="o">=</span><span class="n">h_masks</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out_masks</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;advs&#39;</span><span class="p">])</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pd_params</span> <span class="o">=</span> <span class="n">pol</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pol</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">kl_pq</span><span class="p">(</span>
+        <span class="n">detach_tensor_dict</span><span class="p">(</span><span class="n">pd_params</span><span class="p">),</span>
+        <span class="n">pd_params</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_pol"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.trpo.update_pol">[docs]</a><span class="k">def</span> <span class="nf">update_pol</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">make_kl</span><span class="o">=</span><span class="n">make_kl</span><span class="p">,</span> <span class="n">max_kl</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">num_cg</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">pol_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">pg</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+    <span class="n">grads</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">pol_loss</span><span class="p">,</span> <span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">create_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads</span><span class="p">]</span>
+    <span class="n">flat_pol_loss_grad</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">parameters_to_vector</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">Fvp</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+        <span class="n">kl</span> <span class="o">=</span> <span class="n">make_kl</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+        <span class="n">kl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">kl</span><span class="p">)</span>
+
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">kl</span><span class="p">,</span> <span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">create_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads</span><span class="p">]</span>
+        <span class="n">flat_grad_kl</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">parameters_to_vector</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span>
+        <span class="n">gvp</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">flat_grad_kl</span> <span class="o">*</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">gvp</span><span class="p">,</span> <span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads</span><span class="p">]</span>
+        <span class="n">fvp</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">parameters_to_vector</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">fvp</span> <span class="o">+</span> <span class="n">v</span> <span class="o">*</span> <span class="n">damping</span>
+
+    <span class="n">stepdir</span> <span class="o">=</span> <span class="n">conjugate_gradients</span><span class="p">(</span>
+        <span class="n">Fvp</span><span class="p">,</span> <span class="o">-</span><span class="n">flat_pol_loss_grad</span><span class="p">,</span> <span class="n">num_cg</span><span class="p">)</span>  <span class="c1"># step direction</span>
+
+    <span class="n">shs</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">stepdir</span> <span class="o">*</span> <span class="n">Fvp</span><span class="p">(</span><span class="n">stepdir</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">shs</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">&#39;invalid shs&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pol_loss</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+    <span class="n">lm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">shs</span> <span class="o">/</span> <span class="n">max_kl</span><span class="p">)</span>
+    <span class="n">fullstep</span> <span class="o">=</span> <span class="n">stepdir</span> <span class="o">/</span> <span class="n">lm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">neggdotstepdir</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">flat_pol_loss_grad</span> <span class="o">*</span> <span class="n">stepdir</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">prev_params</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">parameters_to_vector</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">()])</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="n">success</span><span class="p">,</span> <span class="n">new_params</span> <span class="o">=</span> <span class="n">linesearch</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">lf</span><span class="o">.</span><span class="n">pg</span><span class="p">,</span> <span class="n">prev_params</span><span class="p">,</span> <span class="n">fullstep</span><span class="p">,</span>
+                                     <span class="n">neggdotstepdir</span> <span class="o">/</span> <span class="n">lm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">vector_to_parameters</span><span class="p">(</span><span class="n">new_params</span><span class="p">,</span> <span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">pol_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="update_vf"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.trpo.update_vf">[docs]</a><span class="k">def</span> <span class="nf">update_vf</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">optim_vf</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+    <span class="n">vf_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">monte_carlo</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+    <span class="n">optim_vf</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">vf_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optim_vf</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">vf_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="train"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.trpo.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">vf</span><span class="p">,</span>
+          <span class="n">optim_vf</span><span class="p">,</span>
+          <span class="n">epoch</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_epi_per_seq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># optimization hypers</span>
+          <span class="n">max_kl</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">num_cg</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+          <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Train function for trust region policy optimization.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    traj : Traj</span>
+<span class="sd">        On policy trajectory.</span>
+<span class="sd">    pol : Pol</span>
+<span class="sd">        Policy.</span>
+<span class="sd">    vf : SVfunction</span>
+<span class="sd">        V function.</span>
+<span class="sd">    optim_vf : torch.optim.Optimizer</span>
+<span class="sd">        Optimizer for V function.</span>
+<span class="sd">    epoch : int</span>
+<span class="sd">        Number of iteration.</span>
+<span class="sd">    batch_size : int</span>
+<span class="sd">        Number of batches.</span>
+<span class="sd">    num_epi_per_seq : int</span>
+<span class="sd">        Number of episodes in one sequence for rnn.</span>
+<span class="sd">    max_kl : float</span>
+<span class="sd">        Limit of KL divergence.</span>
+<span class="sd">    num_cg : int</span>
+<span class="sd">        Number of iteration in conjugate gradient computation.</span>
+<span class="sd">    damping : float</span>
+<span class="sd">        Damping parameter for Hessian Vector Product.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result_dict : dict</span>
+<span class="sd">        Dictionary which contains losses information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pol_losses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vf_losses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Optimizing...&quot;</span><span class="p">)</span>
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">full_batch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pol</span><span class="o">.</span><span class="n">rnn</span> <span class="k">else</span> <span class="n">traj</span><span class="o">.</span><span class="n">iterate_rnn</span><span class="p">(</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">traj</span><span class="o">.</span><span class="n">num_epi</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
+        <span class="n">pol_loss</span> <span class="o">=</span> <span class="n">update_pol</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">max_kl</span><span class="o">=</span><span class="n">max_kl</span><span class="p">,</span>
+                              <span class="n">num_cg</span><span class="o">=</span><span class="n">num_cg</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">)</span>
+        <span class="n">pol_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pol_loss</span><span class="p">)</span>
+
+    <span class="n">iterator</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">iterate</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pol</span><span class="o">.</span><span class="n">rnn</span> <span class="k">else</span> <span class="n">traj</span><span class="o">.</span><span class="n">iterate_rnn</span><span class="p">(</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">num_epi_per_seq</span><span class="o">=</span><span class="n">num_epi_per_seq</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
+        <span class="n">vf_loss</span> <span class="o">=</span> <span class="n">update_vf</span><span class="p">(</span><span class="n">vf</span><span class="p">,</span> <span class="n">optim_vf</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+        <span class="n">vf_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vf_loss</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Optimization finished!&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">PolLoss</span><span class="o">=</span><span class="n">pol_losses</span><span class="p">,</span> <span class="n">VfLoss</span><span class="o">=</span><span class="n">vf_losses</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019 DeepX, Inc.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

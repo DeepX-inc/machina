@@ -91,11 +91,12 @@
 <li class="toctree-l3"><a class="reference internal" href="machina.algos.html">machina.algos package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">machina.envs package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-machina.envs.ac_in_ob_env">machina.envs.ac_in_ob_env module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#machina-envs-ac-in-ob-env-module">machina.envs.ac_in_ob_env module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-machina.envs.continuous2discrete_env">machina.envs.continuous2discrete_env module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#machina-envs-env-utils-module">machina.envs.env_utils module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-machina.envs.gym_env">machina.envs.gym_env module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-machina.envs.rew_in_ob_env">machina.envs.rew_in_ob_env module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-machina.envs.skill_env">machina.envs.skill_env module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#machina-envs-rew-in-ob-env-module">machina.envs.rew_in_ob_env module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#machina-envs-skill-env-module">machina.envs.skill_env module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="machina.models.html">machina.models package</a></li>
@@ -186,125 +187,8 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-machina.envs.ac_in_ob_env">
-<span id="machina-envs-ac-in-ob-env-module"></span><h2>machina.envs.ac_in_ob_env module<a class="headerlink" href="#module-machina.envs.ac_in_ob_env" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv">
-<em class="property">class </em><code class="descclassname">machina.envs.ac_in_ob_env.</code><code class="descname">AcInObEnv</code><span class="sig-paren">(</span><em>env</em>, <em>dim=0</em>, <em>normalize=True</em>, <em>initial_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/ac_in_ob_env.html#AcInObEnv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
-<dl class="attribute">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv.action_space">
-<code class="descname">action_space</code><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv.action_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv.horizon">
-<code class="descname">horizon</code><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv.horizon" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv.observation_space">
-<code class="descname">observation_space</code><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv.observation_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv.render">
-<code class="descname">render</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/ac_in_ob_env.html#AcInObEnv.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv.render" title="Permalink to this definition">¶</a></dt>
-<dd><p>Renders the environment.</p>
-<p>The set of supported modes varies per environment. (And some
-environments do not support rendering at all.) By convention,
-if mode is:</p>
-<ul class="simple">
-<li>human: render to the current display or terminal and
-return nothing. Usually for human consumption.</li>
-<li>rgb_array: Return an numpy.ndarray with shape (x, y, 3),
-representing RGB values for an x-by-y pixel image, suitable
-for turning into a video.</li>
-<li>ansi: Return a string (str) or StringIO.StringIO containing a
-terminal-style text representation. The text can include newlines
-and ANSI escape sequences (e.g. for colors).</li>
-</ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<dl class="last docutils">
-<dt>Make sure that your class’s metadata ‘render.modes’ key includes</dt>
-<dd>the list of supported modes. It’s recommended to call super()
-in implementations to use the functionality of this method.</dd>
-</dl>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – the mode to render with</li>
-<li><strong>close</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – close all open renderings</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<dl class="docutils">
-<dt>class MyEnv(Env):</dt>
-<dd><p class="first">metadata = {‘render.modes’: [‘human’, ‘rgb_array’]}</p>
-<dl class="last docutils">
-<dt>def render(self, mode=’human’):</dt>
-<dd><dl class="first last docutils">
-<dt>if mode == ‘rgb_array’:</dt>
-<dd>return np.array(…) # return RGB frame suitable for video</dd>
-<dt>elif mode is ‘human’:</dt>
-<dd>… # pop up a window and render</dd>
-<dt>else:</dt>
-<dd>super(MyEnv, self).render(mode=mode) # just raise an exception</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/ac_in_ob_env.html#AcInObEnv.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets the state of the environment and returns an initial observation.</p>
-<dl class="docutils">
-<dt>Returns: observation (object): the initial observation of the</dt>
-<dd>space.</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv.step">
-<code class="descname">step</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/ac_in_ob_env.html#AcInObEnv.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run one timestep of the environment’s dynamics. When end of
-episode is reached, you are responsible for calling <cite>reset()</cite>
-to reset this environment’s state.</p>
-<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) – an action provided by the environment</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">agent’s observation of the current environment
-reward (float) : amount of reward returned after previous action
-done (boolean): whether the episode has ended, in which case further step() calls will return undefined results
-info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">observation (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)">object</a>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.ac_in_ob_env.AcInObEnv.terminate">
-<code class="descname">terminate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/ac_in_ob_env.html#AcInObEnv.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.ac_in_ob_env.AcInObEnv.terminate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="machina-envs-ac-in-ob-env-module">
+<h2>machina.envs.ac_in_ob_env module<a class="headerlink" href="#machina-envs-ac-in-ob-env-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-machina.envs.continuous2discrete_env">
 <span id="machina-envs-continuous2discrete-env-module"></span><h2>machina.envs.continuous2discrete_env module<a class="headerlink" href="#module-machina.envs.continuous2discrete_env" title="Permalink to this headline">¶</a></h2>
@@ -366,6 +250,9 @@ action space is converted to [0, 0.25, 0.5, 0.75, 1]</li>
 </dd></dl>
 
 </div>
+<div class="section" id="machina-envs-env-utils-module">
+<h2>machina.envs.env_utils module<a class="headerlink" href="#machina-envs-env-utils-module" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="module-machina.envs.gym_env">
 <span id="machina-envs-gym-env-module"></span><h2>machina.envs.gym_env module<a class="headerlink" href="#module-machina.envs.gym_env" title="Permalink to this headline">¶</a></h2>
 <p>This is code for gym.
@@ -379,7 +266,7 @@ This code is taken from rllab which is MIT-licensed.</p>
 <dl class="class">
 <dt id="machina.envs.gym_env.GymEnv">
 <em class="property">class </em><code class="descclassname">machina.envs.gym_env.</code><code class="descname">GymEnv</code><span class="sig-paren">(</span><em>env</em>, <em>record_video=False</em>, <em>video_schedule=None</em>, <em>log_dir=None</em>, <em>force_reset=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/gym_env.html#GymEnv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.gym_env.GymEnv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="attribute">
 <dt id="machina.envs.gym_env.GymEnv.action_space">
 <code class="descname">action_space</code><a class="headerlink" href="#machina.envs.gym_env.GymEnv.action_space" title="Permalink to this definition">¶</a></dt>
@@ -398,114 +285,22 @@ This code is taken from rllab which is MIT-licensed.</p>
 <dl class="method">
 <dt id="machina.envs.gym_env.GymEnv.render">
 <code class="descname">render</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/gym_env.html#GymEnv.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.gym_env.GymEnv.render" title="Permalink to this definition">¶</a></dt>
-<dd><p>Renders the environment.</p>
-<p>The set of supported modes varies per environment. (And some
-environments do not support rendering at all.) By convention,
-if mode is:</p>
-<ul class="simple">
-<li>human: render to the current display or terminal and
-return nothing. Usually for human consumption.</li>
-<li>rgb_array: Return an numpy.ndarray with shape (x, y, 3),
-representing RGB values for an x-by-y pixel image, suitable
-for turning into a video.</li>
-<li>ansi: Return a string (str) or StringIO.StringIO containing a
-terminal-style text representation. The text can include newlines
-and ANSI escape sequences (e.g. for colors).</li>
-</ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<dl class="last docutils">
-<dt>Make sure that your class’s metadata ‘render.modes’ key includes</dt>
-<dd>the list of supported modes. It’s recommended to call super()
-in implementations to use the functionality of this method.</dd>
-</dl>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – the mode to render with</li>
-<li><strong>close</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – close all open renderings</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<dl class="docutils">
-<dt>class MyEnv(Env):</dt>
-<dd><p class="first">metadata = {‘render.modes’: [‘human’, ‘rgb_array’]}</p>
-<dl class="last docutils">
-<dt>def render(self, mode=’human’):</dt>
-<dd><dl class="first last docutils">
-<dt>if mode == ‘rgb_array’:</dt>
-<dd>return np.array(…) # return RGB frame suitable for video</dd>
-<dt>elif mode is ‘human’:</dt>
-<dd>… # pop up a window and render</dd>
-<dt>else:</dt>
-<dd>super(MyEnv, self).render(mode=mode) # just raise an exception</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="machina.envs.gym_env.GymEnv.reset">
 <code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/gym_env.html#GymEnv.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.gym_env.GymEnv.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets the state of the environment and returns an initial observation.</p>
-<dl class="docutils">
-<dt>Returns: observation (object): the initial observation of the</dt>
-<dd>space.</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="machina.envs.gym_env.GymEnv.step">
 <code class="descname">step</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/gym_env.html#GymEnv.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.gym_env.GymEnv.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run one timestep of the environment’s dynamics. When end of
-episode is reached, you are responsible for calling <cite>reset()</cite>
-to reset this environment’s state.</p>
-<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) – an action provided by the environment</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">agent’s observation of the current environment
-reward (float) : amount of reward returned after previous action
-done (boolean): whether the episode has ended, in which case further step() calls will return undefined results
-info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">observation (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)">object</a>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="machina.envs.gym_env.GymEnv.terminate">
 <code class="descname">terminate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/gym_env.html#GymEnv.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.gym_env.GymEnv.terminate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="attribute">
-<dt id="machina.envs.gym_env.GymEnv.unwrapped">
-<code class="descname">unwrapped</code><a class="headerlink" href="#machina.envs.gym_env.GymEnv.unwrapped" title="Permalink to this definition">¶</a></dt>
-<dd><p>Completely unwrap this env.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The base non-wrapped gym.Env instance</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">gym.Env</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
 
 </dd></dl>
 
@@ -516,178 +311,11 @@ info (dict): contains auxiliary diagnostic information (helpful for debugging, a
 </dd></dl>
 
 </div>
-<div class="section" id="module-machina.envs.rew_in_ob_env">
-<span id="machina-envs-rew-in-ob-env-module"></span><h2>machina.envs.rew_in_ob_env module<a class="headerlink" href="#module-machina.envs.rew_in_ob_env" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv">
-<em class="property">class </em><code class="descclassname">machina.envs.rew_in_ob_env.</code><code class="descname">RewInObEnv</code><span class="sig-paren">(</span><em>env</em>, <em>dim=0</em>, <em>normalize=True</em>, <em>initial_value=0</em>, <em>mean=0</em>, <em>std=1</em>, <em>low=-inf</em>, <em>high=inf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/rew_in_ob_env.html#RewInObEnv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
-<dl class="attribute">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv.action_space">
-<code class="descname">action_space</code><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv.action_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv.horizon">
-<code class="descname">horizon</code><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv.horizon" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv.observation_space">
-<code class="descname">observation_space</code><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv.observation_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv.render">
-<code class="descname">render</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/rew_in_ob_env.html#RewInObEnv.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv.render" title="Permalink to this definition">¶</a></dt>
-<dd><p>Renders the environment.</p>
-<p>The set of supported modes varies per environment. (And some
-environments do not support rendering at all.) By convention,
-if mode is:</p>
-<ul class="simple">
-<li>human: render to the current display or terminal and
-return nothing. Usually for human consumption.</li>
-<li>rgb_array: Return an numpy.ndarray with shape (x, y, 3),
-representing RGB values for an x-by-y pixel image, suitable
-for turning into a video.</li>
-<li>ansi: Return a string (str) or StringIO.StringIO containing a
-terminal-style text representation. The text can include newlines
-and ANSI escape sequences (e.g. for colors).</li>
-</ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<dl class="last docutils">
-<dt>Make sure that your class’s metadata ‘render.modes’ key includes</dt>
-<dd>the list of supported modes. It’s recommended to call super()
-in implementations to use the functionality of this method.</dd>
-</dl>
+<div class="section" id="machina-envs-rew-in-ob-env-module">
+<h2>machina.envs.rew_in_ob_env module<a class="headerlink" href="#machina-envs-rew-in-ob-env-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – the mode to render with</li>
-<li><strong>close</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – close all open renderings</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example:</p>
-<dl class="docutils">
-<dt>class MyEnv(Env):</dt>
-<dd><p class="first">metadata = {‘render.modes’: [‘human’, ‘rgb_array’]}</p>
-<dl class="last docutils">
-<dt>def render(self, mode=’human’):</dt>
-<dd><dl class="first last docutils">
-<dt>if mode == ‘rgb_array’:</dt>
-<dd>return np.array(…) # return RGB frame suitable for video</dd>
-<dt>elif mode is ‘human’:</dt>
-<dd>… # pop up a window and render</dd>
-<dt>else:</dt>
-<dd>super(MyEnv, self).render(mode=mode) # just raise an exception</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/rew_in_ob_env.html#RewInObEnv.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets the state of the environment and returns an initial observation.</p>
-<dl class="docutils">
-<dt>Returns: observation (object): the initial observation of the</dt>
-<dd>space.</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv.step">
-<code class="descname">step</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/rew_in_ob_env.html#RewInObEnv.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run one timestep of the environment’s dynamics. When end of
-episode is reached, you are responsible for calling <cite>reset()</cite>
-to reset this environment’s state.</p>
-<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) – an action provided by the environment</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">agent’s observation of the current environment
-reward (float) : amount of reward returned after previous action
-done (boolean): whether the episode has ended, in which case further step() calls will return undefined results
-info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">observation (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)">object</a>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.rew_in_ob_env.RewInObEnv.terminate">
-<code class="descname">terminate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/rew_in_ob_env.html#RewInObEnv.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.rew_in_ob_env.RewInObEnv.terminate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-machina.envs.skill_env">
-<span id="machina-envs-skill-env-module"></span><h2>machina.envs.skill_env module<a class="headerlink" href="#module-machina.envs.skill_env" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="machina.envs.skill_env.SkillEnv">
-<em class="property">class </em><code class="descclassname">machina.envs.skill_env.</code><code class="descname">SkillEnv</code><span class="sig-paren">(</span><em>env</em>, <em>num_skill=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/skill_env.html#SkillEnv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.skill_env.SkillEnv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Wrapper</span></code></p>
-<dl class="attribute">
-<dt id="machina.envs.skill_env.SkillEnv.horizon">
-<code class="descname">horizon</code><a class="headerlink" href="#machina.envs.skill_env.SkillEnv.horizon" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.skill_env.SkillEnv.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/skill_env.html#SkillEnv.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.skill_env.SkillEnv.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets the state of the environment and returns an initial observation.</p>
-<dl class="docutils">
-<dt>Returns: observation (object): the initial observation of the</dt>
-<dd>space.</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.skill_env.SkillEnv.step">
-<code class="descname">step</code><span class="sig-paren">(</span><em>ac</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/skill_env.html#SkillEnv.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.skill_env.SkillEnv.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run one timestep of the environment’s dynamics. When end of
-episode is reached, you are responsible for calling <cite>reset()</cite>
-to reset this environment’s state.</p>
-<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) – an action provided by the environment</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">agent’s observation of the current environment
-reward (float) : amount of reward returned after previous action
-done (boolean): whether the episode has ended, in which case further step() calls will return undefined results
-info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">observation (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)">object</a>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="machina.envs.skill_env.SkillEnv.terminate">
-<code class="descname">terminate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/envs/skill_env.html#SkillEnv.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.envs.skill_env.SkillEnv.terminate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="machina-envs-skill-env-module">
+<h2>machina.envs.skill_env module<a class="headerlink" href="#machina-envs-skill-env-module" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
