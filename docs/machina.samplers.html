@@ -179,11 +179,6 @@
             
   <div class="section" id="module-machina.samplers">
 <span id="machina-samplers-package"></span><h1>machina.samplers package<a class="headerlink" href="#module-machina.samplers" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li>This package samples episodes from <a class="reference internal" href="machina.envs.html#machina.envs.gym_env.GymEnv" title="machina.envs.gym_env.GymEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">Environment</span></code></a> in multiprocessing.</li>
-<li>Inputs are <a class="reference internal" href="machina.pols.html#machina.pols.base.BasePol" title="machina.pols.base.BasePol"><code class="xref py py-class docutils literal notranslate"><span class="pre">Policy</span></code></a> and maximum steps or episodes.</li>
-<li>Output is <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>.</li>
-</ul>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -212,7 +207,7 @@
 </table>
 <dl class="method">
 <dt id="machina.samplers.epi_sampler.EpiSampler.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>pol</em>, <em>max_epis=None</em>, <em>max_steps=None</em>, <em>deterministic=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/samplers/epi_sampler.html#EpiSampler.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.samplers.epi_sampler.EpiSampler.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>pol</em>, <em>max_episodes=None</em>, <em>max_steps=None</em>, <em>deterministic=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/samplers/epi_sampler.html#EpiSampler.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.samplers.epi_sampler.EpiSampler.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Switch on sampling processes.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -220,7 +215,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>pol</strong> (<em>Pol</em>) – </li>
-<li><strong>max_epis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – maximum episodes of episodes.
+<li><strong>max_episodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – maximum episodes of episodes.
 If None, this value is ignored.</li>
 <li><strong>max_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – maximum steps of episodes
 If None, this value is ignored.</li>
@@ -228,13 +223,13 @@ If None, this value is ignored.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>epis</strong> – Sampled epis.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>epis</strong> – Sampled episodes.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">list of dict</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – If max_steps and max_epis are botch None.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – If max_steps and max_episodes are botch None.</p>
 </td>
 </tr>
 </tbody>
@@ -245,9 +240,9 @@ If None, this value is ignored.</li>
 
 <dl class="function">
 <dt id="machina.samplers.epi_sampler.mp_sample">
-<code class="descclassname">machina.samplers.epi_sampler.</code><code class="descname">mp_sample</code><span class="sig-paren">(</span><em>pol</em>, <em>env</em>, <em>max_steps</em>, <em>max_epis</em>, <em>n_steps_global</em>, <em>n_epis_global</em>, <em>epis</em>, <em>exec_flags</em>, <em>deterministic_flag</em>, <em>process_id</em>, <em>prepro=None</em>, <em>seed=256</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/samplers/epi_sampler.html#mp_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.samplers.epi_sampler.mp_sample" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">machina.samplers.epi_sampler.</code><code class="descname">mp_sample</code><span class="sig-paren">(</span><em>pol</em>, <em>env</em>, <em>max_steps</em>, <em>max_episodes</em>, <em>n_steps_global</em>, <em>n_episodes_global</em>, <em>epis</em>, <em>exec_flags</em>, <em>deterministic_flag</em>, <em>process_id</em>, <em>prepro=None</em>, <em>seed=256</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machina/samplers/epi_sampler.html#mp_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#machina.samplers.epi_sampler.mp_sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Multiprocess sample.
-Sampling episodes until max_steps or max_epis is achieved.</p>
+Sampling episodes until max_steps or max_episodes is achieved.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -256,9 +251,9 @@ Sampling episodes until max_steps or max_epis is achieved.</p>
 <li><strong>pol</strong> (<em>Pol</em>) – </li>
 <li><strong>env</strong> (<em>gym.Env</em>) – </li>
 <li><strong>max_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – maximum steps of episodes</li>
-<li><strong>max_epis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – maximum episodes of episodes</li>
+<li><strong>max_episodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – maximum episodes of episodes</li>
 <li><strong>n_steps_global</strong> (<em>torch.Tensor</em>) – shared Tensor</li>
-<li><strong>n_epis_global</strong> (<em>torch.Tensor</em>) – shared Tensor</li>
+<li><strong>n_episodes_global</strong> (<em>torch.Tensor</em>) – shared Tensor</li>
 <li><strong>epis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – multiprocessing’s list for sharing episodes between processes.</li>
 <li><strong>exec_flags</strong> (<em>list of torch.Tensor</em>) – execution flag</li>
 <li><strong>deterministic_flag</strong> (<em>torch.Tensor</em>) – </li>

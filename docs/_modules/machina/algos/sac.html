@@ -161,10 +161,10 @@
 
 
 <div class="viewcode-block" id="train"><a class="viewcode-back" href="../../../machina.algos.html#machina.algos.sac.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span>
-          <span class="n">pol</span><span class="p">,</span> <span class="n">qfs</span><span class="p">,</span> <span class="n">targ_qfs</span><span class="p">,</span> <span class="n">log_alpha</span><span class="p">,</span>
-          <span class="n">optim_pol</span><span class="p">,</span> <span class="n">optim_qfs</span><span class="p">,</span> <span class="n">optim_alpha</span><span class="p">,</span>
+          <span class="n">pol</span><span class="p">,</span> <span class="n">qf</span><span class="p">,</span> <span class="n">targ_qf</span><span class="p">,</span> <span class="n">log_alpha</span><span class="p">,</span>
+          <span class="n">optim_pol</span><span class="p">,</span> <span class="n">optim_qf</span><span class="p">,</span> <span class="n">optim_alpha</span><span class="p">,</span>
           <span class="n">epoch</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span>  <span class="c1"># optimization hypers</span>
-          <span class="n">tau</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">reparam</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">tau</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span>
           <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Train function for soft actor critic.</span>
@@ -175,15 +175,15 @@
 <span class="sd">        Off policy trajectory.</span>
 <span class="sd">    pol : Pol</span>
 <span class="sd">        Policy.</span>
-<span class="sd">    qfs : list of SAVfunction</span>
+<span class="sd">    qf : SAVfunction</span>
 <span class="sd">        Q function.</span>
-<span class="sd">    targ_qfs : list of SAVfunction</span>
+<span class="sd">    targ_qf : SAVfunction</span>
 <span class="sd">        Target Q function.</span>
 <span class="sd">    log_alpha : torch.Tensor</span>
 <span class="sd">        Temperature parameter of entropy.</span>
 <span class="sd">    optim_pol : torch.optim.Optimizer</span>
 <span class="sd">        Optimizer for Policy.</span>
-<span class="sd">    optim_qfs : list of torch.optim.Optimizer</span>
+<span class="sd">    optim_qf : torch.optim.Optimizer</span>
 <span class="sd">        Optimizer for Q function.</span>
 <span class="sd">    optim_alpha : torch.optim.Optimizer</span>
 <span class="sd">        Optimizer for alpha.</span>
@@ -197,7 +197,6 @@
 <span class="sd">        Discounting rate.</span>
 <span class="sd">    sampling : int</span>
 <span class="sd">        Number of samping in calculating expectation.</span>
-<span class="sd">    reparam : bool</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -205,41 +204,38 @@
 <span class="sd">        Dictionary which contains losses information.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">qf_losses</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">pol_losses</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">_qf_losses</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">alpha_losses</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Optimizing...&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">traj</span><span class="o">.</span><span class="n">random_batch</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
-        <span class="n">pol_loss</span><span class="p">,</span> <span class="n">qf_losses</span><span class="p">,</span> <span class="n">alpha_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">sac</span><span class="p">(</span>
-            <span class="n">pol</span><span class="p">,</span> <span class="n">qfs</span><span class="p">,</span> <span class="n">targ_qfs</span><span class="p">,</span> <span class="n">log_alpha</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">reparam</span><span class="p">)</span>
+        <span class="n">pol_loss</span><span class="p">,</span> <span class="n">qf_loss</span><span class="p">,</span> <span class="n">alpha_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">sac</span><span class="p">(</span>
+            <span class="n">pol</span><span class="p">,</span> <span class="n">qf</span><span class="p">,</span> <span class="n">targ_qf</span><span class="p">,</span> <span class="n">log_alpha</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">sampling</span><span class="p">)</span>
 
         <span class="n">optim_pol</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">pol_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="n">optim_pol</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
-        <span class="k">for</span> <span class="n">optim_qf</span><span class="p">,</span> <span class="n">qf_loss</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">optim_qfs</span><span class="p">,</span> <span class="n">qf_losses</span><span class="p">):</span>
-            <span class="n">optim_qf</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-            <span class="n">qf_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-            <span class="n">optim_qf</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">optim_qf</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">qf_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optim_qf</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
         <span class="n">optim_alpha</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">alpha_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="n">optim_alpha</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
-        <span class="k">for</span> <span class="n">qf</span><span class="p">,</span> <span class="n">targ_qf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfs</span><span class="p">,</span> <span class="n">targ_qfs</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">targ_q</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qf</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">targ_qf</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
-                <span class="n">targ_q</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">copy_</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tau</span><span class="p">)</span> <span class="o">*</span> <span class="n">targ_q</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">+</span> <span class="n">tau</span> <span class="o">*</span> <span class="n">q</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">targ_q</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qf</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">targ_qf</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
+            <span class="n">targ_q</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">copy_</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tau</span><span class="p">)</span> <span class="o">*</span> <span class="n">targ_q</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">+</span> <span class="n">tau</span> <span class="o">*</span> <span class="n">q</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
 
         <span class="n">pol_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pol_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
-        <span class="n">_qf_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">qf_losses</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">qf_losses</span><span class="p">))</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+        <span class="n">qf_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qf_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
         <span class="n">alpha_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alpha_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Optimization finished!&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">PolLoss</span><span class="o">=</span><span class="n">pol_losses</span><span class="p">,</span>
-        <span class="n">QfLoss</span><span class="o">=</span><span class="n">_qf_losses</span><span class="p">,</span>
+        <span class="n">QfLoss</span><span class="o">=</span><span class="n">qf_losses</span><span class="p">,</span>
         <span class="n">AlphaLoss</span><span class="o">=</span><span class="n">alpha_losses</span>
     <span class="p">)</span></div>
 </pre></div>

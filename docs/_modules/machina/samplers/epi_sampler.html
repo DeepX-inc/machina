@@ -238,10 +238,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mp_sample"><a class="viewcode-back" href="../../../machina.samplers.html#machina.samplers.epi_sampler.mp_sample">[docs]</a><span class="k">def</span> <span class="nf">mp_sample</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">,</span> <span class="n">max_epis</span><span class="p">,</span> <span class="n">n_steps_global</span><span class="p">,</span> <span class="n">n_epis_global</span><span class="p">,</span> <span class="n">epis</span><span class="p">,</span> <span class="n">exec_flags</span><span class="p">,</span> <span class="n">deterministic_flag</span><span class="p">,</span> <span class="n">process_id</span><span class="p">,</span> <span class="n">prepro</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+<div class="viewcode-block" id="mp_sample"><a class="viewcode-back" href="../../../machina.samplers.html#machina.samplers.epi_sampler.mp_sample">[docs]</a><span class="k">def</span> <span class="nf">mp_sample</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">,</span> <span class="n">max_episodes</span><span class="p">,</span> <span class="n">n_steps_global</span><span class="p">,</span> <span class="n">n_episodes_global</span><span class="p">,</span> <span class="n">epis</span><span class="p">,</span> <span class="n">exec_flags</span><span class="p">,</span> <span class="n">deterministic_flag</span><span class="p">,</span> <span class="n">process_id</span><span class="p">,</span> <span class="n">prepro</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Multiprocess sample.</span>
-<span class="sd">    Sampling episodes until max_steps or max_epis is achieved.</span>
+<span class="sd">    Sampling episodes until max_steps or max_episodes is achieved.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -249,11 +249,11 @@
 <span class="sd">    env : gym.Env</span>
 <span class="sd">    max_steps : int</span>
 <span class="sd">        maximum steps of episodes</span>
-<span class="sd">    max_epis : int</span>
+<span class="sd">    max_episodes : int</span>
 <span class="sd">        maximum episodes of episodes</span>
 <span class="sd">    n_steps_global : torch.Tensor</span>
 <span class="sd">        shared Tensor</span>
-<span class="sd">    n_epis_global : torch.Tensor</span>
+<span class="sd">    n_episodes_global : torch.Tensor</span>
 <span class="sd">        shared Tensor</span>
 <span class="sd">    epis : list</span>
 <span class="sd">        multiprocessing&#39;s list for sharing episodes between processes.</span>
@@ -272,10 +272,10 @@
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">exec_flags</span><span class="p">[</span><span class="n">process_id</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">while</span> <span class="n">max_steps</span> <span class="o">&gt;</span> <span class="n">n_steps_global</span> <span class="ow">and</span> <span class="n">max_epis</span> <span class="o">&gt;</span> <span class="n">n_epis_global</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">max_steps</span> <span class="o">&gt;</span> <span class="n">n_steps_global</span> <span class="ow">and</span> <span class="n">max_episodes</span> <span class="o">&gt;</span> <span class="n">n_episodes_global</span><span class="p">:</span>
                 <span class="n">l</span><span class="p">,</span> <span class="n">epi</span> <span class="o">=</span> <span class="n">one_epi</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">deterministic_flag</span><span class="p">,</span> <span class="n">prepro</span><span class="p">)</span>
                 <span class="n">n_steps_global</span> <span class="o">+=</span> <span class="n">l</span>
-                <span class="n">n_epis_global</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">n_episodes_global</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">epis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">epi</span><span class="p">)</span>
             <span class="n">exec_flags</span><span class="p">[</span><span class="n">process_id</span><span class="p">]</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
 
@@ -304,9 +304,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_steps_global</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span><span class="o">.</span><span class="n">share_memory_</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span><span class="o">.</span><span class="n">share_memory_</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_epis_global</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_episodes_global</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
             <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span><span class="o">.</span><span class="n">share_memory_</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_epis</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span><span class="o">.</span><span class="n">share_memory_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_episodes</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span><span class="o">.</span><span class="n">share_memory_</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">exec_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
             <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span><span class="o">.</span><span class="n">share_memory_</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_parallel</span><span class="p">)]</span>
@@ -316,8 +316,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">epis</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Manager</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_parallel</span><span class="p">):</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">mp_sample</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_epis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_steps_global</span><span class="p">,</span>
-                                                   <span class="bp">self</span><span class="o">.</span><span class="n">n_epis_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exec_flags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">deterministic_flag</span><span class="p">,</span> <span class="n">ind</span><span class="p">,</span> <span class="n">prepro</span><span class="p">,</span> <span class="n">seed</span><span class="p">))</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">mp_sample</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_episodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_steps_global</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">n_episodes_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exec_flags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">deterministic_flag</span><span class="p">,</span> <span class="n">ind</span><span class="p">,</span> <span class="n">prepro</span><span class="p">,</span> <span class="n">seed</span><span class="p">))</span>
             <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 
@@ -325,14 +325,14 @@
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processes</span><span class="p">:</span>
             <span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
 
-<div class="viewcode-block" id="EpiSampler.sample"><a class="viewcode-back" href="../../../machina.samplers.html#machina.samplers.epi_sampler.EpiSampler.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">max_epis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="EpiSampler.sample"><a class="viewcode-back" href="../../../machina.samplers.html#machina.samplers.epi_sampler.EpiSampler.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">max_episodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Switch on sampling processes.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        pol : Pol</span>
-<span class="sd">        max_epis : int or None</span>
+<span class="sd">        max_episodes : int or None</span>
 <span class="sd">            maximum episodes of episodes.</span>
 <span class="sd">            If None, this value is ignored.</span>
 <span class="sd">        max_steps : int or None</span>
@@ -343,29 +343,29 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        epis : list of dict</span>
-<span class="sd">            Sampled epis.</span>
+<span class="sd">            Sampled episodes.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            If max_steps and max_epis are botch None.</span>
+<span class="sd">            If max_steps and max_episodes are botch None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">sp</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">pol</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
             <span class="n">sp</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">max_epis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">max_episodes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;Either max_epis or max_steps needs not to be None&#39;</span><span class="p">)</span>
-        <span class="n">max_epis</span> <span class="o">=</span> <span class="n">max_epis</span> <span class="k">if</span> <span class="n">max_epis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">LARGE_NUMBER</span>
+                <span class="s1">&#39;Either max_episodes or max_steps needs not to be None&#39;</span><span class="p">)</span>
+        <span class="n">max_episodes</span> <span class="o">=</span> <span class="n">max_episodes</span> <span class="k">if</span> <span class="n">max_episodes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">LARGE_NUMBER</span>
         <span class="n">max_steps</span> <span class="o">=</span> <span class="n">max_steps</span> <span class="k">if</span> <span class="n">max_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">LARGE_NUMBER</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_steps_global</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_epis_global</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_episodes_global</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span> <span class="o">+=</span> <span class="n">max_steps</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_epis</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_epis</span> <span class="o">+=</span> <span class="n">max_epis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_episodes</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_episodes</span> <span class="o">+=</span> <span class="n">max_episodes</span>
 
         <span class="k">if</span> <span class="n">deterministic</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">deterministic_flag</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>

@@ -172,16 +172,9 @@
 <span class="sd">    An episode is a sequence of steps.</span>
 
 <span class="sd">    This class provides batch methods.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    max_steps: None or int</span>
-<span class="sd">        Specifying maximum steps to be saved in Traj.</span>
-<span class="sd">    traj_device: None or str or torch.device</span>
-<span class="sd">        Device name Traj is allocated.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">traj_device</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_next_id</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -190,14 +183,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span> <span class="o">=</span> <span class="n">max_steps</span> <span class="k">if</span> <span class="n">max_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">LARGE_NUMBER</span>
 
-        <span class="k">if</span> <span class="n">traj_device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">traj_device</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">get_device</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">traj_device</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">traj_device</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_epi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -207,7 +195,7 @@
         <span class="k">if</span> <span class="s1">&#39;pris&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="s1">&#39;pris&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Traj.add_epis"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.add_epis">[docs]</a>    <span class="k">def</span> <span class="nf">add_epis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epis</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_epis</span> <span class="o">=</span> <span class="n">epis</span></div>
@@ -217,14 +205,12 @@
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_map</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">remain_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
-                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">remain_index</span><span class="p">]:],</span> <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traj_device</span><span class="p">())],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">remain_index</span><span class="p">]:],</span> <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
-                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traj_device</span><span class="p">())],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_map</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traj_device</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span> <span class="o">=</span> <span class="n">data_map</span>
 
 <div class="viewcode-block" id="Traj.register_epis"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.register_epis">[docs]</a>    <span class="k">def</span> <span class="nf">register_epis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">epis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_epis</span>
@@ -233,12 +219,12 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">epis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">epis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
                 <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">epi</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">traj_device</span><span class="p">())</span>
+                    <span class="p">[</span><span class="n">epi</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">epis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">new_keys</span> <span class="o">=</span> <span class="n">epis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">new_key</span> <span class="ow">in</span> <span class="n">new_keys</span><span class="p">:</span>
                     <span class="n">data_map</span><span class="p">[</span><span class="n">new_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
-                        <span class="p">[</span><span class="n">epi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">new_key</span><span class="p">]</span> <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">traj_device</span><span class="p">())</span>
+                        <span class="p">[</span><span class="n">epi</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">new_key</span><span class="p">]</span> <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_concat_data_map</span><span class="p">(</span><span class="n">data_map</span><span class="p">)</span>
 
@@ -284,12 +270,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[:</span><span class="n">remain_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span></div>
 
     <span class="k">def</span> <span class="nf">_shuffled_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">indices</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">randperm</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">))]</span>
+        <span class="k">return</span> <span class="n">indices</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">randperm</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())]</span>
 
     <span class="k">def</span> <span class="nf">_get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">num_step</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">num_step</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shuffled_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">indices</span>
@@ -301,8 +287,7 @@
 
         <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
-            <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">cur_id</span><span class="p">:</span><span class="n">cur_id</span> <span class="o">+</span>
-                                               <span class="n">cur_batch_size</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_device</span><span class="p">())</span>
+            <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">cur_id</span><span class="p">:</span><span class="n">cur_id</span><span class="o">+</span><span class="n">cur_batch_size</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">data_map</span>
 
 <div class="viewcode-block" id="Traj.iterate_once"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.iterate_once">[docs]</a>    <span class="k">def</span> <span class="nf">iterate_once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -374,15 +359,11 @@
 <span class="sd">        -------</span>
 <span class="sd">        data_map : dict of torch.Tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_step</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
-            <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">indices</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
-                <span class="n">get_device</span><span class="p">())</span>
+            <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">indices</span><span class="p">[:</span><span class="n">batch_size</span><span class="p">]]</span>
         <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">data_map</span><span class="p">,</span> <span class="n">indices</span>
         <span class="k">else</span><span class="p">:</span>
@@ -413,45 +394,11 @@
 
         <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
-            <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">indices</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_device</span><span class="p">())</span>
+            <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">indices</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">data_map</span><span class="p">,</span> <span class="n">indices</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">data_map</span></div>
-
-<div class="viewcode-block" id="Traj.prioritized_random_batch_rnn_once"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.prioritized_random_batch_rnn_once">[docs]</a>    <span class="k">def</span> <span class="nf">prioritized_random_batch_rnn_once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init_beta</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">beta_step</span><span class="o">=</span><span class="mf">0.00025</span><span class="o">/</span><span class="mi">4</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;pri_beta&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pri_beta</span> <span class="o">=</span> <span class="n">init_beta</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pri_beta</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pri_beta</span> <span class="o">=</span> <span class="mf">1.0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pri_beta</span> <span class="o">+=</span> <span class="n">beta_step</span>
-
-        <span class="n">seq_pris</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="s1">&#39;seq_pris&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
-
-        <span class="n">start_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">WeightedRandomSampler</span><span class="p">(</span>
-            <span class="n">seq_pris</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>  <span class="c1"># , replacement=True)</span>
-        <span class="n">start_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">start_indices</span><span class="p">]</span>
-
-        <span class="n">seqs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">length</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">start_indices</span><span class="p">:</span>
-            <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
-                <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">start</span><span class="o">+</span><span class="n">seq_length</span><span class="p">]</span>
-            <span class="n">seqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_map</span><span class="p">)</span>
-
-        <span class="n">batch</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="n">keys</span> <span class="o">=</span> <span class="n">seqs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-            <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">seq</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">seqs</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="c1"># (batch_size, seq_length, *) -&gt; (seq_length, batch_size, *)</span>
-            <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_device</span><span class="p">())</span>
-
-        <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">batch</span><span class="p">,</span> <span class="n">start_indices</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">batch</span></div>
 
 <div class="viewcode-block" id="Traj.random_batch"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.random_batch">[docs]</a>    <span class="k">def</span> <span class="nf">random_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -475,69 +422,11 @@
             <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
                 <span class="n">batch</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_batch_once</span><span class="p">(</span>
                     <span class="n">batch_size</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">)</span>
-                <span class="k">yield</span> <span class="n">batch</span><span class="p">,</span> <span class="n">indices</span>
+                <span class="k">yield</span> <span class="n">batch</span><span class="o">.</span> <span class="n">indices</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_batch_once</span><span class="p">(</span>
                     <span class="n">batch_size</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">batch</span></div>
-
-<div class="viewcode-block" id="Traj.random_batch_rnn"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.random_batch_rnn">[docs]</a>    <span class="k">def</span> <span class="nf">random_batch_rnn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Providing sequences of batch which is randomly sampled from trajectory.</span>
-<span class="sd">        batch shape is (seq_length, batch_size, * )</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        batch_size : int</span>
-<span class="sd">        seq_length : int</span>
-<span class="sd">            Length of sequence of batch. </span>
-<span class="sd">            If seq_length None, max episode length is selected.</span>
-<span class="sd">        epoch : int</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        batch : dict of torch.Tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="n">seq_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">seq_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
-
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epoch</span><span class="p">):</span>
-            <span class="n">seqs</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
-                <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,))</span>
-
-            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
-                <span class="n">length</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">seq_length</span><span class="p">)</span>
-                <span class="n">start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">seq_length</span><span class="p">:</span>
-                        <span class="n">pad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][:</span><span class="n">seq_length</span><span class="o">-</span><span class="n">length</span><span class="p">],</span>
-                                               <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
-                        <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
-                            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">start</span><span class="o">+</span><span class="n">length</span><span class="p">],</span> <span class="n">pad</span><span class="p">])</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">start</span><span class="p">:</span> <span class="n">start</span><span class="o">+</span><span class="n">seq_length</span><span class="p">]</span>
-                <span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
-                <span class="n">seqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_map</span><span class="p">)</span>
-
-            <span class="n">batch</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-            <span class="n">keys</span> <span class="o">=</span> <span class="n">seqs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-                <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">seq</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">seqs</span><span class="p">])</span>
-                <span class="c1"># (batch_size, seq_length, *) -&gt; (seq_length, batch_size, *)</span>
-                <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_device</span><span class="p">())</span>
-            <span class="n">out_masks</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">seq_length</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
-                <span class="n">out_masks</span><span class="p">[</span><span class="n">lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;out_masks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_masks</span>
-            <span class="k">yield</span> <span class="n">batch</span></div>
 
 <div class="viewcode-block" id="Traj.prioritized_random_batch"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.prioritized_random_batch">[docs]</a>    <span class="k">def</span> <span class="nf">prioritized_random_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epoch</span><span class="p">):</span>
@@ -548,35 +437,6 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prioritized_random_batch_once</span><span class="p">(</span>
                     <span class="n">batch_size</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">)</span>
-                <span class="k">yield</span> <span class="n">batch</span></div>
-
-<div class="viewcode-block" id="Traj.prioritized_random_batch_rnn"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.prioritized_random_batch_rnn">[docs]</a>    <span class="k">def</span> <span class="nf">prioritized_random_batch_rnn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Providing sequences of batch which is prioritized randomly sampled from trajectory.</span>
-<span class="sd">        batch shape is (seq_length, batch_size, * )</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        batch_size : int</span>
-<span class="sd">        seq_length : int</span>
-<span class="sd">            Length of sequence of batch. </span>
-<span class="sd">            If seq_length None, max episode length is selected.</span>
-<span class="sd">        epoch : int</span>
-<span class="sd">        return_indices : bool</span>
-<span class="sd">            If True, indices are also returned.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        batch : dict of torch.Tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epoch</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
-                <span class="n">batch</span><span class="p">,</span> <span class="n">start_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prioritized_random_batch_rnn_once</span><span class="p">(</span>
-                    <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">)</span>
-                <span class="k">yield</span> <span class="n">batch</span><span class="p">,</span> <span class="n">start_indices</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prioritized_random_batch_once</span><span class="p">(</span>
-                    <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">batch</span></div>
 
 <div class="viewcode-block" id="Traj.full_batch"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.full_batch">[docs]</a>    <span class="k">def</span> <span class="nf">full_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -593,14 +453,11 @@
 <span class="sd">        -------</span>
 <span class="sd">        data_map : dict of torch.Tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
-            <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_device</span><span class="p">())</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epoch</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
-                <span class="k">yield</span> <span class="n">data_map</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_step</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_step</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">yield</span> <span class="n">data_map</span></div>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span></div>
 
 <div class="viewcode-block" id="Traj.iterate_epi"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.iterate_epi">[docs]</a>    <span class="k">def</span> <span class="nf">iterate_epi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -618,7 +475,7 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">:</span>
-                <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
+                <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>                                                   <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_epis_index</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
             <span class="n">epis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_map</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">epis</span><span class="p">)))</span>
@@ -630,7 +487,7 @@
 <div class="viewcode-block" id="Traj.iterate_rnn"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.traj.Traj.iterate_rnn">[docs]</a>    <span class="k">def</span> <span class="nf">iterate_rnn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">num_epi_per_seq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iterating batches for rnn.</span>
-<span class="sd">        batch shape is (max_seq, batch_size, * )</span>
+<span class="sd">        batch shape is (max_seq, batch_size, *)</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -678,9 +535,8 @@
                 <span class="n">_batch</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-                    <span class="n">_batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pad_sequence</span><span class="p">(</span>
-                        <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_device</span><span class="p">())</span>
-                <span class="n">_batch</span><span class="p">[</span><span class="s1">&#39;out_masks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_masks</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_device</span><span class="p">())</span>
+                    <span class="n">_batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pad_sequence</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+                <span class="n">_batch</span><span class="p">[</span><span class="s1">&#39;out_masks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_masks</span>
                 <span class="k">yield</span> <span class="n">_batch</span></div></div>
 </pre></div>
 

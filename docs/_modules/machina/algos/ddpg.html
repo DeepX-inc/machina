@@ -209,7 +209,7 @@
         <span class="n">qf_bellman_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="n">optim_qf</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
-        <span class="n">pol_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">ag</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">qf</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">no_noise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">pol_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">ag</span><span class="p">(</span><span class="n">pol</span><span class="p">,</span> <span class="n">qf</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
         <span class="n">optim_pol</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">pol_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="n">optim_pol</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>

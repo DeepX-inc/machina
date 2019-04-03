@@ -1088,7 +1088,7 @@
 <span class="k">def</span> <span class="nf">plot_scores</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">x_key</span><span class="p">,</span> <span class="n">scores</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">result_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">plot_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;steps&#39;</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                <span class="n">y_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">_check_available</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1111,7 +1111,7 @@
                    <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
                    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
 
-    <span class="n">a</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;steps&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">y_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">a</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">plot_legend</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
@@ -1755,59 +1755,15 @@
             <span class="n">_running_processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">record_results_bc</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">result_dict</span><span class="p">,</span> <span class="n">score_file</span><span class="p">,</span>
-                      <span class="n">epoch</span><span class="p">,</span>
-                      <span class="n">rewards</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">plot_title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">async_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="p">):</span>
-    <span class="n">log</span><span class="p">(</span><span class="s2">&quot;outdir </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)))</span>
-
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">result_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
-            <span class="n">record_tabular</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">record_tabular_misc_stat</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">rewards</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">record_tabular_misc_stat</span><span class="p">(</span><span class="s1">&#39;Reward&#39;</span><span class="p">,</span> <span class="n">rewards</span><span class="p">)</span>
-    <span class="n">record_tabular</span><span class="p">(</span><span class="s1">&#39;CurrentEpoch&#39;</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span>
-    <span class="n">dump_tabular</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">async_plot</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">result_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
-                <span class="n">fig_fname</span> <span class="o">=</span> <span class="n">plot_scores</span><span class="p">(</span><span class="n">score_file</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;CurrentEpoch&#39;</span><span class="p">,</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="n">plot_title</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;epoch&#39;</span><span class="p">)</span>
-                <span class="n">log</span><span class="p">(</span><span class="s1">&#39;Saved a figure as </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fig_fname</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="n">rewards</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig_fname</span> <span class="o">=</span> <span class="n">plot_scores</span><span class="p">(</span><span class="n">score_file</span><span class="p">,</span> <span class="s1">&#39;Reward&#39;</span><span class="p">,</span> <span class="s1">&#39;CurrentEpoch&#39;</span><span class="p">,</span>
-                                    <span class="n">title</span><span class="o">=</span><span class="n">plot_title</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;epoch&#39;</span><span class="p">)</span>
-            <span class="n">log</span><span class="p">(</span><span class="s1">&#39;Saved a figure as </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fig_fname</span><span class="p">)))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">global</span> <span class="n">_async_plot_flag</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">_async_plot_flag</span><span class="p">:</span>
-            <span class="k">global</span> <span class="n">plot_process</span>
-            <span class="n">plot_process</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">_async_plot_flag</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">_running_processes</span><span class="p">:</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="n">_running_processes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">ready</span><span class="p">():</span>
-                <span class="k">del</span> <span class="n">_running_processes</span><span class="p">[:]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">_running_processes</span><span class="p">:</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="n">plot_process</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">async_plot_scores</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span>
-                <span class="n">score_file</span><span class="p">,</span> <span class="n">plot_title</span><span class="p">,</span> <span class="n">result_dict</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="s1">&#39;CurrentEpoch&#39;</span><span class="p">,</span> <span class="s1">&#39;epoch&#39;</span><span class="p">))</span>
-            <span class="n">_running_processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">async_plot_scores</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">result_dict</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">x_key</span><span class="o">=</span><span class="s1">&#39;TotalStep&#39;</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;steps&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">async_plot_scores</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">result_dict</span><span class="p">,</span> <span class="n">rewards</span><span class="p">):</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">result_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
-            <span class="n">fig_fname</span> <span class="o">=</span> <span class="n">plot_scores</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">x_key</span><span class="p">,</span>
-                                    <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">scores</span><span class="o">=</span><span class="n">scores</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="n">x_label</span><span class="p">)</span>
+            <span class="n">fig_fname</span> <span class="o">=</span> <span class="n">plot_scores</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;TotalStep&#39;</span><span class="p">,</span>
+                                    <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">scores</span><span class="o">=</span><span class="n">scores</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rewards</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">fig_fname</span> <span class="o">=</span> <span class="n">plot_scores</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;Reward&#39;</span><span class="p">,</span> <span class="n">x_key</span><span class="p">,</span>
-                                <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">scores</span><span class="o">=</span><span class="n">scores</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="n">x_label</span><span class="p">)</span>
+        <span class="n">fig_fname</span> <span class="o">=</span> <span class="n">plot_scores</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;Reward&#39;</span><span class="p">,</span> <span class="s1">&#39;TotalStep&#39;</span><span class="p">,</span>
+                                <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">scores</span><span class="o">=</span><span class="n">scores</span><span class="p">)</span>
 </pre></div>
 
            </div>
