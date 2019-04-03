@@ -13,7 +13,7 @@ Run the following command in the root directory of machina's repository.
 `sphinx-build -b html ./docs/source ./docs/_build/`
 
 ## Publish
-Pubulish 
 Run the following command.
 `cp -r docs/_build/ docs/`
-Then, we can see updated html in this [url](https://deepx-inc.github.io/machina/).
+And send a pull request.
+If it is merged, we can see updated html in this [url](https://deepx-inc.github.io/machina/).
