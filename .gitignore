@@ -12,3 +12,4 @@ docs/_build/
 *.pkl
 *.csv
 docs/source/modules.rst
+docs/.doctrees

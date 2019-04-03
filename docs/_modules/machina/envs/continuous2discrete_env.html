@@ -176,7 +176,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_bins</span> <span class="o">=</span> <span class="n">n_bins</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ac_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">MultiDiscrete</span><span class="p">(</span>
             <span class="n">env</span><span class="o">.</span><span class="n">ac_space</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">[</span><span class="n">n_bins</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ob_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s1">&#39;original_env&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">original_env</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">original_env</span>
         <span class="k">else</span><span class="p">:</span>

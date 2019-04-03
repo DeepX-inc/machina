@@ -153,13 +153,10 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 
 <span class="kn">from</span> <span class="nn">machina.utils</span> <span class="k">import</span> <span class="n">get_device</span>
 <span class="kn">from</span> <span class="nn">machina</span> <span class="k">import</span> <span class="n">loss_functional</span> <span class="k">as</span> <span class="n">lf</span>
-<span class="kn">from</span> <span class="nn">machina.traj</span> <span class="k">import</span> <span class="n">Traj</span>
 
 
 <div class="viewcode-block" id="compute_vs"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_vs">[docs]</a><span class="k">def</span> <span class="nf">compute_vs</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">vf</span><span class="p">):</span>
@@ -168,19 +165,14 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    vf : SVFunction</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
+    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
     <span class="n">vf</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
@@ -196,74 +188,24 @@
 
 
 <div class="viewcode-block" id="set_all_pris"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.set_all_pris">[docs]</a><span class="k">def</span> <span class="nf">set_all_pris</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pri</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Set prioritization to all episodes.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
-<span class="sd">    pri : torch.Tensor</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
+    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
     <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
         <span class="n">pris</span> <span class="o">=</span> <span class="n">pri</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]))</span>
         <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;pris&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pris</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-
     <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="compute_pris"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_pris">[docs]</a><span class="k">def</span> <span class="nf">compute_pris</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">qf</span><span class="p">,</span> <span class="n">targ_qf</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rnn</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute prioritization.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
-<span class="sd">    qf : SAVfunction</span>
-<span class="sd">    targ_qf : SAVfunction</span>
-<span class="sd">    pol : Pol</span>
-<span class="sd">    gamma : float</span>
-<span class="sd">    continuous : bool</span>
-<span class="sd">    deterministic : bool</span>
-<span class="sd">    rnn : bool</span>
-<span class="sd">    sampling : int</span>
-<span class="sd">    alpha : float</span>
-<span class="sd">    epsilen : float</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="compute_pris"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_pris">[docs]</a><span class="k">def</span> <span class="nf">compute_pris</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">qf</span><span class="p">,</span> <span class="n">targ_qf</span><span class="p">,</span> <span class="n">targ_pol</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">continuous</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-            <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
         <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
             <span class="n">data_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
             <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">,</span> <span class="s1">&#39;acs&#39;</span><span class="p">,</span> <span class="s1">&#39;rews&#39;</span><span class="p">,</span> <span class="s1">&#39;next_obs&#39;</span><span class="p">,</span> <span class="s1">&#39;dones&#39;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
                 <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
-            <span class="k">if</span> <span class="n">rnn</span><span class="p">:</span>
-                <span class="n">qf</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-                <span class="n">targ_qf</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-                <span class="n">pol</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-                <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">,</span> <span class="s1">&#39;acs&#39;</span><span class="p">,</span> <span class="s1">&#39;next_obs&#39;</span><span class="p">]</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-                    <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="n">bellman_loss</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">bellman</span><span class="p">(</span>
-                    <span class="n">qf</span><span class="p">,</span> <span class="n">targ_qf</span><span class="p">,</span> <span class="n">pol</span><span class="p">,</span> <span class="n">data_map</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">continuous</span><span class="p">,</span> <span class="n">deterministic</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+                    <span class="n">qf</span><span class="p">,</span> <span class="n">targ_qf</span><span class="p">,</span> <span class="n">targ_pol</span><span class="p">,</span> <span class="n">data_map</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">continuous</span><span class="p">,</span> <span class="n">deterministic</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
                 <span class="n">td_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">bellman_loss</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
                 <span class="n">pris</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">td_loss</span><span class="p">)</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">)</span> <span class="o">**</span> <span class="n">alpha</span>
                 <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;pris&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pris</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -273,58 +215,21 @@
             <span class="s2">&quot;Only Q function with continuous action space is supported now.&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="compute_seq_pris"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_seq_pris">[docs]</a><span class="k">def</span> <span class="nf">compute_seq_pris</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computing priorities of each sequence in episodes.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
-<span class="sd">    seq_length : int</span>
-<span class="sd">        Length of batch</span>
-<span class="sd">    eta : float</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
-    <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
-        <span class="n">n_seq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;pris&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="n">seq_length</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="n">abs_pris</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;pris&#39;</span><span class="p">])</span>
-        <span class="n">seq_pris</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">eta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">abs_pris</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">seq_length</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta</span><span class="p">)</span> <span class="o">*</span>
-                             <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">abs_pris</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">seq_length</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_seq</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
-        <span class="n">pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">seq_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
-        <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;seq_pris&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">seq_pris</span><span class="p">,</span> <span class="n">pad</span><span class="p">])</span>
-
-    <span class="k">return</span> <span class="n">data</span></div>
-
-
 <div class="viewcode-block" id="compute_rets"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_rets">[docs]</a><span class="k">def</span> <span class="nf">compute_rets</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computing discounted cumulative returns.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    gamma : float</span>
 <span class="sd">        Discount rate</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
+    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
     <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
         <span class="n">rews</span> <span class="o">=</span> <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;rews&#39;</span><span class="p">]</span>
         <span class="n">rets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rews</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -342,7 +247,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    gamma : float</span>
 <span class="sd">        Discount rate</span>
 <span class="sd">    lam : float</span>
@@ -350,14 +255,9 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
+    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
     <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
         <span class="n">rews</span> <span class="o">=</span> <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;rews&#39;</span><span class="p">]</span>
         <span class="n">vs</span> <span class="o">=</span> <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;vs&#39;</span><span class="p">]</span>
@@ -372,69 +272,21 @@
     <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="compute_hs"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_hs">[docs]</a><span class="k">def</span> <span class="nf">compute_hs</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">hs_name</span><span class="o">=</span><span class="s1">&#39;hs&#39;</span><span class="p">,</span> <span class="n">input_acs</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computing Hidden State of RNN Cell.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
-<span class="sd">    func : </span>
-<span class="sd">        Any function. for example pols, vf and qf.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
-    <span class="n">func</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
-            <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
-                <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">time_seq</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">input_acs</span><span class="p">:</span>
-                <span class="n">acs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
-                    <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;acs&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                <span class="n">hs_seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">acs</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;hs&#39;</span><span class="p">]</span>
-                          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_seq</span><span class="p">)]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">hs_seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;hs&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_seq</span><span class="p">)]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hs_seq</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
-                <span class="n">hs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">h</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-                                <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hs</span><span class="p">]</span> <span class="k">for</span> <span class="n">hs</span> <span class="ow">in</span> <span class="n">hs_seq</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">hs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hs</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
-            <span class="n">epi</span><span class="p">[</span><span class="n">hs_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">hs</span>
-
-    <span class="k">return</span> <span class="n">data</span></div>
-
-
 <div class="viewcode-block" id="centerize_advs"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.centerize_advs">[docs]</a><span class="k">def</span> <span class="nf">centerize_advs</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Centerizing Advantage Function.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    eps : float</span>
 <span class="sd">        Small value for preventing 0 division.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
+    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
     <span class="n">_advs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;advs&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
         <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;advs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;advs&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">_advs</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">_advs</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
@@ -448,18 +300,13 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
+<span class="sd">    data : Traj</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
+    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
     <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
         <span class="n">_obs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ob</span> <span class="k">for</span> <span class="n">ob</span> <span class="ow">in</span> <span class="n">obs</span><span class="p">]</span>
@@ -476,104 +323,19 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    data : Traj or epis(dict of ndarray)</span>
+<span class="sd">    data : Traj</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    data : Traj or epi(dict of ndarray)</span>
-<span class="sd">        Corresponding to input</span>
+<span class="sd">    data : Traj</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
+    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
     <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
         <span class="n">h_masks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;rews&#39;</span><span class="p">])</span>
         <span class="n">h_masks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;h_masks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h_masks</span>
 
     <span class="k">return</span> <span class="n">data</span></div>
-
-
-<div class="viewcode-block" id="compute_pseudo_rews"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_pseudo_rews">[docs]</a><span class="k">def</span> <span class="nf">compute_pseudo_rews</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rew_giver</span><span class="p">,</span> <span class="n">state_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-
-    <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
-        <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">state_only</span><span class="p">:</span>
-            <span class="n">logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rew_giver</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">acs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
-                <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;acs&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
-            <span class="n">logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rew_giver</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">acs</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="n">rews</span> <span class="o">=</span> <span class="o">-</span><span class="n">F</span><span class="o">.</span><span class="n">logsigmoid</span><span class="p">(</span><span class="o">-</span><span class="n">logits</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-        <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;real_rews&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;rews&#39;</span><span class="p">])</span>
-        <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;rews&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rews</span>
-
-    <span class="k">return</span> <span class="n">data</span></div>
-
-
-<div class="viewcode-block" id="compute_diayn_rews"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.compute_diayn_rews">[docs]</a><span class="k">def</span> <span class="nf">compute_diayn_rews</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rew_giver</span><span class="p">):</span>
-    <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-    <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
-        <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span>
-            <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
-        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="n">rews</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">rew_giver</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-        <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;rews&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rews</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">data</span></div>
-
-
-<div class="viewcode-block" id="train_test_split"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.train_test_split">[docs]</a><span class="k">def</span> <span class="nf">train_test_split</span><span class="p">(</span><span class="n">epis</span><span class="p">,</span> <span class="n">train_size</span><span class="p">):</span>
-    <span class="n">num_epi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">epis</span><span class="p">)</span>
-    <span class="n">num_train</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_epi</span> <span class="o">*</span> <span class="n">train_size</span><span class="p">)</span>
-    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_epi</span><span class="p">)</span>
-    <span class="n">train_epis</span><span class="p">,</span> <span class="n">test_epis</span> <span class="o">=</span> <span class="p">[[</span><span class="n">epis</span><span class="p">[</span><span class="n">indice</span><span class="p">]</span> <span class="k">for</span> <span class="n">indice</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span> <span class="k">for</span> <span class="n">indices</span> <span class="ow">in</span>
-                             <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="p">[</span><span class="n">num_train</span><span class="p">])]</span>
-
-    <span class="k">return</span> <span class="n">train_epis</span><span class="p">,</span> <span class="n">test_epis</span></div>
-
-
-<div class="viewcode-block" id="normalize_obs_and_acs"><a class="viewcode-back" href="../../../machina.traj.html#machina.traj.epi_functional.normalize_obs_and_acs">[docs]</a><span class="k">def</span> <span class="nf">normalize_obs_and_acs</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mean_obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">std_obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mean_acs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">std_acs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_statistic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Traj</span><span class="p">):</span>
-            <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">current_epis</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">epis</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="n">obs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">acs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
-            <span class="n">obs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">])</span>
-            <span class="n">acs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;acs&#39;</span><span class="p">])</span>
-        <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-        <span class="n">acs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">acs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">mean_obs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">mean_obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">std_obs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">std_obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span>
-                <span class="n">obs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span>
-        <span class="k">if</span> <span class="n">mean_acs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">mean_acs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">acs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">std_acs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">std_acs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span>
-                <span class="n">acs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span>
-
-        <span class="k">for</span> <span class="n">epi</span> <span class="ow">in</span> <span class="n">epis</span><span class="p">:</span>
-            <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">mean_obs</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_obs</span>
-            <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;acs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">epi</span><span class="p">[</span><span class="s1">&#39;acs&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">mean_acs</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_acs</span>
-            <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">epi</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">mean_obs</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_obs</span>
-
-    <span class="k">if</span> <span class="n">return_statistic</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">mean_obs</span><span class="p">,</span> <span class="n">std_obs</span><span class="p">,</span> <span class="n">mean_acs</span><span class="p">,</span> <span class="n">std_acs</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">data</span></div>
 </pre></div>
 
            </div>

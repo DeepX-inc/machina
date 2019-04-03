@@ -161,7 +161,6 @@
 <div class="viewcode-block" id="CEMDeterministicSAVfunc"><a class="viewcode-back" href="../../../../machina.vfuncs.state_action_vfuncs.html#machina.vfuncs.state_action_vfuncs.cem_state_action_vfunc.CEMDeterministicSAVfunc">[docs]</a><span class="k">class</span> <span class="nc">CEMDeterministicSAVfunc</span><span class="p">(</span><span class="n">DeterministicSAVfunc</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deterministic State Action Vfunction with Cross Entropy Method.</span>
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ob_space : gym.Space</span>
@@ -195,16 +194,14 @@
 
 <div class="viewcode-block" id="CEMDeterministicSAVfunc.max"><a class="viewcode-back" href="../../../../machina.vfuncs.state_action_vfuncs.html#machina.vfuncs.state_action_vfuncs.cem_state_action_vfunc.CEMDeterministicSAVfunc.max">[docs]</a>    <span class="k">def</span> <span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Perform max and argmax of Qfunc</span>
-
+<span class="sd">        Max and Argmax of Qfunc</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        obs : torch.Tensor</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        max_qs : torch.Tensor</span>
-<span class="sd">        max_acs : torch.Tensor</span>
+<span class="sd">        max_qs, max_acs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_obs_shape</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
@@ -212,10 +209,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dim_ob</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">high</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ac_space</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
-                            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
+                            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">low</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ac_space</span><span class="o">.</span><span class="n">low</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
-        <span class="n">init_samples</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sampling</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ac_space</span><span class="o">.</span><span class="n">low</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">init_samples</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sampling</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">num_sampling</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">high</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span> <span class="o">+</span> <span class="n">low</span>  <span class="c1"># (self.num_sampling, dim_ac)</span>
         <span class="n">init_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clamp</span><span class="p">(</span><span class="n">init_samples</span><span class="p">)</span>
         <span class="n">max_qs</span><span class="p">,</span> <span class="n">max_acs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cem</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">init_samples</span><span class="p">)</span>
@@ -223,7 +220,6 @@
 
     <span class="k">def</span> <span class="nf">_cem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">init_samples</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Perform cross entropy method</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -246,7 +242,7 @@
                 <span class="n">best_indices</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_best_sampling</span><span class="p">]</span>
                 <span class="n">best_indices</span> <span class="o">=</span> <span class="n">best_indices</span> <span class="o">+</span> \
                     <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sampling</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                                 <span class="bp">self</span><span class="o">.</span><span class="n">num_sampling</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">num_sampling</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">best_indices</span> <span class="o">=</span> <span class="n">best_indices</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
                     <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_best_sampling</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,))</span>
                 <span class="c1"># (self.num_best_sampling * self.batch_size,  self.dim_ac)</span>
@@ -260,15 +256,13 @@
         <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sampling</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_ac</span><span class="p">))</span>
         <span class="n">max_q</span><span class="p">,</span> <span class="n">ind</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">qvals</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">max_ac</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">()),</span> <span class="n">ind</span><span class="p">]</span>
+        <span class="n">max_ac</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">obs</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">ind</span><span class="p">]</span>
         <span class="n">max_ac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_acs_shape</span><span class="p">(</span><span class="n">max_ac</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">max_q</span><span class="p">,</span> <span class="n">max_ac</span>
 
     <span class="k">def</span> <span class="nf">_fitting_diag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">best_samples</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fit diagonal covariance gaussian and sampling from it</span>
-
+<span class="sd">        fitting diagonal covariance gaussian and sampling from it</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        best_samples : torch.Tensor</span>
@@ -293,8 +287,7 @@
 
     <span class="k">def</span> <span class="nf">_fitting_multivari</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">best_samples</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fit multivariate gaussian and sampling from it</span>
-
+<span class="sd">        fitting multivariate gaussian and sampling from it</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        best_samples : torch.Tensor</span>
@@ -318,9 +311,9 @@
 
     <span class="k">def</span> <span class="nf">_clamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
         <span class="n">low</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ac_space</span><span class="o">.</span><span class="n">low</span><span class="p">,</span>
-                           <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
+                           <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">high</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ac_space</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
-                            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">get_device</span><span class="p">())</span>
+                            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">samples</span> <span class="o">=</span> <span class="p">(</span><span class="n">samples</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">high</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span>
         <span class="n">samples</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">high</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span> <span class="o">+</span> <span class="n">low</span>
         <span class="k">return</span> <span class="n">samples</span></div>
