@@ -203,5 +203,8 @@ You can start machina by checking out this [quickstart](https://github.com/DeepX
 
 Moreover, you can also check already implemented algorithms in [examples](https://github.com/DeepX-inc/machina/tree/master/example).
 
+## Documentation
+You can check the [documentation](docs.machina-rl.org).
+
 ## Web Page
 You can check machina's [web page](https://machina-rl.org/).
