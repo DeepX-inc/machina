@@ -3,6 +3,19 @@ from collections import OrderedDict
 
 
 def flatten_to_dict(flatten_obs, dict_space, dict_keys=None):
+    """
+    Transform flatten obs to dictionary obs
+
+    Parameters
+    ----------
+    flatten_obs : torch.Tensor
+    dict_space : gym.spaces.Dict
+    dict_keys : list
+
+    Returns
+    -------
+    obs_dict : dict
+    """
     if dict_keys is None:
         dict_keys = dict_space.spaces.keys()
     obs_dict = OrderedDict()
