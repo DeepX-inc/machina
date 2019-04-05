@@ -52,13 +52,13 @@ def one_epi(env, pol, deterministic=False, prepro=None):
             else:
                 ac_real, ac, a_i = pol.deterministic_ac_real(
                     torch.tensor(o, dtype=torch.float))
-            ac_real = ac_real.reshape(pol.ac_space.shape)
+            ac_real = ac_real.reshape(pol.action_space.shape)
             next_o, r, done, e_i = env.step(np.array(ac_real))
             obs.append(o)
             rews.append(r)
             dones.append(done)
             acs.append(ac.squeeze().detach().cpu(
-            ).numpy().reshape(pol.ac_space.shape))
+            ).numpy().reshape(pol.action_space.shape))
             _a_i = dict()
             for key in a_i.keys():
                 if a_i[key] is None:

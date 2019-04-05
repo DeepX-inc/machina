@@ -40,14 +40,14 @@ def test_continuous2discrete():
 def test_flatten2dict():
     dict_env = gym.make('PendulumDictEnv-v0')
     dict_env = GymEnv(dict_env)
-    dict_ob = dict_env.ob_space.sample()
-    dict_ob_space = dict_env.ob_space
+    dict_ob = dict_env.observation_space.sample()
+    dict_observation_space = dict_env.observation_space
     env = FlattenDictWrapper(
-        dict_env, dict_env.ob_space.spaces.keys())
+        dict_env, dict_env.observation_space.spaces.keys())
     flatten_ob = env.observation(dict_ob)
     dict_keys = env.dict_keys
     recovered_dict_ob = flatten_to_dict(
-        flatten_ob, dict_ob_space, dict_keys)
+        flatten_ob, dict_observation_space, dict_keys)
     tf = []
     for (a_key, a_val), (b_key, b_val) in zip(dict_ob.items(), recovered_dict_ob.items()):
         tf.append(a_key == b_key)
@@ -58,19 +58,19 @@ def test_flatten2dict():
 class TestFlatten2DictPP0(unittest.TestCase):
     def setUp(self):
         dict_env = gym.make('PendulumDictEnv-v0')
-        self.dict_ob_space = dict_env.observation_space
+        self.dict_observation_space = dict_env.observation_space
         env = FlattenDictWrapper(
             dict_env, dict_env.observation_space.spaces.keys())
         self.env = GymEnv(env)
 
     def test_learning(self):
-        pol_net = PolDictNet(self.dict_ob_space,
-                             self.env.ac_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.ob_space,
-                          self.env.ac_space, pol_net)
+        pol_net = PolDictNet(self.dict_observation_space,
+                             self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
-        vf_net = VNet(self.env.ob_space, h1=32, h2=32)
-        vf = DeterministicSVfunc(self.env.ob_space, vf_net)
+        vf_net = VNet(self.env.observation_space, h1=32, h2=32)
+        vf = DeterministicSVfunc(self.env.observation_space, vf_net)
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
@@ -96,12 +96,12 @@ class TestFlatten2DictPP0(unittest.TestCase):
 
     def test_learning_rnn(self):
         pol_net = PolNetDictLSTM(
-            self.dict_ob_space, self.env.ac_space, h_size=32, cell_size=32)
-        pol = GaussianPol(self.env.ob_space,
-                          self.env.ac_space, pol_net, rnn=True)
+            self.dict_observation_space, self.env.action_space, h_size=32, cell_size=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net, rnn=True)
 
-        vf_net = VNetLSTM(self.env.ob_space, h_size=32, cell_size=32)
-        vf = DeterministicSVfunc(self.env.ob_space, vf_net, rnn=True)
+        vf_net = VNetLSTM(self.env.observation_space, h_size=32, cell_size=32)
+        vf = DeterministicSVfunc(self.env.observation_space, vf_net, rnn=True)
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
@@ -129,31 +129,31 @@ class TestFlatten2DictPP0(unittest.TestCase):
 class TestFlatten2DictSAC(unittest.TestCase):
     def setUp(self):
         dict_env = gym.make('PendulumDictEnv-v0')
-        self.dict_ob_space = dict_env.observation_space
+        self.dict_observation_space = dict_env.observation_space
         env = FlattenDictWrapper(
             dict_env, dict_env.observation_space.spaces.keys())
         self.env = GymEnv(env)
 
     def test_learning(self):
-        pol_net = PolDictNet(self.dict_ob_space,
-                             self.env.ac_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.ob_space, self.env.ac_space, pol_net)
+        pol_net = PolDictNet(self.dict_observation_space,
+                             self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
 
-        qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
+        qf_net1 = QNet(self.env.observation_space, self.env.action_space)
         qf1 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, qf_net1)
-        targ_qf_net1 = QNet(self.env.ob_space, self.env.ac_space)
+            self.env.observation_space, self.env.action_space, qf_net1)
+        targ_qf_net1 = QNet(self.env.observation_space, self.env.action_space)
         targ_qf_net1.load_state_dict(qf_net1.state_dict())
         targ_qf1 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, targ_qf_net1)
+            self.env.observation_space, self.env.action_space, targ_qf_net1)
 
-        qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
+        qf_net2 = QNet(self.env.observation_space, self.env.action_space)
         qf2 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, qf_net2)
-        targ_qf_net2 = QNet(self.env.ob_space, self.env.ac_space)
+            self.env.observation_space, self.env.action_space, qf_net2)
+        targ_qf_net2 = QNet(self.env.observation_space, self.env.action_space)
         targ_qf_net2.load_state_dict(qf_net2.state_dict())
         targ_qf2 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, targ_qf_net2)
+            self.env.observation_space, self.env.action_space, targ_qf_net2)
 
         qfs = [qf1, qf2]
         targ_qfs = [targ_qf1, targ_qf2]
@@ -190,36 +190,36 @@ class TestFlatten2DictSAC(unittest.TestCase):
 class TestFlatten2DictR2D2SAC(unittest.TestCase):
     def setUp(self):
         dict_env = gym.make('PendulumDictEnv-v0')
-        self.dict_ob_space = dict_env.observation_space
+        self.dict_observation_space = dict_env.observation_space
         env = FlattenDictWrapper(
             dict_env, dict_env.observation_space.spaces.keys())
         self.env = GymEnv(env)
 
     def test_learning(self):
         pol_net = PolNetDictLSTM(
-            self.dict_ob_space, self.env.ac_space, h_size=32, cell_size=32)
-        pol = GaussianPol(self.env.ob_space,
-                          self.env.ac_space, pol_net, rnn=True)
+            self.dict_observation_space, self.env.action_space, h_size=32, cell_size=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net, rnn=True)
 
-        qf_net1 = QNetLSTM(self.env.ob_space,
-                           self.env.ac_space, h_size=32, cell_size=32)
+        qf_net1 = QNetLSTM(self.env.observation_space,
+                           self.env.action_space, h_size=32, cell_size=32)
         qf1 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, qf_net1, rnn=True)
+            self.env.observation_space, self.env.action_space, qf_net1, rnn=True)
         targ_qf_net1 = QNetLSTM(
-            self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
+            self.env.observation_space, self.env.action_space, h_size=32, cell_size=32)
         targ_qf_net1.load_state_dict(qf_net1.state_dict())
         targ_qf1 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, targ_qf_net1, rnn=True)
+            self.env.observation_space, self.env.action_space, targ_qf_net1, rnn=True)
 
-        qf_net2 = QNetLSTM(self.env.ob_space,
-                           self.env.ac_space, h_size=32, cell_size=32)
+        qf_net2 = QNetLSTM(self.env.observation_space,
+                           self.env.action_space, h_size=32, cell_size=32)
         qf2 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, qf_net2, rnn=True)
+            self.env.observation_space, self.env.action_space, qf_net2, rnn=True)
         targ_qf_net2 = QNetLSTM(
-            self.env.ob_space, self.env.ac_space, h_size=32, cell_size=32)
+            self.env.observation_space, self.env.action_space, h_size=32, cell_size=32)
         targ_qf_net2.load_state_dict(qf_net2.state_dict())
         targ_qf2 = DeterministicSAVfunc(
-            self.env.ob_space, self.env.ac_space, targ_qf_net2, rnn=True)
+            self.env.observation_space, self.env.action_space, targ_qf_net2, rnn=True)
 
         qfs = [qf1, qf2]
         targ_qfs = [targ_qf1, targ_qf2]

@@ -78,10 +78,10 @@ class GymEnv(gym.Env):
                 self.env, log_dir, video_callable=video_schedule, force=True)
             self.monitoring = True
 
-        self.ob_space = env.observation_space
-        logger.log("observation space: {}".format(self.ob_space))
-        self.ac_space = env.action_space
-        logger.log("action space: {}".format(self.ac_space))
+        self.observation_space = env.observation_space
+        logger.log("observation space: {}".format(self.observation_space))
+        self.action_space = env.action_space
+        logger.log("action space: {}".format(self.action_space))
         if self.env.spec is not None:
             self._horizon = env.spec.tags['wrapper_config.TimeLimit.max_episode_steps']
         else:
@@ -91,11 +91,11 @@ class GymEnv(gym.Env):
 
     @property
     def observation_space(self):
-        return self.ob_space
+        return self.observation_space
 
     @property
     def action_space(self):
-        return self.ac_space
+        return self.action_space
 
     @property
     def horizon(self):

@@ -20,13 +20,13 @@ class C2DEnv(object):
     """
 
     def __init__(self, env, n_bins=30):
-        assert isinstance(env.ac_space, gym.spaces.Box)
-        assert len(env.ac_space.shape) == 1
+        assert isinstance(env.action_space, gym.spaces.Box)
+        assert len(env.action_space.shape) == 1
         self.env = env
         self.n_bins = n_bins
-        self.ac_space = gym.spaces.MultiDiscrete(
-            env.ac_space.shape[0] * [n_bins])
-        self.ob_space = self.env.observation_space
+        self.action_space = gym.spaces.MultiDiscrete(
+            env.action_space.shape[0] * [n_bins])
+        self.observation_space = self.env.observation_space
         if hasattr(env, 'original_env'):
             self.original_env = env.original_env
         else:
@@ -34,11 +34,11 @@ class C2DEnv(object):
 
     @property
     def observation_space(self):
-        return self.env.ob_space
+        return self.env.observation_space
 
     @property
     def action_space(self):
-        return self.ac_space
+        return self.action_space
 
     @property
     def horizon(self):
@@ -50,7 +50,7 @@ class C2DEnv(object):
 
     def step(self, action):
         continuous_action = []
-        for a, low, high in zip(action, self.env.ac_space.low, self.env.ac_space.high):
+        for a, low, high in zip(action, self.env.action_space.low, self.env.action_space.high):
             continuous_action.append(np.linspace(low, high, self.n_bins)[a])
         action = np.array(continuous_action)
         next_obs, reward, done, info = self.env.step(action)

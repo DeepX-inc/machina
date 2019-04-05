@@ -293,7 +293,7 @@ def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, n
         pol_loss = torch.mean(torch.mean(sampled_llh, dim=0) * pg_weight)
 
     alpha_loss = - torch.mean(log_alpha * (sampled_llh -
-                                           np.prod(pol.ac_space.shape).item()).detach())
+                                           np.prod(pol.action_space.shape).item()).detach())
 
     return pol_loss, qf_losses, alpha_loss
 
@@ -473,7 +473,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
             sampled_llh, dim=0), dim=0) * pg_weight)
 
     alpha_loss = - torch.mean(log_alpha * (sampled_llh -
-                                           np.prod(pol.ac_space.shape).item()).detach())
+                                           np.prod(pol.action_space.shape).item()).detach())
     return batch, pol_loss, qf_losses, alpha_loss, td_losses
 
 

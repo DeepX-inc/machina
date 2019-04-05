@@ -69,27 +69,27 @@ env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
 
-ob_space = env.observation_space
-ac_space = env.action_space
+observation_space = env.observation_space
+action_space = env.action_space
 
 if args.rnn:
-    pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
+    pol_net = PolNetLSTM(observation_space, action_space, h_size=256, cell_size=256)
 else:
-    pol_net = PolNet(ob_space, ac_space)
-if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net, args.rnn)
-elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net, args.rnn)
-elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(ob_space, ac_space, pol_net, args.rnn)
+    pol_net = PolNet(observation_space, action_space)
+if isinstance(action_space, gym.spaces.Box):
+    pol = GaussianPol(observation_space, action_space, pol_net, args.rnn)
+elif isinstance(action_space, gym.spaces.Discrete):
+    pol = CategoricalPol(observation_space, action_space, pol_net, args.rnn)
+elif isinstance(action_space, gym.spaces.MultiDiscrete):
+    pol = MultiCategoricalPol(observation_space, action_space, pol_net, args.rnn)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
 if args.rnn:
-    vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
+    vf_net = VNetLSTM(observation_space, h_size=256, cell_size=256)
 else:
-    vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net, args.rnn)
+    vf_net = VNet(observation_space)
+vf = DeterministicSVfunc(observation_space, vf_net, args.rnn)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)

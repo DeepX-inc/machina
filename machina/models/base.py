@@ -7,8 +7,8 @@ class BaseModel(nn.Module):
 
     Parameters
     ----------
-    ob_space : gym.Space
-    ac_space : gym.Space
+    observation_space : gym.Space
+    action_space : gym.Space
     net : torch.nn.Module
     rnn : bool
     data_parallel : bool
@@ -17,10 +17,10 @@ class BaseModel(nn.Module):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0):
+    def __init__(self, observation_space, action_space, net, rnn=False, data_parallel=False, parallel_dim=0):
         nn.Module.__init__(self)
-        self.ob_space = ob_space
-        self.ac_space = ac_space
+        self.observation_space = observation_space
+        self.action_space = action_space
         self.net = net
 
         self.rnn = rnn
@@ -46,8 +46,8 @@ class BaseModel(nn.Module):
             additional_shape = 2
         else:
             additional_shape = 1
-        if len(obs.shape) < additional_shape + len(self.ob_space.shape):
-            for _ in range(additional_shape + len(self.ob_space.shape) - len(obs.shape)):
+        if len(obs.shape) < additional_shape + len(self.observation_space.shape):
+            for _ in range(additional_shape + len(self.observation_space.shape) - len(obs.shape)):
                 obs = obs.unsqueeze(0)
         return obs
 
@@ -59,7 +59,7 @@ class BaseModel(nn.Module):
             additional_shape = 2
         else:
             additional_shape = 1
-        if len(acs.shape) < additional_shape + len(self.ac_space.shape):
-            for _ in range(additional_shape + len(self.ac_space.shape) - len(acs.shape)):
+        if len(acs.shape) < additional_shape + len(self.action_space.shape):
+            for _ in range(additional_shape + len(self.action_space.shape) - len(acs.shape)):
                 acs = acs.unsqueeze(0)
         return acs

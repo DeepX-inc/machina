@@ -96,28 +96,28 @@ env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 
-ob_space = env.observation_space
-ac_space = env.action_space
+observation_space = env.observation_space
+action_space = env.action_space
 
-pol_net = PolNetLSTM(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net, rnn=True,
+pol_net = PolNetLSTM(observation_space, action_space)
+pol = GaussianPol(observation_space, action_space, pol_net, rnn=True,
                   data_parallel=args.data_parallel, parallel_dim=1)
 
-qf_net1 = QNetLSTM(ob_space, ac_space)
-qf1 = DeterministicSAVfunc(ob_space, ac_space, qf_net1, rnn=True,
+qf_net1 = QNetLSTM(observation_space, action_space)
+qf1 = DeterministicSAVfunc(observation_space, action_space, qf_net1, rnn=True,
                            data_parallel=args.data_parallel, parallel_dim=1)
-targ_qf_net1 = QNetLSTM(ob_space, ac_space)
+targ_qf_net1 = QNetLSTM(observation_space, action_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
 targ_qf1 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net1, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
+    observation_space, action_space, targ_qf_net1, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
 
-qf_net2 = QNetLSTM(ob_space, ac_space)
-qf2 = DeterministicSAVfunc(ob_space, ac_space, qf_net2, rnn=True,
+qf_net2 = QNetLSTM(observation_space, action_space)
+qf2 = DeterministicSAVfunc(observation_space, action_space, qf_net2, rnn=True,
                            data_parallel=args.data_parallel, parallel_dim=1)
-targ_qf_net2 = QNetLSTM(ob_space, ac_space)
+targ_qf_net2 = QNetLSTM(observation_space, action_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
 targ_qf2 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net2, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
+    observation_space, action_space, targ_qf_net2, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
 
 qfs = [qf1, qf2]
 targ_qfs = [targ_qf1, targ_qf2]

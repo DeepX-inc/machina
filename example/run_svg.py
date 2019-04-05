@@ -73,22 +73,22 @@ env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 
-ob_space = env.observation_space
-ac_space = env.action_space
+observation_space = env.observation_space
+action_space = env.action_space
 
-pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net)
+pol_net = PolNet(observation_space, action_space)
+pol = GaussianPol(observation_space, action_space, pol_net)
 
-targ_pol_net = PolNet(ob_space, ac_space)
+targ_pol_net = PolNet(observation_space, action_space)
 targ_pol_net.load_state_dict(pol_net.state_dict())
-targ_pol = GaussianPol(ob_space, ac_space, targ_pol_net)
+targ_pol = GaussianPol(observation_space, action_space, targ_pol_net)
 
-qf_net = QNet(ob_space, ac_space)
-qf = DeterministicSAVfunc(ob_space, ac_space, qf_net)
+qf_net = QNet(observation_space, action_space)
+qf = DeterministicSAVfunc(observation_space, action_space, qf_net)
 
-targ_qf_net = QNet(ob_space, ac_space)
+targ_qf_net = QNet(observation_space, action_space)
 targ_qf_net.load_state_dict(targ_qf_net.state_dict())
-targ_qf = DeterministicSAVfunc(ob_space, ac_space, targ_qf_net)
+targ_qf = DeterministicSAVfunc(observation_space, action_space, targ_qf_net)
 
 
 sampler = EpiSampler(env, pol, args.num_parallel, seed=args.seed)

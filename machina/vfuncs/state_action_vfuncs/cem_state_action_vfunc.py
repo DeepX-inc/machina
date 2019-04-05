@@ -14,8 +14,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     Parameters
     ----------
-    ob_space : gym.Space
-    ac_space : gym.Space
+    observation_space : gym.Space
+    action_space : gym.Space
     net : torch.nn.Module
     rnn : bool
     data_parallel : bool
@@ -32,15 +32,15 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         Coefficient used for making covariance matrix positive definite.
     """
 
-    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64,
+    def __init__(self, observation_space, action_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64,
                  num_best_sampling=6, num_iter=2, multivari=True, delta=1e-4, save_memory=False):
-        super().__init__(ob_space, ac_space, net, rnn, data_parallel, parallel_dim)
+        super().__init__(observation_space, action_space, net, rnn, data_parallel, parallel_dim)
         self.num_sampling = num_sampling
         self.delta = delta
         self.num_best_sampling = num_best_sampling
         self.num_iter = num_iter
         self.net = net
-        self.dim_ac = self.ac_space.shape[0]
+        self.dim_ac = self.action_space.shape[0]
         self.multivari = multivari
         self.save_memory = save_memory
         self.to(get_device())
@@ -62,10 +62,10 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         obs = self._check_obs_shape(obs)
 
         self.dim_ob = obs.shape[1]
-        high = torch.tensor(self.ac_space.high,
+        high = torch.tensor(self.action_space.high,
                             dtype=torch.float, device=get_device())
         low = torch.tensor(
-            self.ac_space.low, dtype=torch.float, device=get_device())
+            self.action_space.low, dtype=torch.float, device=get_device())
         init_samples = torch.linspace(
             0, 1, self.num_sampling, device=get_device())
         init_samples = init_samples.reshape(
@@ -191,9 +191,9 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         return samples
 
     def _clamp(self, samples):
-        low = torch.tensor(self.ac_space.low,
+        low = torch.tensor(self.action_space.low,
                            dtype=torch.float, device=get_device())
-        high = torch.tensor(self.ac_space.high,
+        high = torch.tensor(self.action_space.high,
                             dtype=torch.float, device=get_device())
         samples = (samples - low) / (high - low)
         samples = torch.clamp(samples, 0, 1) * (high - low) + low

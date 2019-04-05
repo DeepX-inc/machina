@@ -16,7 +16,7 @@ class TestTraj(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.env = GymEnv('Pendulum-v0')
-        pol = RandomPol(cls.env.ob_space, cls.env.ac_space)
+        pol = RandomPol(cls.env.observation_space, cls.env.action_space)
         sampler = EpiSampler(cls.env, pol, num_parallel=1)
         epis = sampler.sample(pol, max_steps=32)
 

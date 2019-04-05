@@ -8,16 +8,16 @@ class BasePrePro(object):
 
     Parameters
     ----------
-    ob_space : gym.Space
+    observation_space : gym.Space
     normalize_ob : bool
     """
 
-    def __init__(self, ob_space, normalize_ob=True):
-        self.ob_space = ob_space
+    def __init__(self, observation_space, normalize_ob=True):
+        self.observation_space = observation_space
         self.normalize_ob = normalize_ob
         if self.normalize_ob:
-            self.ob_rm = np.zeros(self.ob_space.shape)
-            self.ob_rv = np.ones(self.ob_space.shape)
+            self.ob_rm = np.zeros(self.observation_space.shape)
+            self.ob_rv = np.ones(self.observation_space.shape)
             self.alpha = 0.001
 
     def update_ob_rms(self, ob):
