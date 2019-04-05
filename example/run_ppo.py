@@ -108,7 +108,8 @@ observation_space = env.observation_space
 action_space = env.action_space
 
 if args.rnn:
-    pol_net = PolNetLSTM(observation_space, action_space, h_size=256, cell_size=256)
+    pol_net = PolNetLSTM(observation_space, action_space,
+                         h_size=256, cell_size=256)
 else:
     pol_net = PolNet(observation_space, action_space)
 if isinstance(action_space, gym.spaces.Box):

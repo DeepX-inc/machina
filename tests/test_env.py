@@ -137,7 +137,8 @@ class TestFlatten2DictSAC(unittest.TestCase):
     def test_learning(self):
         pol_net = PolDictNet(self.dict_observation_space,
                              self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
         qf_net1 = QNet(self.env.observation_space, self.env.action_space)
         qf1 = DeterministicSAVfunc(

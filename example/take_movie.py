@@ -74,20 +74,25 @@ observation_space = env.observation_space
 action_space = env.action_space
 
 if args.ddpg:
-    pol_net = PolNet(observation_space, action_space, args.h1, args.h2, deterministic=True)
+    pol_net = PolNet(observation_space, action_space,
+                     args.h1, args.h2, deterministic=True)
     noise = OUActionNoise(action_space.shape)
-    pol = DeterministicActionNoisePol(observation_space, action_space, pol_net, noise)
+    pol = DeterministicActionNoisePol(
+        observation_space, action_space, pol_net, noise)
 else:
     if args.rnn:
-        pol_net = PolNetLSTM(observation_space, action_space, h_size=256, cell_size=256)
+        pol_net = PolNetLSTM(observation_space, action_space,
+                             h_size=256, cell_size=256)
     else:
         pol_net = PolNet(observation_space, action_space)
     if isinstance(action_space, gym.spaces.Box):
         pol = GaussianPol(observation_space, action_space, pol_net, args.rnn)
     elif isinstance(action_space, gym.spaces.Discrete):
-        pol = CategoricalPol(observation_space, action_space, pol_net, args.rnn)
+        pol = CategoricalPol(
+            observation_space, action_space, pol_net, args.rnn)
     elif isinstance(action_space, gym.spaces.MultiDiscrete):
-        pol = MultiCategoricalPol(observation_space, action_space, pol_net, args.rnn)
+        pol = MultiCategoricalPol(
+            observation_space, action_space, pol_net, args.rnn)
     else:
         raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 

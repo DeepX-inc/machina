@@ -23,7 +23,8 @@ class DeterministicSModel(BaseModel):
     """
 
     def __init__(self, observation_space, action_space, net, rnn=False, data_parallel=False, parallel_dim=0):
-        super().__init__(observation_space, action_space, net, rnn, data_parallel, parallel_dim)
+        super().__init__(observation_space, action_space,
+                         net, rnn, data_parallel, parallel_dim)
         self.to(get_device())
 
     def forward(self, obs, acs, hs=None, h_masks=None):

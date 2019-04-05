@@ -114,7 +114,8 @@ pol_net = PolNetLSTM(observation_space, action_space, h_size=args.h_size,
 pol = MultiCategoricalPol(observation_space, action_space, pol_net,
                           True, data_parallel=args.data_parallel, parallel_dim=1)
 
-vf_net = VNetLSTM(observation_space, h_size=args.h_size, cell_size=args.cell_size)
+vf_net = VNetLSTM(observation_space, h_size=args.h_size,
+                  cell_size=args.cell_size)
 vf = DeterministicSVfunc(observation_space, vf_net, True,
                          data_parallel=args.data_parallel, parallel_dim=1)
 

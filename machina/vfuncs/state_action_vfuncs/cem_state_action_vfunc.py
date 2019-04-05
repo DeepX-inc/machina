@@ -34,7 +34,8 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
 
     def __init__(self, observation_space, action_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64,
                  num_best_sampling=6, num_iter=2, multivari=True, delta=1e-4, save_memory=False):
-        super().__init__(observation_space, action_space, net, rnn, data_parallel, parallel_dim)
+        super().__init__(observation_space, action_space,
+                         net, rnn, data_parallel, parallel_dim)
         self.num_sampling = num_sampling
         self.delta = delta
         self.num_best_sampling = num_best_sampling

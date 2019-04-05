@@ -107,7 +107,8 @@ class QNet(nn.Module):
 class ModelNet(nn.Module):
     def __init__(self, observation_space, action_space, h1=200, h2=200):
         super(ModelNet, self).__init__()
-        self.fc1 = nn.Linear(observation_space.shape[0] + action_space.shape[0], h1)
+        self.fc1 = nn.Linear(
+            observation_space.shape[0] + action_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, observation_space.shape[0])
         self.fc1.apply(weight_init)
@@ -271,7 +272,8 @@ class ModelNetLSTM(nn.Module):
         self.input_layer = nn.Linear(
             observation_space.shape[0] + action_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
-        self.output_layer = nn.Linear(self.cell_size, observation_space.shape[0])
+        self.output_layer = nn.Linear(
+            self.cell_size, observation_space.shape[0])
         self.output_layer.apply(weight_init)
 
     def init_hs(self, batch_size=1):
@@ -302,7 +304,8 @@ class ModelNetLSTM(nn.Module):
 class DiscrimNet(nn.Module):
     def __init__(self, observation_space, action_space, h1=32, h2=32):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(observation_space.shape[0] + action_space.shape[0], h1)
+        self.fc1 = nn.Linear(
+            observation_space.shape[0] + action_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, 1)
         self.apply(weight_init)

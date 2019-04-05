@@ -34,8 +34,10 @@ class TestPPOContinuous(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
         vf_net = VNet(self.env.observation_space, h1=32, h2=32)
         vf = DeterministicSVfunc(self.env.observation_space, vf_net)
@@ -103,8 +105,10 @@ class TestPPODiscrete(unittest.TestCase):
         self.env = GymEnv('CartPole-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = CategoricalPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = CategoricalPol(self.env.observation_space,
+                             self.env.action_space, pol_net)
 
         vf_net = VNet(self.env.observation_space, h1=32, h2=32)
         vf = DeterministicSVfunc(self.env.observation_space, vf_net)
@@ -170,8 +174,10 @@ class TestTRPOContinuous(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
         vf_net = VNet(self.env.observation_space, h1=32, h2=32)
         vf = DeterministicSVfunc(self.env.observation_space, vf_net)
@@ -232,8 +238,10 @@ class TestTRPODiscrete(unittest.TestCase):
         self.env = GymEnv('CartPole-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = CategoricalPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = CategoricalPol(self.env.observation_space,
+                             self.env.action_space, pol_net)
 
         vf_net = VNet(self.env.observation_space, h1=32, h2=32)
         vf = DeterministicSVfunc(self.env.observation_space, vf_net)
@@ -306,10 +314,13 @@ class TestDDPG(unittest.TestCase):
         targ_pol = DeterministicActionNoisePol(
             self.env.observation_space, self.env.action_space, targ_pol_net, targ_noise)
 
-        qf_net = QNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        qf = DeterministicSAVfunc(self.env.observation_space, self.env.action_space, qf_net)
+        qf_net = QNet(self.env.observation_space,
+                      self.env.action_space, h1=32, h2=32)
+        qf = DeterministicSAVfunc(
+            self.env.observation_space, self.env.action_space, qf_net)
 
-        targ_qf_net = QNet(self.env.observation_space, self.env.action_space, 32, 32)
+        targ_qf_net = QNet(self.env.observation_space,
+                           self.env.action_space, 32, 32)
         targ_qf_net.load_state_dict(targ_qf_net.state_dict())
         targ_qf = DeterministicSAVfunc(
             self.env.observation_space, self.env.action_space, targ_qf_net)
@@ -338,18 +349,24 @@ class TestSVG(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
-        targ_pol_net = PolNet(self.env.observation_space, self.env.action_space, 32, 32)
+        targ_pol_net = PolNet(self.env.observation_space,
+                              self.env.action_space, 32, 32)
         targ_pol_net.load_state_dict(pol_net.state_dict())
         targ_pol = GaussianPol(
             self.env.observation_space, self.env.action_space, targ_pol_net)
 
-        qf_net = QNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        qf = DeterministicSAVfunc(self.env.observation_space, self.env.action_space, qf_net)
+        qf_net = QNet(self.env.observation_space,
+                      self.env.action_space, h1=32, h2=32)
+        qf = DeterministicSAVfunc(
+            self.env.observation_space, self.env.action_space, qf_net)
 
-        targ_qf_net = QNet(self.env.observation_space, self.env.action_space, 32, 32)
+        targ_qf_net = QNet(self.env.observation_space,
+                           self.env.action_space, 32, 32)
         targ_qf_net.load_state_dict(targ_qf_net.state_dict())
         targ_qf = DeterministicSAVfunc(
             self.env.observation_space, self.env.action_space, targ_qf_net)
@@ -378,8 +395,10 @@ class TestSAC(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
         qf_net1 = QNet(self.env.observation_space, self.env.action_space)
         qf1 = DeterministicSAVfunc(
@@ -434,14 +453,19 @@ class TestQTOPT(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        qf_net = QNet(self.env.observation_space, self.env.action_space, 32, 32)
-        lagged_qf_net = QNet(self.env.observation_space, self.env.action_space, 32, 32)
+        qf_net = QNet(self.env.observation_space,
+                      self.env.action_space, 32, 32)
+        lagged_qf_net = QNet(self.env.observation_space,
+                             self.env.action_space, 32, 32)
         lagged_qf_net.load_state_dict(qf_net.state_dict())
-        targ_qf1_net = QNet(self.env.observation_space, self.env.action_space, 32, 32)
+        targ_qf1_net = QNet(self.env.observation_space,
+                            self.env.action_space, 32, 32)
         targ_qf1_net.load_state_dict(qf_net.state_dict())
-        targ_qf2_net = QNet(self.env.observation_space, self.env.action_space, 32, 32)
+        targ_qf2_net = QNet(self.env.observation_space,
+                            self.env.action_space, 32, 32)
         targ_qf2_net.load_state_dict(lagged_qf_net.state_dict())
-        qf = DeterministicSAVfunc(self.env.observation_space, self.env.action_space, qf_net)
+        qf = DeterministicSAVfunc(
+            self.env.observation_space, self.env.action_space, qf_net)
         lagged_qf = DeterministicSAVfunc(
             self.env.observation_space, self.env.action_space, lagged_qf_net)
         targ_qf1 = CEMDeterministicSAVfunc(self.env.observation_space, self.env.action_space, targ_qf1_net, num_sampling=60,
@@ -480,7 +504,8 @@ class TestOnpolicyDistillation(unittest.TestCase):
     def test_learning(self):
         t_pol_net = PolNet(self.env.observation_space,
                            self.env.action_space, h1=200, h2=100)
-        s_pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=190, h2=90)
+        s_pol_net = PolNet(self.env.observation_space,
+                           self.env.action_space, h1=190, h2=90)
 
         t_pol = GaussianPol(
             self.env.observation_space, self.env.action_space, t_pol_net)
@@ -514,8 +539,10 @@ class TestBehaviorClone(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
@@ -545,8 +572,10 @@ class TestGAIL(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
         vf_net = VNet(self.env.observation_space)
         vf = DeterministicSVfunc(self.env.observation_space, vf_net)
@@ -594,8 +623,10 @@ class TestAIRL(unittest.TestCase):
         self.env = GymEnv('Pendulum-v0')
 
     def test_learning(self):
-        pol_net = PolNet(self.env.observation_space, self.env.action_space, h1=32, h2=32)
-        pol = GaussianPol(self.env.observation_space, self.env.action_space, pol_net)
+        pol_net = PolNet(self.env.observation_space,
+                         self.env.action_space, h1=32, h2=32)
+        pol = GaussianPol(self.env.observation_space,
+                          self.env.action_space, pol_net)
 
         vf_net = VNet(self.env.observation_space)
         vf = DeterministicSVfunc(self.env.observation_space, vf_net)
@@ -603,7 +634,8 @@ class TestAIRL(unittest.TestCase):
         rewf_net = VNet(self.env.observation_space, h1=32, h2=32)
         rewf = DeterministicSVfunc(self.env.observation_space, rewf_net)
         shaping_vf_net = VNet(self.env.observation_space, h1=32, h2=32)
-        shaping_vf = DeterministicSVfunc(self.env.observation_space, shaping_vf_net)
+        shaping_vf = DeterministicSVfunc(
+            self.env.observation_space, shaping_vf_net)
 
         sampler = EpiSampler(self.env, pol, num_parallel=1)
 
@@ -702,7 +734,8 @@ class TestMPC(unittest.TestCase):
 
             return rews
         # init models
-        dm_net = ModelNetLSTM(self.env.observation_space, self.env.action_space)
+        dm_net = ModelNetLSTM(self.env.observation_space,
+                              self.env.action_space)
         dm = DeterministicSModel(self.env.observation_space, self.env.action_space, dm_net, rnn=True,
                                  data_parallel=1, parallel_dim=0)
 
@@ -821,12 +854,14 @@ class TestDIAYN(unittest.TestCase):
         qf1 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net1)
         targ_qf_net1 = QNet(ob_skill_space, action_space)
         targ_qf_net1.load_state_dict(qf_net1.state_dict())
-        targ_qf1 = DeterministicSAVfunc(ob_skill_space, action_space, targ_qf_net1)
+        targ_qf1 = DeterministicSAVfunc(
+            ob_skill_space, action_space, targ_qf_net1)
         qf_net2 = QNet(ob_skill_space, action_space)
         qf2 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net2)
         targ_qf_net2 = QNet(ob_skill_space, action_space)
         targ_qf_net2.load_state_dict(qf_net2.state_dict())
-        targ_qf2 = DeterministicSAVfunc(ob_skill_space, action_space, targ_qf_net2)
+        targ_qf2 = DeterministicSAVfunc(
+            ob_skill_space, action_space, targ_qf_net2)
         qfs = [qf1, qf2]
         targ_qfs = [targ_qf1, targ_qf2]
         log_alpha = nn.Parameter(torch.ones(()))

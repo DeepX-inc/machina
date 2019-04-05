@@ -96,8 +96,10 @@ action_space = env.action_space
 # Please note that the two policies do not have to have the same hidden architecture
 
 if args.rnn:
-    t_pol_net = PolNetLSTM(observation_space, action_space, h_size=256, cell_size=256)
-    s_pol_net = PolNetLSTM(observation_space, action_space, h_size=256, cell_size=256)
+    t_pol_net = PolNetLSTM(observation_space, action_space,
+                           h_size=256, cell_size=256)
+    s_pol_net = PolNetLSTM(observation_space, action_space,
+                           h_size=256, cell_size=256)
 else:
     t_pol_net = PolNet(observation_space, action_space)
     s_pol_net = PolNet(observation_space, action_space, h1=190, h2=90)
@@ -105,11 +107,15 @@ if isinstance(action_space, gym.spaces.Box):
     t_pol = GaussianPol(observation_space, action_space, t_pol_net, args.rnn)
     s_pol = GaussianPol(observation_space, action_space, s_pol_net, args.rnn)
 elif isinstance(action_space, gym.spaces.Discrete):
-    t_pol = CategoricalPol(observation_space, action_space, t_pol_net, args.rnn)
-    s_pol = CategoricalPol(observation_space, action_space, s_pol_net, args.rnn)
+    t_pol = CategoricalPol(
+        observation_space, action_space, t_pol_net, args.rnn)
+    s_pol = CategoricalPol(
+        observation_space, action_space, s_pol_net, args.rnn)
 elif isinstance(action_space, gym.spaces.MultiDiscrete):
-    t_pol = MultiCategoricalPol(observation_space, action_space, t_pol_net, args.rnn)
-    s_pol = MultiCategoricalPol(observation_space, action_space, s_pol_net, args.rnn)
+    t_pol = MultiCategoricalPol(
+        observation_space, action_space, t_pol_net, args.rnn)
+    s_pol = MultiCategoricalPol(
+        observation_space, action_space, s_pol_net, args.rnn)
 else:
     raise ValueError('Only Box, Discrete and Multidiscrete are supported')
 

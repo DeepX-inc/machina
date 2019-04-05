@@ -15,8 +15,10 @@ class AcInObEnv(gym.Env):
 
         observation_space = self.env.observation_space
         action_space = self.env.action_space
-        low = np.concatenate([observation_space.low, action_space.low], axis=dim)
-        high = np.concatenate([observation_space.high, action_space.high], axis=dim)
+        low = np.concatenate(
+            [observation_space.low, action_space.low], axis=dim)
+        high = np.concatenate(
+            [observation_space.high, action_space.high], axis=dim)
         self.observation_space = gym.spaces.Box(low, high, dtype=np.float32)
         self.action_space = self.env.action_space
 

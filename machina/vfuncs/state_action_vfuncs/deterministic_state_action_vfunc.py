@@ -24,7 +24,8 @@ class DeterministicSAVfunc(BaseSAVfunc):
     """
 
     def __init__(self, observation_space, action_space, net, rnn=False, data_parallel=False, parallel_dim=0):
-        super().__init__(observation_space, action_space, net, rnn, data_parallel, parallel_dim)
+        super().__init__(observation_space, action_space,
+                         net, rnn, data_parallel, parallel_dim)
         self.pd = DeterministicPd()
         self.to(get_device())
 

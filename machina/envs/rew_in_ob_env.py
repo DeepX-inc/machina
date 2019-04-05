@@ -17,8 +17,10 @@ class RewInObEnv(gym.Env):
 
         observation_space = self.env.observation_space
         action_space = self.env.action_space
-        low = np.concatenate([observation_space.low, np.array([low])], axis=dim)
-        high = np.concatenate([observation_space.high, np.array([high])], axis=dim)
+        low = np.concatenate(
+            [observation_space.low, np.array([low])], axis=dim)
+        high = np.concatenate(
+            [observation_space.high, np.array([high])], axis=dim)
         self.observation_space = gym.spaces.Box(low, high, dtype=np.float32)
         self.action_space = self.env.action_space
 

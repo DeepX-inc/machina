@@ -94,12 +94,14 @@ env.env.seed(args.seed)
 observation_space = env.observation_space
 action_space = env.action_space
 
-pol_net = PolNet(observation_space, action_space, args.h1, args.h2, deterministic=True)
+pol_net = PolNet(observation_space, action_space,
+                 args.h1, args.h2, deterministic=True)
 noise = OUActionNoise(action_space)
 pol = DeterministicActionNoisePol(
     observation_space, action_space, pol_net, noise, data_parallel=args.data_parallel)
 
-targ_pol_net = PolNet(observation_space, action_space, args.h1, args.h2, deterministic=True)
+targ_pol_net = PolNet(observation_space, action_space,
+                      args.h1, args.h2, deterministic=True)
 targ_pol_net.load_state_dict(pol_net.state_dict())
 targ_noise = OUActionNoise(action_space)
 targ_pol = DeterministicActionNoisePol(

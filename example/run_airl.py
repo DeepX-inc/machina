@@ -160,7 +160,8 @@ if args.rew_type == 'rew':
     rewf_net = VNet(observation_space, h1=args.discrim_h1, h2=args.discrim_h2)
     rewf = DeterministicSVfunc(
         observation_space, rewf_net, data_parallel=args.data_parallel)
-    shaping_vf_net = VNet(observation_space, h1=args.discrim_h1, h2=args.discrim_h2)
+    shaping_vf_net = VNet(
+        observation_space, h1=args.discrim_h1, h2=args.discrim_h2)
     shaping_vf = DeterministicSVfunc(
         observation_space, shaping_vf_net, data_parallel=args.data_parallel)
     optim_discrim = torch.optim.Adam(
