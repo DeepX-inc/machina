@@ -90,14 +90,6 @@ class GymEnv(gym.Env):
         self._force_reset = force_reset
 
     @property
-    def observation_space(self):
-        return self.observation_space
-
-    @property
-    def action_space(self):
-        return self.action_space
-
-    @property
     def horizon(self):
         return self._horizon
 
