@@ -25,14 +25,6 @@ class RewInObEnv(gym.Env):
         self.action_space = self.env.action_space
 
     @property
-    def observation_space(self):
-        return self.observation_space
-
-    @property
-    def action_space(self):
-        return self.env.action_space
-
-    @property
     def horizon(self):
         if hasattr(self.env, 'horizon'):
             return self.env._horizon
