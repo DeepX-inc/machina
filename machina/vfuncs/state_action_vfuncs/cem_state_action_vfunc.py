@@ -74,10 +74,10 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         init_samples = self._clamp(init_samples)
         if not self.save_memory:  # batch
             self.cem_batch_size = obs.shape[0]
-            obs = obs.repeat((1, self.num_sampling)).reshape(
+            obs = obs.expand((1, self.num_sampling)).reshape(
                 (self.cem_batch_size * self.num_sampling, self.dim_ob))
             # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, self.dim_ob)], dim=0)
-            init_samples = init_samples.repeat((self.cem_batch_size, 1))
+            init_samples = init_samples.expand((self.cem_batch_size, 1))
             # concatenate[(self.num_sampling, dim_ac), ..., (self.num_sampling, dim_ac)], dim=0)
             max_qs, max_acs = self._cem(obs, init_samples)
         else:  # for-sentence
@@ -85,7 +85,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
             max_acs = []
             max_qs = []
             for ob in obs:
-                ob = ob.repeat((1, self.num_sampling)).reshape(
+                ob = ob.expand((1, self.num_sampling)).reshape(
                     (self.cem_batch_size * self.num_sampling, self.dim_ob))
                 ob = self._check_obs_shape(ob)
                 max_q, max_ac = self._cem(ob, init_samples)
