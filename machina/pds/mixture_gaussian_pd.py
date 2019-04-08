@@ -8,9 +8,9 @@ from machina.pds.gaussian_pd import GaussianPd
 
 
 class MixtureGaussianPd(BasePd):
-    def __init__(self, ob_space, ac_space):
-        BasePd.__init__(self, ob_space, ac_space)
-        self.gaussian_pd = GaussianPd(ob_space, ac_space)
+    def __init__(self, observation_space, action_space):
+        BasePd.__init__(self, observation_space, action_space)
+        self.gaussian_pd = GaussianPd(observation_space, action_space)
 
     def sample(self, params):
         pi, mean, log_std = params['pi'], params['mean'], params['log_std']

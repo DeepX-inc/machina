@@ -13,9 +13,9 @@ class MPCPol(BasePol):
 
     Parameters
     ----------
-    ob_space : gym.Space
+    observation_space : gym.Space
         observation's space
-    ac_space : gym.Space
+    action_space : gym.Space
         action's space.
         This should be gym.spaces.Box
     net : torch.nn.Module
@@ -32,7 +32,7 @@ class MPCPol(BasePol):
     std_acs : np.array
     rnn : bool
     normalize_ac : bool
-        If True, the output of network is spreaded for ac_space.
+        If True, the output of network is spreaded for action_space.
         In this situation the output of network is expected to be in -1~1.
     data_parallel : bool
         If True, network computation is executed in parallel.
@@ -40,10 +40,10 @@ class MPCPol(BasePol):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, net, rew_func, n_samples=1000, horizon=20,
+    def __init__(self, observation_space, action_space, net, rew_func, n_samples=1000, horizon=20,
                  mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=False,
                  normalize_ac=True, data_parallel=False, parallel_dim=0):
-        BasePol.__init__(self, ob_space, ac_space, net, rnn=rnn, normalize_ac=normalize_ac,
+        BasePol.__init__(self, observation_space, action_space, net, rnn=rnn, normalize_ac=normalize_ac,
                          data_parallel=data_parallel, parallel_dim=parallel_dim)
         self.rew_func = rew_func
         self.n_samples = n_samples
@@ -64,13 +64,13 @@ class MPCPol(BasePol):
 
     def forward(self, ob, hs=None, h_masks=None):
         # randomly sample N candidate action sequences
-        sample_acs = torch.empty(self.horizon, self.n_samples, self.ac_space.shape[0], dtype=torch.float).uniform_(
-            self.ac_space.low[0], self.ac_space.high[0])
+        sample_acs = torch.empty(self.horizon, self.n_samples, self.action_space.shape[0], dtype=torch.float).uniform_(
+            self.action_space.low[0], self.action_space.high[0])
         normalized_acs = (sample_acs - self.mean_acs) / self.std_acs
 
         # forward simulate the action sequences to get predicted trajectories
         obs = torch.zeros((self.horizon+1, self.n_samples,
-                           self.ob_space.shape[0]), dtype=torch.float)
+                           self.observation_space.shape[0]), dtype=torch.float)
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float)
         obs[0] = ob.repeat(self.n_samples, 1)

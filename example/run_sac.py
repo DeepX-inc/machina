@@ -91,28 +91,28 @@ env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
 env.env.seed(args.seed)
 
-ob_space = env.observation_space
-ac_space = env.action_space
+observation_space = env.observation_space
+action_space = env.action_space
 
-pol_net = PolNet(ob_space, ac_space)
-pol = GaussianPol(ob_space, ac_space, pol_net,
+pol_net = PolNet(observation_space, action_space)
+pol = GaussianPol(observation_space, action_space, pol_net,
                   data_parallel=args.data_parallel, parallel_dim=0)
 
-qf_net1 = QNet(ob_space, ac_space)
-qf1 = DeterministicSAVfunc(ob_space, ac_space, qf_net1,
+qf_net1 = QNet(observation_space, action_space)
+qf1 = DeterministicSAVfunc(observation_space, action_space, qf_net1,
                            data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net1 = QNet(ob_space, ac_space)
+targ_qf_net1 = QNet(observation_space, action_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
 targ_qf1 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net1, data_parallel=args.data_parallel, parallel_dim=0)
+    observation_space, action_space, targ_qf_net1, data_parallel=args.data_parallel, parallel_dim=0)
 
-qf_net2 = QNet(ob_space, ac_space)
-qf2 = DeterministicSAVfunc(ob_space, ac_space, qf_net2,
+qf_net2 = QNet(observation_space, action_space)
+qf2 = DeterministicSAVfunc(observation_space, action_space, qf_net2,
                            data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net2 = QNet(ob_space, ac_space)
+targ_qf_net2 = QNet(observation_space, action_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
 targ_qf2 = DeterministicSAVfunc(
-    ob_space, ac_space, targ_qf_net2, data_parallel=args.data_parallel, parallel_dim=0)
+    observation_space, action_space, targ_qf_net2, data_parallel=args.data_parallel, parallel_dim=0)
 
 qfs = [qf1, qf2]
 targ_qfs = [targ_qf1, targ_qf2]

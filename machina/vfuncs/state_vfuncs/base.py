@@ -9,7 +9,7 @@ class BaseSVfunc(nn.Module):
 
     Parameters
     ----------
-    ob_space : gym.Space
+    observation_space : gym.Space
     net : torch.nn.Module
     rnn : bool
     data_parallel : bool
@@ -18,9 +18,9 @@ class BaseSVfunc(nn.Module):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, net, rnn=False, data_parallel=False, parallel_dim=0):
+    def __init__(self, observation_space, net, rnn=False, data_parallel=False, parallel_dim=0):
         nn.Module.__init__(self)
-        self.ob_space = ob_space
+        self.observation_space = observation_space
         self.net = net
 
         self.rnn = rnn
@@ -46,7 +46,7 @@ class BaseSVfunc(nn.Module):
             additional_shape = 2
         else:
             additional_shape = 1
-        if len(obs.shape) < additional_shape + len(self.ob_space.shape):
-            for _ in range(additional_shape + len(self.ob_space.shape) - len(obs.shape)):
+        if len(obs.shape) < additional_shape + len(self.observation_space.shape):
+            for _ in range(additional_shape + len(self.observation_space.shape) - len(obs.shape)):
                 obs = obs.unsqueeze(0)
         return obs

@@ -13,20 +13,14 @@ class AcInObEnv(gym.Env):
         self.normalize = normalize
         self.initial_value = initial_value
 
-        ob_space = self.env.observation_space
-        ac_space = self.env.action_space
-        low = np.concatenate([ob_space.low, ac_space.low], axis=dim)
-        high = np.concatenate([ob_space.high, ac_space.high], axis=dim)
-        self.ob_space = gym.spaces.Box(low, high, dtype=np.float32)
-        self.ac_space = self.env.action_space
-
-    @property
-    def observation_space(self):
-        return self.ob_space
-
-    @property
-    def action_space(self):
-        return self.env.action_space
+        observation_space = self.env.observation_space
+        action_space = self.env.action_space
+        low = np.concatenate(
+            [observation_space.low, action_space.low], axis=dim)
+        high = np.concatenate(
+            [observation_space.high, action_space.high], axis=dim)
+        self.observation_space = gym.spaces.Box(low, high, dtype=np.float32)
+        self.action_space = self.env.action_space
 
     @property
     def horizon(self):
@@ -42,7 +36,7 @@ class AcInObEnv(gym.Env):
     def step(self, action):
         next_ob, reward, done, info = self.env.step(action)
         if self.normalize:
-            lb, ub = self.ac_space.low, self.ac_space.high
+            lb, ub = self.action_space.low, self.action_space.high
             action = (action - lb) * 2 / (ub - lb) - 1
         next_ob = np.concatenate([next_ob, action], axis=self.dim)
         return next_ob, reward, done, info

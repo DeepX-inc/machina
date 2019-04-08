@@ -115,10 +115,10 @@ env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
 
-ob_space = env.observation_space
-ac_space = env.action_space
+observation_space = env.observation_space
+action_space = env.action_space
 
-random_pol = RandomPol(ob_space, ac_space)
+random_pol = RandomPol(observation_space, action_space)
 
 ######################
 ### Model-Based RL ###
@@ -146,12 +146,12 @@ del rand_sampler
 
 # initialize dynamics model and mpc policy
 if args.rnn:
-    dm_net = ModelNetLSTM(ob_space, ac_space)
+    dm_net = ModelNetLSTM(observation_space, action_space)
 else:
-    dm_net = ModelNet(ob_space, ac_space)
-dm = DeterministicSModel(ob_space, ac_space, dm_net, args.rnn,
+    dm_net = ModelNet(observation_space, action_space)
+dm = DeterministicSModel(observation_space, action_space, dm_net, args.rnn,
                          data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
-mpc_pol = MPCPol(ob_space, ac_space, dm_net, rew_func,
+mpc_pol = MPCPol(observation_space, action_space, dm_net, rew_func,
                  args.n_samples, args.horizon_of_samples,
                  mean_obs, std_obs, mean_acs, std_acs, args.rnn)
 optim_dm = torch.optim.Adam(dm_net.parameters(), args.dm_lr)
@@ -169,7 +169,7 @@ while args.max_epis > total_epi:
         result_dict = mpc.train_dm(
             traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
     with measure('sample'):
-        mpc_pol = MPCPol(ob_space, ac_space, dm.net, rew_func,
+        mpc_pol = MPCPol(observation_space, action_space, dm.net, rew_func,
                          args.n_samples, args.horizon_of_samples,
                          mean_obs, std_obs, mean_acs, std_acs, args.rnn)
         epis = rl_sampler.sample(

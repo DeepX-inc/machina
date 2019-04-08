@@ -13,8 +13,8 @@ class DeterministicSAVfunc(BaseSAVfunc):
 
     Parameters
     ----------
-    ob_space : gym.Space
-    ac_space : gym.Space
+    observation_space : gym.Space
+    action_space : gym.Space
     net : torch.nn.Module
     rnn : bool
     data_parallel : bool
@@ -23,8 +23,9 @@ class DeterministicSAVfunc(BaseSAVfunc):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, net, rnn=False, data_parallel=False, parallel_dim=0):
-        super().__init__(ob_space, ac_space, net, rnn, data_parallel, parallel_dim)
+    def __init__(self, observation_space, action_space, net, rnn=False, data_parallel=False, parallel_dim=0):
+        super().__init__(observation_space, action_space,
+                         net, rnn, data_parallel, parallel_dim)
         self.pd = DeterministicPd()
         self.to(get_device())
 

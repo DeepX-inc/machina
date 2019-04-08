@@ -102,20 +102,21 @@ env2 = AcInObEnv(env2)
 env2 = RewInObEnv(env2)
 env2 = C2DEnv(env2)
 
-assert env1.ob_space == env2.ob_space
-assert env1.ac_space.shape == env2.ac_space.shape
+assert env1.observation_space == env2.observation_space
+assert env1.action_space.shape == env2.action_space.shape
 
-ob_space = env1.observation_space
-ac_space = env1.action_space
+observation_space = env1.observation_space
+action_space = env1.action_space
 
-pol_net = PolNetLSTM(ob_space, ac_space, h_size=args.h_size,
+pol_net = PolNetLSTM(observation_space, action_space, h_size=args.h_size,
                      cell_size=args.cell_size)
 
-pol = MultiCategoricalPol(ob_space, ac_space, pol_net,
+pol = MultiCategoricalPol(observation_space, action_space, pol_net,
                           True, data_parallel=args.data_parallel, parallel_dim=1)
 
-vf_net = VNetLSTM(ob_space, h_size=args.h_size, cell_size=args.cell_size)
-vf = DeterministicSVfunc(ob_space, vf_net, True,
+vf_net = VNetLSTM(observation_space, h_size=args.h_size,
+                  cell_size=args.cell_size)
+vf = DeterministicSVfunc(observation_space, vf_net, True,
                          data_parallel=args.data_parallel, parallel_dim=1)
 
 sampler1 = EpiSampler(

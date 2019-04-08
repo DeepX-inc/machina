@@ -88,35 +88,35 @@ f_dim = 2
 env = gym.make(args.env_name)
 env = SkillEnv(env, num_skill=args.num_skill)
 obs = env.reset()
-ob_space = env.real_observation_space
+observation_space = env.real_observation_space
 skill_space = env.skill_space
 ob_skill_space = env.observation_space
-ac_space = env.action_space
+action_space = env.action_space
 ob_dim = ob_skill_space.shape[0] - args.num_skill
 device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
 device = torch.device(device_name)
 set_device(device)
 
 # policy
-pol_net = PolNet(ob_skill_space, ac_space)
-pol = GaussianPol(ob_skill_space, ac_space, pol_net,
+pol_net = PolNet(ob_skill_space, action_space)
+pol = GaussianPol(ob_skill_space, action_space, pol_net,
                   data_parallel=args.data_parallel, parallel_dim=0)
 
 # q-function
-qf_net1 = QNet(ob_skill_space, ac_space)
-qf1 = DeterministicSAVfunc(ob_skill_space, ac_space, qf_net1,
+qf_net1 = QNet(ob_skill_space, action_space)
+qf1 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net1,
                            data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net1 = QNet(ob_skill_space, ac_space)
+targ_qf_net1 = QNet(ob_skill_space, action_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
 targ_qf1 = DeterministicSAVfunc(
-    ob_skill_space, ac_space, targ_qf_net1, data_parallel=args.data_parallel, parallel_dim=0)
-qf_net2 = QNet(ob_skill_space, ac_space)
-qf2 = DeterministicSAVfunc(ob_skill_space, ac_space, qf_net2,
+    ob_skill_space, action_space, targ_qf_net1, data_parallel=args.data_parallel, parallel_dim=0)
+qf_net2 = QNet(ob_skill_space, action_space)
+qf2 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net2,
                            data_parallel=args.data_parallel, parallel_dim=0)
-targ_qf_net2 = QNet(ob_skill_space, ac_space)
+targ_qf_net2 = QNet(ob_skill_space, action_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
 targ_qf2 = DeterministicSAVfunc(
-    ob_skill_space, ac_space, targ_qf_net2, data_parallel=args.data_parallel, parallel_dim=0)
+    ob_skill_space, action_space, targ_qf_net2, data_parallel=args.data_parallel, parallel_dim=0)
 qfs = [qf1, qf2]
 targ_qfs = [targ_qf1, targ_qf2]
 

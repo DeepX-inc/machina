@@ -15,20 +15,14 @@ class RewInObEnv(gym.Env):
         self.mean = mean
         self.std = std
 
-        ob_space = self.env.observation_space
-        ac_space = self.env.action_space
-        low = np.concatenate([ob_space.low, np.array([low])], axis=dim)
-        high = np.concatenate([ob_space.high, np.array([high])], axis=dim)
-        self.ob_space = gym.spaces.Box(low, high, dtype=np.float32)
-        self.ac_space = self.env.action_space
-
-    @property
-    def observation_space(self):
-        return self.ob_space
-
-    @property
-    def action_space(self):
-        return self.env.action_space
+        observation_space = self.env.observation_space
+        action_space = self.env.action_space
+        low = np.concatenate(
+            [observation_space.low, np.array([low])], axis=dim)
+        high = np.concatenate(
+            [observation_space.high, np.array([high])], axis=dim)
+        self.observation_space = gym.spaces.Box(low, high, dtype=np.float32)
+        self.action_space = self.env.action_space
 
     @property
     def horizon(self):

@@ -135,42 +135,43 @@ env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
 
-ob_space = env.observation_space
-ac_space = env.action_space
+observation_space = env.observation_space
+action_space = env.action_space
 
 
-pol_net = PolNet(ob_space, ac_space)
-if isinstance(ac_space, gym.spaces.Box):
-    pol = GaussianPol(ob_space, ac_space, pol_net,
+pol_net = PolNet(observation_space, action_space)
+if isinstance(action_space, gym.spaces.Box):
+    pol = GaussianPol(observation_space, action_space, pol_net,
                       data_parallel=args.data_parallel)
-elif isinstance(ac_space, gym.spaces.Discrete):
-    pol = CategoricalPol(ob_space, ac_space, pol_net,
+elif isinstance(action_space, gym.spaces.Discrete):
+    pol = CategoricalPol(observation_space, action_space, pol_net,
                          data_parallel=args.data_parallel)
-elif isinstance(ac_space, gym.spaces.MultiDiscrete):
+elif isinstance(action_space, gym.spaces.MultiDiscrete):
     pol = MultiCategoricalPol(
-        ob_space, ac_space, pol_net, data_parallel=args.data_parallel)
+        observation_space, action_space, pol_net, data_parallel=args.data_parallel)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
-vf_net = VNet(ob_space)
-vf = DeterministicSVfunc(ob_space, vf_net,
+vf_net = VNet(observation_space)
+vf = DeterministicSVfunc(observation_space, vf_net,
                          data_parallel=args.data_parallel)
 
 if args.rew_type == 'rew':
-    rewf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
+    rewf_net = VNet(observation_space, h1=args.discrim_h1, h2=args.discrim_h2)
     rewf = DeterministicSVfunc(
-        ob_space, rewf_net, data_parallel=args.data_parallel)
-    shaping_vf_net = VNet(ob_space, h1=args.discrim_h1, h2=args.discrim_h2)
+        observation_space, rewf_net, data_parallel=args.data_parallel)
+    shaping_vf_net = VNet(
+        observation_space, h1=args.discrim_h1, h2=args.discrim_h2)
     shaping_vf = DeterministicSVfunc(
-        ob_space, shaping_vf_net, data_parallel=args.data_parallel)
+        observation_space, shaping_vf_net, data_parallel=args.data_parallel)
     optim_discrim = torch.optim.Adam(
         list(rewf_net.parameters()) + list(shaping_vf_net.parameters()), args.discrim_lr)
     advf = None
 elif args.rew_type == 'adv':
-    advf_net = DiscrimNet(ob_space, ac_space,
+    advf_net = DiscrimNet(observation_space, action_space,
                           h1=args.discrim_h1, h2=args.discrim_h2)
     advf = DeterministicSAVfunc(
-        ob_space, ac_space, advf_net, data_parallel=args.data_parallel)
+        observation_space, action_space, advf_net, data_parallel=args.data_parallel)
     optim_discrim = torch.optim.Adam(advf_net.parameters(), args.discrim_lr)
     rewf = None
     shaping_vf = None

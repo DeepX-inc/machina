@@ -89,27 +89,33 @@ env.env.seed(args.seed)
 if args.c2d:
     env = C2DEnv(env)
 
-ob_space = env.observation_space
-ac_space = env.action_space
+observation_space = env.observation_space
+action_space = env.action_space
 
 # Generate teacher (t) policy and student (s) policy and load teacher policy
 # Please note that the two policies do not have to have the same hidden architecture
 
 if args.rnn:
-    t_pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
-    s_pol_net = PolNetLSTM(ob_space, ac_space, h_size=256, cell_size=256)
+    t_pol_net = PolNetLSTM(observation_space, action_space,
+                           h_size=256, cell_size=256)
+    s_pol_net = PolNetLSTM(observation_space, action_space,
+                           h_size=256, cell_size=256)
 else:
-    t_pol_net = PolNet(ob_space, ac_space)
-    s_pol_net = PolNet(ob_space, ac_space, h1=190, h2=90)
-if isinstance(ac_space, gym.spaces.Box):
-    t_pol = GaussianPol(ob_space, ac_space, t_pol_net, args.rnn)
-    s_pol = GaussianPol(ob_space, ac_space, s_pol_net, args.rnn)
-elif isinstance(ac_space, gym.spaces.Discrete):
-    t_pol = CategoricalPol(ob_space, ac_space, t_pol_net, args.rnn)
-    s_pol = CategoricalPol(ob_space, ac_space, s_pol_net, args.rnn)
-elif isinstance(ac_space, gym.spaces.MultiDiscrete):
-    t_pol = MultiCategoricalPol(ob_space, ac_space, t_pol_net, args.rnn)
-    s_pol = MultiCategoricalPol(ob_space, ac_space, s_pol_net, args.rnn)
+    t_pol_net = PolNet(observation_space, action_space)
+    s_pol_net = PolNet(observation_space, action_space, h1=190, h2=90)
+if isinstance(action_space, gym.spaces.Box):
+    t_pol = GaussianPol(observation_space, action_space, t_pol_net, args.rnn)
+    s_pol = GaussianPol(observation_space, action_space, s_pol_net, args.rnn)
+elif isinstance(action_space, gym.spaces.Discrete):
+    t_pol = CategoricalPol(
+        observation_space, action_space, t_pol_net, args.rnn)
+    s_pol = CategoricalPol(
+        observation_space, action_space, s_pol_net, args.rnn)
+elif isinstance(action_space, gym.spaces.MultiDiscrete):
+    t_pol = MultiCategoricalPol(
+        observation_space, action_space, t_pol_net, args.rnn)
+    s_pol = MultiCategoricalPol(
+        observation_space, action_space, s_pol_net, args.rnn)
 else:
     raise ValueError('Only Box, Discrete and Multidiscrete are supported')
 
@@ -118,9 +124,9 @@ if args.teacher_pol:
         os.path.join(args.teacher_dir, args.teacher_fname)))
 
 if args.rnn:
-    s_vf_net = VNetLSTM(ob_space, h_size=256, cell_size=256)
+    s_vf_net = VNetLSTM(observation_space, h_size=256, cell_size=256)
 else:
-    s_vf_net = VNet(ob_space)
+    s_vf_net = VNet(observation_space)
 
 if args.sampling_policy == 'teacher':
     teacher_sampler = EpiSampler(

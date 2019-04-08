@@ -7,8 +7,8 @@ from machina.utils import get_device
 
 
 class MixtureGaussianPol(BasePol):
-    def __init__(self, ob_space, ac_space, net, normalize_ac=True):
-        BasePol.__init__(self, ob_space, ac_space, normalize_ac)
+    def __init__(self, observation_space, action_space, net, normalize_ac=True):
+        BasePol.__init__(self, observation_space, action_space, normalize_ac)
         self.net = net
         self.pd = MixtureGaussianPd()
         self.to(get_device())

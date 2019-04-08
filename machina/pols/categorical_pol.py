@@ -12,15 +12,15 @@ class CategoricalPol(BasePol):
 
     Parameters
     ----------
-    ob_space : gym.Space
+    observation_space : gym.Space
         observation's space
-    ac_space : gym.Space
+    action_space : gym.Space
         action's space
         This should be gym.spaces.Discrete
     net : torch.nn.Module
     rnn : bool
     normalize_ac : bool
-        If True, the output of network is spreaded for ac_space.
+        If True, the output of network is spreaded for action_space.
         In this situation the output of network is expected to be in -1~1.
     data_parallel : bool
         If True, network computation is executed in parallel.
@@ -28,8 +28,8 @@ class CategoricalPol(BasePol):
         Splitted dimension in data parallel.
     """
 
-    def __init__(self, ob_space, ac_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
-        BasePol.__init__(self, ob_space, ac_space, net, rnn,
+    def __init__(self, observation_space, action_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
+        BasePol.__init__(self, observation_space, action_space, net, rnn,
                          normalize_ac, data_parallel, parallel_dim)
         self.pd = CategoricalPd()
         self.to(get_device())

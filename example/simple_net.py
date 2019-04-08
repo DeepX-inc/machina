@@ -22,38 +22,38 @@ def weight_init(m):
 
 
 class PolNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=200, h2=100, deterministic=False):
+    def __init__(self, observation_space, action_space, h1=200, h2=100, deterministic=False):
         super(PolNet, self).__init__()
 
         self.deterministic = deterministic
 
-        if isinstance(ac_space, gym.spaces.Box):
+        if isinstance(action_space, gym.spaces.Box):
             self.discrete = False
         else:
             self.discrete = True
-            if isinstance(ac_space, gym.spaces.MultiDiscrete):
+            if isinstance(action_space, gym.spaces.MultiDiscrete):
                 self.multi = True
             else:
                 self.multi = False
 
-        self.fc1 = nn.Linear(ob_space.shape[0], h1)
+        self.fc1 = nn.Linear(observation_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
 
         if not self.discrete:
-            self.mean_layer = nn.Linear(h2, ac_space.shape[0])
+            self.mean_layer = nn.Linear(h2, action_space.shape[0])
             if not self.deterministic:
                 self.log_std_param = nn.Parameter(
-                    torch.randn(ac_space.shape[0])*1e-10 - 1)
+                    torch.randn(action_space.shape[0])*1e-10 - 1)
             self.mean_layer.apply(mini_weight_init)
         else:
             if self.multi:
                 self.output_layers = nn.ModuleList(
-                    [nn.Linear(h2, vec) for vec in ac_space.nvec])
+                    [nn.Linear(h2, vec) for vec in action_space.nvec])
                 list(map(lambda x: x.apply(mini_weight_init), self.output_layers))
             else:
-                self.output_layer = nn.Linear(h2, ac_space.n)
+                self.output_layer = nn.Linear(h2, action_space.n)
                 self.output_layer.apply(mini_weight_init)
 
     def forward(self, ob):
@@ -74,9 +74,9 @@ class PolNet(nn.Module):
 
 
 class VNet(nn.Module):
-    def __init__(self, ob_space, h1=200, h2=100):
+    def __init__(self, observation_space, h1=200, h2=100):
         super(VNet, self).__init__()
-        self.fc1 = nn.Linear(ob_space.shape[0], h1)
+        self.fc1 = nn.Linear(observation_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, 1)
         self.apply(weight_init)
@@ -88,10 +88,10 @@ class VNet(nn.Module):
 
 
 class QNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=300, h2=400):
+    def __init__(self, observation_space, action_space, h1=300, h2=400):
         super(QNet, self).__init__()
-        self.fc1 = nn.Linear(ob_space.shape[0], h1)
-        self.fc2 = nn.Linear(ac_space.shape[0] + h1, h2)
+        self.fc1 = nn.Linear(observation_space.shape[0], h1)
+        self.fc2 = nn.Linear(action_space.shape[0] + h1, h2)
         self.output_layer = nn.Linear(h2, 1)
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
@@ -105,11 +105,12 @@ class QNet(nn.Module):
 
 
 class ModelNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=200, h2=200):
+    def __init__(self, observation_space, action_space, h1=200, h2=200):
         super(ModelNet, self).__init__()
-        self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
+        self.fc1 = nn.Linear(
+            observation_space.shape[0] + action_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
-        self.output_layer = nn.Linear(h2, ob_space.shape[0])
+        self.output_layer = nn.Linear(h2, observation_space.shape[0])
         self.fc1.apply(weight_init)
         self.fc2.apply(weight_init)
         self.output_layer.apply(weight_init)
@@ -122,36 +123,36 @@ class ModelNet(nn.Module):
 
 
 class PolNetLSTM(nn.Module):
-    def __init__(self, ob_space, ac_space, h_size=1024, cell_size=512):
+    def __init__(self, observation_space, action_space, h_size=1024, cell_size=512):
         super(PolNetLSTM, self).__init__()
         self.h_size = h_size
         self.cell_size = cell_size
         self.rnn = True
 
-        if isinstance(ac_space, gym.spaces.Box):
+        if isinstance(action_space, gym.spaces.Box):
             self.discrete = False
         else:
             self.discrete = True
-            if isinstance(ac_space, gym.spaces.MultiDiscrete):
+            if isinstance(action_space, gym.spaces.MultiDiscrete):
                 self.multi = True
             else:
                 self.multi = False
 
-        self.input_layer = nn.Linear(ob_space.shape[0], self.h_size)
+        self.input_layer = nn.Linear(observation_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
         if not self.discrete:
-            self.mean_layer = nn.Linear(self.cell_size, ac_space.shape[0])
+            self.mean_layer = nn.Linear(self.cell_size, action_space.shape[0])
             self.log_std_param = nn.Parameter(
-                torch.randn(ac_space.shape[0])*1e-10 - 1)
+                torch.randn(action_space.shape[0])*1e-10 - 1)
 
             self.mean_layer.apply(mini_weight_init)
         else:
             if self.multi:
                 self.output_layers = nn.ModuleList(
-                    [nn.Linear(self.cell_size, vec) for vec in ac_space.nvec])
+                    [nn.Linear(self.cell_size, vec) for vec in action_space.nvec])
                 list(map(lambda x: x.apply(mini_weight_init), self.output_layers))
             else:
-                self.output_layer = nn.Linear(self.cell_size, ac_space.n)
+                self.output_layer = nn.Linear(self.cell_size, action_space.n)
                 self.output_layer.apply(mini_weight_init)
 
     def init_hs(self, batch_size=1):
@@ -186,13 +187,13 @@ class PolNetLSTM(nn.Module):
 
 
 class VNetLSTM(nn.Module):
-    def __init__(self, ob_space, h_size=1024, cell_size=512):
+    def __init__(self, observation_space, h_size=1024, cell_size=512):
         super(VNetLSTM, self).__init__()
         self.h_size = h_size
         self.cell_size = cell_size
         self.rnn = True
 
-        self.input_layer = nn.Linear(ob_space.shape[0], self.h_size)
+        self.input_layer = nn.Linear(observation_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
         self.output_layer = nn.Linear(self.cell_size, 1)
 
@@ -223,14 +224,14 @@ class VNetLSTM(nn.Module):
 
 
 class QNetLSTM(nn.Module):
-    def __init__(self, ob_space, ac_space, h_size=1024, cell_size=512):
+    def __init__(self, observation_space, action_space, h_size=1024, cell_size=512):
         super(QNetLSTM, self).__init__()
         self.h_size = h_size
         self.cell_size = cell_size
         self.rnn = True
 
         self.input_layer = nn.Linear(
-            ob_space.shape[0] + ac_space.shape[0], self.h_size)
+            observation_space.shape[0] + action_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
         self.output_layer = nn.Linear(self.cell_size, 1)
 
@@ -262,16 +263,17 @@ class QNetLSTM(nn.Module):
 
 
 class ModelNetLSTM(nn.Module):
-    def __init__(self, ob_space, ac_space, h_size=200, cell_size=200):
+    def __init__(self, observation_space, action_space, h_size=200, cell_size=200):
         super(ModelNetLSTM, self).__init__()
         self.h_size = h_size
         self.cell_size = cell_size
         self.rnn = True
 
         self.input_layer = nn.Linear(
-            ob_space.shape[0] + ac_space.shape[0], self.h_size)
+            observation_space.shape[0] + action_space.shape[0], self.h_size)
         self.cell = nn.LSTMCell(self.h_size, hidden_size=self.cell_size)
-        self.output_layer = nn.Linear(self.cell_size, ob_space.shape[0])
+        self.output_layer = nn.Linear(
+            self.cell_size, observation_space.shape[0])
         self.output_layer.apply(weight_init)
 
     def init_hs(self, batch_size=1):
@@ -300,9 +302,10 @@ class ModelNetLSTM(nn.Module):
 
 
 class DiscrimNet(nn.Module):
-    def __init__(self, ob_space, ac_space, h1=32, h2=32):
+    def __init__(self, observation_space, action_space, h1=32, h2=32):
         nn.Module.__init__(self)
-        self.fc1 = nn.Linear(ob_space.shape[0] + ac_space.shape[0], h1)
+        self.fc1 = nn.Linear(
+            observation_space.shape[0] + action_space.shape[0], h1)
         self.fc2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, 1)
         self.apply(weight_init)
