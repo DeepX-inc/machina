@@ -67,7 +67,8 @@ class DistributedEpiSampler(object):
         self.seed = self.seed * (self.rank + 23000)
 
         if not rank < 0:
-            self.in_node_sampler = EpiSampler(self.env, self.pol, self.num_parallel, self.prepro, self.seed)
+            self.in_node_sampler = EpiSampler(
+                self.env, self.pol, self.num_parallel, self.prepro, self.seed)
             self.launch_sampler()
 
     def __del__(self):
@@ -81,7 +82,8 @@ class DistributedEpiSampler(object):
             self.scatter_from_master('max_steps')
             self.scatter_from_master('deterministic')
 
-            self.epis = self.in_node_sampler.sample(self.pol, self.max_epis, self.max_steps, self.deterministic)
+            self.epis = self.in_node_sampler.sample(
+                self.pol, self.max_epis, self.max_steps, self.deterministic)
 
             self.gather_to_master('epis')
 
@@ -90,7 +92,8 @@ class DistributedEpiSampler(object):
         if self.rank < 0:
             obj = getattr(self, key)
             self.r.set(key, cloudpickle.dumps(obj))
-            triggers = {key + '_trigger' + "_{}".format(rank):'1' for rank in range(self.world_size)}
+            triggers = {key + '_trigger' +
+                        "_{}".format(rank): '1' for rank in range(self.world_size)}
             self.r.mset(triggers)
             while True:
                 time.sleep(0.1)
@@ -100,7 +103,8 @@ class DistributedEpiSampler(object):
         else:
             while True:
                 time.sleep(0.1)
-                trigger = self.r.get(key + '_trigger' + "_{}".format(self.rank))
+                trigger = self.r.get(key + '_trigger' +
+                                     "_{}".format(self.rank))
                 if _int(trigger) == 1:
                     break
             obj = cloudpickle.loads(self.r.get(key))
@@ -117,10 +121,12 @@ class DistributedEpiSampler(object):
             objs = []
             while True:
                 time.sleep(0.1)
-                for rank in range(self.world_size): # This for iteration can be faster.
+                # This for iteration can be faster.
+                for rank in range(self.world_size):
                     trigger = self.r.get(key + '_trigger' + "_{}".format(rank))
                     if _int(trigger) == 1:
-                        obj = cloudpickle.loads(self.r.get(key + "_{}".format(rank)))
+                        obj = cloudpickle.loads(
+                            self.r.get(key + "_{}".format(rank)))
                         objs += obj
                         self.r.set(key + '_trigger' + "_{}".format(rank), '0')
                         num_done += 1
@@ -154,6 +160,7 @@ class DistributedEpiSampler(object):
 
         return self.epis
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--world_size', type=int)
@@ -162,5 +169,5 @@ if __name__ == '__main__':
     parser.add_argument('--redis_port')
     args = parser.parse_args()
 
-    sampler = DistributedEpiSampler(args.world_size, args.rank, args.redis_host, args.redis_port)
-
+    sampler = DistributedEpiSampler(
+        args.world_size, args.rank, args.redis_host, args.redis_port)
