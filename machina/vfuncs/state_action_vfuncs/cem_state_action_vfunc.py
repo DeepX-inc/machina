@@ -112,10 +112,10 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         max_q : torch.Tensor
         max_ac : torch.Tensor
         """
-        for i in range(self.num_iter):
+        for i in range(self.num_iter+1):
             with torch.no_grad():
                 qvals, _ = self.forward(obs, samples)
-            if i != self.num_iter-1:
+            if i != self.num_iter:
                 qvals = qvals.reshape((self.cem_batch_size, self.num_sampling))
                 _, indices = torch.sort(qvals, dim=1, descending=True)
                 best_indices = indices[:, :self.num_best_sampling]
