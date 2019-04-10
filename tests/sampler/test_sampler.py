@@ -28,7 +28,7 @@ class TestTraj(unittest.TestCase):
         assert len(epis) >= 2
 
     def test_distributed_epi_sampler(self):
-        proc_redis = subprocess.Popen(['/usr/local/bin/redis-server'])
+        proc_redis = subprocess.Popen(['redis-server'])
         proc_slave = subprocess.Popen(['python', '-m', 'machina.samplers.distributed_epi_sampler',
                                        '--world_size', '1', '--rank', '0', '--redis_host', 'localhost', '--redis_port', '6379'])
         sampler = DistributedEpiSampler(
