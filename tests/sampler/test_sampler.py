@@ -29,13 +29,16 @@ class TestTraj(unittest.TestCase):
 
     def test_distributed_epi_sampler(self):
         proc_redis = subprocess.Popen(['redis-server'])
-        proc_slave = subprocess.Popen(['python', '-m', 'machina.samplers.distributed_epi_sampler', '--world_size', '1', '--rank', '0', '--redis_host', 'localhost', '--redis_port', '6379'])
-        sampler = DistributedEpiSampler(1, -1, 'localhost', '6379', self.env, self.pol, num_parallel=1)
+        proc_slave = subprocess.Popen(['python', '-m', 'machina.samplers.distributed_epi_sampler',
+                                       '--world_size', '1', '--rank', '0', '--redis_host', 'localhost', '--redis_port', '6379'])
+        sampler = DistributedEpiSampler(
+            1, -1, 'localhost', '6379', self.env, self.pol, num_parallel=1)
         epis = sampler.sample(self.pol, max_epis=2)
         assert len(epis) >= 2
         children = psutil.Process(os.getpid()).children(recursive=True)
         for child in children:
             child.send_signal(SIGTERM)
+
 
 if __name__ == '__main__':
     unittest.main()
