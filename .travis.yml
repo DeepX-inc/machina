@@ -4,9 +4,12 @@ python:
     - "3.5"
     - "3.6"
 
+services:
+    - redis-server
+
 install:
-    - sudo add-apt-repository universe
-    - sudo apt install redis-server
+    #- sudo add-apt-repository universe
+    #- sudo apt install redis-server
     - pip install --upgrade pip setuptools wheel psutil
     - pip install --default-timeout=2000 -q -e .
     - pip list
