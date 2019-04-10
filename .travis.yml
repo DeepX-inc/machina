@@ -6,7 +6,7 @@ python:
 
 install:
     - sudo add-apt-repository universe
-    - sudo apt install redis
+    - sudo apt install redis-server
     - pip install --upgrade pip setuptools wheel psutil
     - pip install --default-timeout=2000 -q -e .
     - pip list
