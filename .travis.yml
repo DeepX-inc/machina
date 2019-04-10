@@ -5,6 +5,7 @@ python:
     - "3.6"
 
 install:
+    - sudo add-apt-repository universe
     - sudo apt install redis
     - pip install --upgrade pip setuptools wheel psutil
     - pip install --default-timeout=2000 -q -e .
