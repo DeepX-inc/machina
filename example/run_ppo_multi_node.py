@@ -50,8 +50,10 @@ parser.add_argument('--data_parallel', action='store_true', default=False,
 # 3. Launch sampling nodes via `python -m machina.samplers.distributed_sampler --world_size size --rank rank --redis_host hostname --redis_port port` #
 #######################################################################################################################################################
 
-parser.add_argument('--sampler_world_size', type=int, help='number of sampling nodes.')
-parser.add_argument('--redis_host', type=str, help='hostname where redis server is launched.')
+parser.add_argument('--sampler_world_size', type=int,
+                    help='number of sampling nodes.')
+parser.add_argument('--redis_host', type=str,
+                    help='hostname where redis server is launched.')
 parser.add_argument('--redis_port', type=str, help='port number for redis.')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000,
@@ -141,7 +143,8 @@ else:
 vf = DeterministicSVfunc(observation_space, vf_net, args.rnn,
                          data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
-sampler = DistributedEpiSampler(args.sampler_world_size, redis_host=args.redis_host, redis_port=args.redis_port, env=env, pol=pol, num_parallel=args.num_parallel, seed=args.seed)
+sampler = DistributedEpiSampler(args.sampler_world_size, redis_host=args.redis_host,
+                                redis_port=args.redis_port, env=env, pol=pol, num_parallel=args.num_parallel, seed=args.seed)
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
@@ -211,4 +214,3 @@ while args.max_epis > total_epi:
         args.log, 'models', 'optim_vf_last.pkl'))
     del traj
 del sampler
-
