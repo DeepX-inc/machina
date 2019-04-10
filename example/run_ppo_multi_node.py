@@ -141,7 +141,7 @@ else:
 vf = DeterministicSVfunc(observation_space, vf_net, args.rnn,
                          data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
-sampler = DistributedEpiSampler(args.sampler_world_size, -1, args.redis_host, args.redis_port, env, pol, num_parallel=args.num_parallel, seed=args.seed)
+sampler = DistributedEpiSampler(args.sampler_world_size, redis_host=args.redis_host, redis_port=args.redis_port, env=env, pol=pol, num_parallel=args.num_parallel, seed=args.seed)
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)

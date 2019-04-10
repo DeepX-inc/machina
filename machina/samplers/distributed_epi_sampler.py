@@ -38,7 +38,7 @@ class DistributedEpiSampler(object):
     seed : int
     """
 
-    def __init__(self, world_size, rank, redis_host, redis_port, env=None, pol=None, num_parallel=8, prepro=None, seed=256):
+    def __init__(self, world_size, rank=-1, redis_host='localhost', redis_port='6379', env=None, pol=None, num_parallel=8, prepro=None, seed=256):
         if rank < 0:
             assert env is not None and pol is not None
 
@@ -165,8 +165,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--world_size', type=int)
     parser.add_argument('--rank', type=int)
-    parser.add_argument('--redis_host')
-    parser.add_argument('--redis_port')
+    parser.add_argument('--redis_host', type=str, default='localhost')
+    parser.add_argument('--redis_port', type=str, default='6379')
     args = parser.parse_args()
 
     sampler = DistributedEpiSampler(
