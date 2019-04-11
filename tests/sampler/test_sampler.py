@@ -32,7 +32,7 @@ class TestTraj(unittest.TestCase):
         proc_slave = subprocess.Popen(['python', '-m', 'machina.samplers.distributed_epi_sampler',
                                        '--world_size', '1', '--rank', '0', '--redis_host', 'localhost', '--redis_port', '6379'])
         sampler = DistributedEpiSampler(
-            1, -1, 'localhost', '6379', self.env, self.pol, num_parallel=1)
+            1, -1, self.env, self.pol, num_parallel=1)
         epis = sampler.sample(self.pol, max_epis=2)
         assert len(epis) >= 2
         children = psutil.Process(os.getpid()).children(recursive=True)
