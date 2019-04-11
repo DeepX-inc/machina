@@ -10,7 +10,7 @@ from machina import loss_functional as lf
 from machina.utils import get_device, get_redis
 
 
-def synchronize(traj, master_rank=0):
+def sync(traj, master_rank=0):
     """
     Synchronize trajs. This function is used in multi node situation, and use redis.
 
