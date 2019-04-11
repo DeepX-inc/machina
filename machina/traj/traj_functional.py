@@ -8,7 +8,7 @@ import torch.distributed as dist
 import numpy as np
 
 from machina import loss_functional as lf
-from machina.utils import get_device, get_redis
+from machina.utils import get_device, get_redis, _int
 
 
 def sync(traj, master_rank=0):
