@@ -97,9 +97,10 @@ args = parser.parse_args()
 if not os.path.exists(args.log):
     os.mkdir(args.log)
 
-with open(os.path.join(args.log, 'args.json'), 'w') as f:
-    json.dump(vars(args), f)
-pprint(vars(args))
+if args.local_rank == 0:
+    with open(os.path.join(args.log, 'args.json'), 'w') as f:
+        json.dump(vars(args), f)
+    pprint(vars(args))
 
 if not os.path.exists(os.path.join(args.log, 'models')):
     os.mkdir(os.path.join(args.log, 'models'))
@@ -180,7 +181,6 @@ while args.max_epis > total_epi:
             traj = ef.compute_h_masks(traj)
             traj.register_epis()
         traj = tf.sync(traj)
-        print(traj.num_step, dist.get_rank())
 
         if args.ddp == 'ddp':
             pol.dp_run = True
@@ -208,24 +208,25 @@ while args.max_epis > total_epi:
                           rewards,
                           plot_title=args.env_name)
 
-    if mean_rew > max_rew:
-        torch.save(pol.state_dict(), os.path.join(
-            args.log, 'models', 'pol_max.pkl'))
-        torch.save(vf.state_dict(), os.path.join(
-            args.log, 'models', 'vf_max.pkl'))
-        torch.save(optim_pol.state_dict(), os.path.join(
-            args.log, 'models', 'optim_pol_max.pkl'))
-        torch.save(optim_vf.state_dict(), os.path.join(
-            args.log, 'models', 'optim_vf_max.pkl'))
-        max_rew = mean_rew
+    if args.local_rank == 0:
+        if mean_rew > max_rew:
+            torch.save(pol.state_dict(), os.path.join(
+                args.log, 'models', 'pol_max.pkl'))
+            torch.save(vf.state_dict(), os.path.join(
+                args.log, 'models', 'vf_max.pkl'))
+            torch.save(optim_pol.state_dict(), os.path.join(
+                args.log, 'models', 'optim_pol_max.pkl'))
+            torch.save(optim_vf.state_dict(), os.path.join(
+                args.log, 'models', 'optim_vf_max.pkl'))
+            max_rew = mean_rew
 
-    torch.save(pol.state_dict(), os.path.join(
-        args.log, 'models', 'pol_last.pkl'))
-    torch.save(vf.state_dict(), os.path.join(
-        args.log, 'models', 'vf_last.pkl'))
-    torch.save(optim_pol.state_dict(), os.path.join(
-        args.log, 'models', 'optim_pol_last.pkl'))
-    torch.save(optim_vf.state_dict(), os.path.join(
-        args.log, 'models', 'optim_vf_last.pkl'))
+        torch.save(pol.state_dict(), os.path.join(
+            args.log, 'models', 'pol_last.pkl'))
+        torch.save(vf.state_dict(), os.path.join(
+            args.log, 'models', 'vf_last.pkl'))
+        torch.save(optim_pol.state_dict(), os.path.join(
+            args.log, 'models', 'optim_pol_last.pkl'))
+        torch.save(optim_vf.state_dict(), os.path.join(
+            args.log, 'models', 'optim_vf_last.pkl'))
     del traj
 del sampler
