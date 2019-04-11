@@ -43,9 +43,11 @@ class BasePol(nn.Module):
             if data_parallel is True:
                 self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
             elif data_parallel == 'ddp':
-                self.dp_net = nn.parallel.DistributedDataParallel(self.net, device_ids=[get_device()], dim=parallel_dim)
+                self.dp_net = nn.parallel.DistributedDataParallel(
+                    self.net, device_ids=[get_device()], dim=parallel_dim)
             else:
-                raise ValueError('Bool and str(ddp) are allowed to be data_parallel.')
+                raise ValueError(
+                    'Bool and str(ddp) are allowed to be data_parallel.')
         self.dp_run = False
 
         self.discrete = isinstance(action_space, gym.spaces.MultiDiscrete) or isinstance(

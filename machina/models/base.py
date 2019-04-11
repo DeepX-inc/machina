@@ -2,6 +2,7 @@ import torch.nn as nn
 
 from machina.utils import get_device
 
+
 class BaseModel(nn.Module):
     """
     Base class of Model.
@@ -33,9 +34,11 @@ class BaseModel(nn.Module):
             if data_parallel is True:
                 self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
             elif data_parallel == 'ddp':
-                self.dp_net = nn.parallel.DistributedDataParallel(self.net, device_ids=[get_device()], dim=parallel_dim)
+                self.dp_net = nn.parallel.DistributedDataParallel(
+                    self.net, device_ids=[get_device()], dim=parallel_dim)
             else:
-                raise ValueError('Bool and str(ddp) are allowed to be data_parallel.')
+                raise ValueError(
+                    'Bool and str(ddp) are allowed to be data_parallel.')
         self.dp_run = False
 
     def reset(self):
