@@ -41,7 +41,7 @@ def synchronize(traj, master_rank=0):
         while True:
             time.sleep(0.1)
             trigger = r.get('Traj_trigger' +
-                                 "_{}".format(rank))
+                            "_{}".format(rank))
             if _int(trigger) == 1:
                 break
         obj = cloudpickle.loads(r.get('Traj'))
