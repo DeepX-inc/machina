@@ -170,7 +170,7 @@ while args.max_epis > total_epi:
         if dist.get_rank() == 0:
             epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
     with measure('train'):
-        traj = Traj()
+        traj = Traj(ddp=True)
         if dist.get_rank() == 0:
             traj.add_epis(epis)
 
