@@ -1,11 +1,36 @@
 import contextlib
 
+import redis
 import torch
 import torch.autograd as autograd
 
 from machina import logger
 
 _DEVICE = torch.device('cpu')
+
+_REDIS = None
+
+
+def make_redis(redis_host, redis_port):
+    r = redis.StrictRedis(redis_host, redis_port)
+    set_redis(r)
+
+
+def set_redis(r):
+    global _REDIS
+    _REDIS = r
+
+
+def get_redis():
+    return _REDIS
+
+
+def _int(v):
+    try:
+        new_v = int(v)
+    except:
+        new_v = -1
+    return new_v
 
 
 def set_device(device):

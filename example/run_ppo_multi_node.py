@@ -22,7 +22,7 @@ from machina.traj import Traj
 from machina.traj import epi_functional as ef
 from machina.samplers import DistributedEpiSampler
 from machina import logger
-from machina.utils import measure, set_device
+from machina.utils import measure, set_device, make_redis
 
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
@@ -107,6 +107,8 @@ device_name = 'cpu' if args.cuda < 0 else "cuda:{}".format(args.cuda)
 device = torch.device(device_name)
 set_device(device)
 
+make_redis(args.redis_host, args.redis_port)
+
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 
@@ -143,8 +145,7 @@ else:
 vf = DeterministicSVfunc(observation_space, vf_net, args.rnn,
                          data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
-sampler = DistributedEpiSampler(args.sampler_world_size, redis_host=args.redis_host,
-                                redis_port=args.redis_port, env=env, pol=pol, num_parallel=args.num_parallel, seed=args.seed)
+sampler = DistributedEpiSampler(args.sampler_world_size, env=env, pol=pol, num_parallel=args.num_parallel, seed=args.seed)
 
 optim_pol = torch.optim.Adam(pol_net.parameters(), args.pol_lr)
 optim_vf = torch.optim.Adam(vf_net.parameters(), args.vf_lr)
