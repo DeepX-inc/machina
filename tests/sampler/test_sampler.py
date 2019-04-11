@@ -10,6 +10,7 @@ from machina.traj import Traj
 from machina.envs import GymEnv
 from machina.samplers import EpiSampler, DistributedEpiSampler
 from machina.pols.random_pol import RandomPol
+from machina.utils import make_redis
 
 
 class TestTraj(unittest.TestCase):
@@ -31,6 +32,7 @@ class TestTraj(unittest.TestCase):
         proc_redis = subprocess.Popen(['redis-server'])
         proc_slave = subprocess.Popen(['python', '-m', 'machina.samplers.distributed_epi_sampler',
                                        '--world_size', '1', '--rank', '0', '--redis_host', 'localhost', '--redis_port', '6379'])
+        make_redis('localhost', '6379')
         sampler = DistributedEpiSampler(
             1, -1, self.env, self.pol, num_parallel=1)
         epis = sampler.sample(self.pol, max_epis=2)
