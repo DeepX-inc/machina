@@ -699,7 +699,7 @@ class TestMPC(unittest.TestCase):
         # init models
         dm_net = ModelNet(self.env.observation_space, self.env.action_space)
         dm = DeterministicSModel(self.env.observation_space, self.env.action_space, dm_net, rnn=False,
-                                 data_parallel=1, parallel_dim=0)
+                                 data_parallel=False, parallel_dim=0)
 
         mpc_pol = MPCPol(self.env.observation_space, self.env.action_space,
                          dm_net, rew_func, 1, 1)
@@ -737,7 +737,7 @@ class TestMPC(unittest.TestCase):
         dm_net = ModelNetLSTM(self.env.observation_space,
                               self.env.action_space)
         dm = DeterministicSModel(self.env.observation_space, self.env.action_space, dm_net, rnn=True,
-                                 data_parallel=1, parallel_dim=0)
+                                 data_parallel=False, parallel_dim=0)
 
         mpc_pol = MPCPol(self.env.observation_space, self.env.action_space, dm_net, rew_func,
                          1, 1, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=True)
