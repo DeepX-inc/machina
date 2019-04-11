@@ -4,3 +4,4 @@
  - Output is :py:class:`ndarray` of :py:class:`dict` of :py:class:`list`.
 """
 from machina.samplers.epi_sampler import EpiSampler
+from machina.samplers.distributed_epi_sampler import DistributedEpiSampler

@@ -4,8 +4,13 @@ python:
     - "3.5"
     - "3.6"
 
+services:
+    - redis-server
+
 install:
-    - pip install --upgrade pip setuptools wheel
+    #- sudo add-apt-repository universe
+    #- sudo apt install redis-server
+    - pip install --upgrade pip setuptools wheel psutil
     - pip install --default-timeout=2000 -q -e .
     - pip list
     - pip install autopep8
@@ -16,4 +21,4 @@ script:
     - autopep8 -r . --diff | tee check_autopep8
     - test ! -s check_autopep8
     - nosetests -x tests --process-timeout 2000
-sudo: false
+sudo: required
