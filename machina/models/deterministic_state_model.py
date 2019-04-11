@@ -16,8 +16,9 @@ class DeterministicSModel(BaseModel):
     action_space : gym.Space
     net : torch.nn.Module
     rnn : bool
-    data_parallel : bool
+    data_parallel : bool or str
         If True, network computation is executed in parallel.
+        If data_parallel is ddp, network computation is executed in distributed parallel.
     parallel_dim : int
         Splitted dimension in data parallel.
     """

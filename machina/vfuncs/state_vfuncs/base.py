@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+from machina.utils import get_device
 
 class BaseSVfunc(nn.Module):
     """
@@ -12,8 +13,9 @@ class BaseSVfunc(nn.Module):
     observation_space : gym.Space
     net : torch.nn.Module
     rnn : bool
-    data_parallel : bool
+    data_parallel : bool or str
         If True, network computation is executed in parallel.
+        If data_parallel is ddp, network computation is executed in distributed parallel.
     parallel_dim : int
         Splitted dimension in data parallel.
     """
@@ -28,7 +30,12 @@ class BaseSVfunc(nn.Module):
 
         self.data_parallel = data_parallel
         if data_parallel:
-            self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
+            if data_parallel is True:
+                self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
+            elif data_parallel == 'ddp':
+                self.dp_net = nn.parallel.DistributedDataParallel(self.net, device_ids=[get_device()], dim=parallel_dim)
+            else:
+                raise ValueError('Bool and str(ddp) are allowed to be data_parallel.')
         self.dp_run = False
 
     def reset(self):
