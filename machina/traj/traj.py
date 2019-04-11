@@ -6,6 +6,7 @@ import functools
 
 import numpy as np
 import torch
+import torch.distributed as dist
 from torch.nn.utils.rnn import pad_sequence
 import torch.utils.data
 
@@ -31,7 +32,7 @@ class Traj(object):
         Device name Traj is allocated.
     """
 
-    def __init__(self, max_steps=None, traj_device=None):
+    def __init__(self, max_steps=None, traj_device=None, ddp=False):
         self.data_map = dict()
         self._next_id = 0
 
@@ -45,6 +46,11 @@ class Traj(object):
         else:
             self.traj_device = lambda: traj_device
 
+        self.ddp = ddp
+        if ddp:
+            self.rank = dist.get_rank()
+            self.world_size = dist.get_world_size()
+
     @property
     def num_step(self):
         return int(self._epis_index[-1])
@@ -52,6 +58,16 @@ class Traj(object):
     @property
     def num_epi(self):
         return len(self._epis_index) - 1
+
+    def copy(self, traj):
+        self.data_map = traj.data_map
+        self._next_id = traj._next_id
+        self.current_epis = traj.current_epis
+        self._epis_index = traj._epis_index
+        self.max_steps = traj.max_steps
+        self.traj_device = traj.traj_device
+        if hasattr(self, 'pri_beta') and hasattr(traj, 'pri_beta'):
+            self.pri_beta = traj.pri_beta
 
     def get_max_pri(self):
         if 'pris' in self.data_map:
