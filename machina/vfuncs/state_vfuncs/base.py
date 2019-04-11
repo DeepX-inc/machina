@@ -34,6 +34,7 @@ class BaseSVfunc(nn.Module):
             if data_parallel is True:
                 self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
             elif data_parallel == 'ddp':
+                self.net.to(get_device())
                 self.dp_net = nn.parallel.DistributedDataParallel(
                     self.net, device_ids=[get_device()], dim=parallel_dim)
             else:
