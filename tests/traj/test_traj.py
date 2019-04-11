@@ -26,9 +26,9 @@ class TestTraj(unittest.TestCase):
 
     def test_add_traj(self):
         new_traj = Traj()
-        new_traj.add_traj(cls.traj)
-        assert new_traj.num_epi == cls.traj.num_epi
-        assert new_traj.num_step == cls.traj.num_step
+        new_traj.add_traj(self.traj)
+        assert new_traj.num_epi == self.traj.num_epi
+        assert new_traj.num_step == self.traj.num_step
 
     def test_random_batch_once(self):
         batch_size = 32
