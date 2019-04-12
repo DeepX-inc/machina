@@ -1,7 +1,11 @@
+import copy
+
 import gym
 import numpy as np
 import torch
 import torch.nn as nn
+
+from machina.utils import get_device
 
 
 class BasePol(nn.Module):
@@ -19,8 +23,9 @@ class BasePol(nn.Module):
     normalize_ac : bool
         If True, the output of network is spreaded for action_space.
         In this situation the output of network is expected to be in -1~1.
-    data_parallel : bool
+    data_parallel : bool or str
         If True, network computation is executed in parallel.
+        If data_parallel is ddp, network computation is executed in distributed parallel.
     parallel_dim : int
         Splitted dimension in data parallel.
     """
@@ -37,7 +42,15 @@ class BasePol(nn.Module):
         self.normalize_ac = normalize_ac
         self.data_parallel = data_parallel
         if data_parallel:
-            self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
+            if data_parallel is True:
+                self.dp_net = nn.DataParallel(self.net, dim=parallel_dim)
+            elif data_parallel == 'ddp':
+                self.net.to(get_device())
+                self.dp_net = nn.parallel.DistributedDataParallel(
+                    self.net, device_ids=[get_device()], dim=parallel_dim)
+            else:
+                raise ValueError(
+                    'Bool and str(ddp) are allowed to be data_parallel.')
         self.dp_run = False
 
         self.discrete = isinstance(action_space, gym.spaces.MultiDiscrete) or isinstance(
@@ -53,6 +66,19 @@ class BasePol(nn.Module):
                 self.a_i_shape = (len(nvec), nvec[0])
             elif isinstance(action_space, gym.spaces.Discrete):
                 self.a_i_shape = (action_space.n, )
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        if 'dp_net' in state['_modules']:
+            _modules = copy.deepcopy(state['_modules'])
+            del _modules['dp_net']
+            state['_modules'] = _modules
+        return state
+
+    def __setstate__(self, state):
+        if 'dp_net' in state:
+            state.pop('dp_net')
+        self.__dict__.update(state)
 
     def convert_ac_for_real(self, x):
         """

@@ -10,14 +10,7 @@ import cloudpickle
 import redis
 
 from machina.samplers import EpiSampler
-
-
-def _int(v):
-    try:
-        new_v = int(v)
-    except:
-        new_v = -1
-    return new_v
+from machina.utils import _int, get_redis, make_redis
 
 
 class DistributedEpiSampler(object):
@@ -38,16 +31,14 @@ class DistributedEpiSampler(object):
     seed : int
     """
 
-    def __init__(self, world_size, rank=-1, redis_host='localhost', redis_port='6379', env=None, pol=None, num_parallel=8, prepro=None, seed=256):
+    def __init__(self, world_size, rank=-1, env=None, pol=None, num_parallel=8, prepro=None, seed=256):
         if rank < 0:
             assert env is not None and pol is not None
 
         self.world_size = world_size
         self.rank = rank
-        self.redis_host = redis_host
-        self.redis_port = redis_port
 
-        self.r = redis.StrictRedis(host=redis_host, port=redis_port)
+        self.r = get_redis()
 
         if rank < 0:
             self.env = env
@@ -169,5 +160,7 @@ if __name__ == '__main__':
     parser.add_argument('--redis_port', type=str, default='6379')
     args = parser.parse_args()
 
+    make_redis(args.redis_host, args.redis_port)
+
     sampler = DistributedEpiSampler(
-        args.world_size, args.rank, args.redis_host, args.redis_port)
+        args.world_size, args.rank)

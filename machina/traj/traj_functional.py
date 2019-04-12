@@ -2,11 +2,58 @@
 These are functions which is applied to trajectory.
 """
 
+import time
+
+import cloudpickle
 import torch
+import torch.distributed as dist
 import numpy as np
 
 from machina import loss_functional as lf
-from machina.utils import get_device
+from machina.utils import get_device, get_redis, _int
+
+
+def sync(traj, master_rank=0):
+    """
+    Synchronize trajs. This function is used in multi node situation, and use redis.
+
+    Parameters
+    ----------
+    traj : Traj
+    master_rank : int
+        master_rank's traj is scattered
+
+    Returns
+    -------
+    traj : Traj
+    """
+    rank = traj.rank
+    r = get_redis()
+    if rank == master_rank:
+        obj = cloudpickle.dumps(traj)
+        r.set('Traj', obj)
+        triggers = {'Traj_trigger' +
+                    "_{}".format(rank): '1' for rank in range(traj.world_size)}
+        triggers["Traj_trigger_{}".format(master_rank)] = '0'
+        r.mset(triggers)
+        while True:
+            time.sleep(0.1)
+            values = r.mget(triggers)
+            if all([_int(v) == 0 for v in values]):
+                break
+    else:
+        while True:
+            time.sleep(0.1)
+            trigger = r.get('Traj_trigger' +
+                            "_{}".format(rank))
+            if _int(trigger) == 1:
+                break
+        obj = cloudpickle.loads(r.get('Traj'))
+
+        traj.copy(obj)
+        r.set('Traj_trigger' + "_{}".format(rank), '0')
+
+    return traj
 
 
 def update_pris(traj, td_loss, indices, alpha=0.6, epsilon=1e-6, update_epi_pris=False, seq_length=None, eta=0.9):
@@ -15,7 +62,7 @@ def update_pris(traj, td_loss, indices, alpha=0.6, epsilon=1e-6, update_epi_pris
 
     Parameters
     ----------
-    data : Traj
+    traj : Traj
     td_loss : torch.Tensor
     indices : torch.Tensor ot List of int
     alpha : float
@@ -28,7 +75,7 @@ def update_pris(traj, td_loss, indices, alpha=0.6, epsilon=1e-6, update_epi_pris
 
     Returns
     -------
-    data : Traj
+    traj : Traj
     """
     pris = (torch.abs(td_loss) + epsilon) ** alpha
     traj.data_map['pris'][indices] = pris.detach().to(traj.traj_device())

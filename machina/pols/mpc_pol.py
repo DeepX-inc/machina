@@ -36,6 +36,7 @@ class MPCPol(BasePol):
         In this situation the output of network is expected to be in -1~1.
     data_parallel : bool
         If True, network computation is executed in parallel.
+        This value must be False in this policy. MPCPol doesn't support data_parallel
     parallel_dim : int
         Splitted dimension in data parallel.
     """
