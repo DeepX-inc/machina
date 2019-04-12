@@ -44,9 +44,16 @@ class BaseSVfunc(nn.Module):
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        for k in ['dp_net']:
-            del state[k]
+        if 'dp_net' in state['_modules']:
+            _modules = copy.deepcopy(state['_modules'])
+            del _modules['dp_net']
+            state['_modules'] = _modules
         return state
+
+    def __setstate__(self, state):
+        if 'dp_net' in state:
+            state.pop('dp_net')
+        self.__dict__.update(state)
 
     def reset(self):
         """
