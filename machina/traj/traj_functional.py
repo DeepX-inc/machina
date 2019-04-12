@@ -34,6 +34,7 @@ def sync(traj, master_rank=0):
         r.set('Traj', obj)
         triggers = {'Traj_trigger' +
                     "_{}".format(rank): '1' for rank in range(traj.world_size)}
+        triggers["Traj_trigger_{}".format(master_rank)] = '0'
         r.mset(triggers)
         while True:
             time.sleep(0.1)
