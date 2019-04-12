@@ -50,7 +50,7 @@ def sync(traj, master_rank=0):
         obj = cloudpickle.loads(r.get('Traj'))
 
         traj.copy(obj)
-        r.set('Traj_trigger' + "_{}".format(self.rank), '0')
+        r.set('Traj_trigger' + "_{}".format(rank), '0')
 
     return traj
 
