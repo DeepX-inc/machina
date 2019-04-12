@@ -46,12 +46,16 @@ class TestCloudPickle(unittest.TestCase):
 
         pol_net = PolNet(env.observation_space, env.action_space)
         gpol = GaussianPol(env.observation_space, env.action_space, pol_net)
-        pol_net = PolNet(env.observation_space, env.action_space, deterministic=True)
-        dpol = DeterministicActionNoisePol(env.observation_space, env.action_space, pol_net)
+        pol_net = PolNet(env.observation_space,
+                         env.action_space, deterministic=True)
+        dpol = DeterministicActionNoisePol(
+            env.observation_space, env.action_space, pol_net)
         model_net = ModelNet(env.observation_space, env.action_space)
-        mpcpol = MPCPol(env.observation_space, env.action_space, model_net, rew_func)
+        mpcpol = MPCPol(env.observation_space,
+                        env.action_space, model_net, rew_func)
         q_net = QNet(env.observation_space, env.action_space)
-        qfunc = DeterministicSAVfunc(env.observation_space, env.action_space, q_net)
+        qfunc = DeterministicSAVfunc(
+            env.observation_space, env.action_space, q_net)
         aqpol = ArgmaxQfPol(env.observation_space, env.action_space, qfunc)
         v_net = VNet(env.observation_space)
         vfunc = DeterministicSVfunc(env.observation_space, v_net)
@@ -65,7 +69,8 @@ class TestCloudPickle(unittest.TestCase):
 
         c2d = C2DEnv(env)
         pol_net = PolNet(c2d.observation_space, c2d.action_space)
-        mcpol = MultiCategoricalPol(env.observation_space, env.action_space, pol_net)
+        mcpol = MultiCategoricalPol(
+            env.observation_space, env.action_space, pol_net)
 
         cls.r.set('mcpol', cloudpickle.dumps(mcpol))
 
@@ -80,6 +85,7 @@ class TestCloudPickle(unittest.TestCase):
         cloudpickle.loads(cls.r.get('aqpol'))
         cloudpickle.loads(cls.r.get('vfunc'))
         cloudpickle.loads(cls.r.get('mcpol'))
+
 
 if __name__ == '__main__':
     unittest.main()
