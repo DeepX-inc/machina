@@ -1,3 +1,5 @@
+import copy
+
 import gym
 import numpy as np
 import torch
@@ -64,6 +66,14 @@ class BasePol(nn.Module):
                 self.a_i_shape = (len(nvec), nvec[0])
             elif isinstance(action_space, gym.spaces.Discrete):
                 self.a_i_shape = (action_space.n, )
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        if 'dp_run' in state['_modules']:
+            _modules = copy.deepcopy(state['_modules'])
+            del _modules['dp_run']
+            state['_modules'] = _modules
+        return state
 
     def __setstate__(self, state):
         if 'dp_net' in state:
