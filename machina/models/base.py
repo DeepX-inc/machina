@@ -42,6 +42,12 @@ class BaseModel(nn.Module):
                     'Bool and str(ddp) are allowed to be data_parallel.')
         self.dp_run = False
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        for k in ['dp_net']:
+            del state[k]
+        return state
+
     def reset(self):
         """
         reset for rnn's hidden state.

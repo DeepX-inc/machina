@@ -65,6 +65,12 @@ class BasePol(nn.Module):
             elif isinstance(action_space, gym.spaces.Discrete):
                 self.a_i_shape = (action_space.n, )
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        for k in ['dp_net']:
+            del state[k]
+        return state
+
     def convert_ac_for_real(self, x):
         """
         Converting action which is output of network for real world value.
