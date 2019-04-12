@@ -69,9 +69,9 @@ class BasePol(nn.Module):
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        if 'dp_run' in state['_modules']:
+        if 'dp_net' in state['_modules']:
             _modules = copy.deepcopy(state['_modules'])
-            del _modules['dp_run']
+            del _modules['dp_net']
             state['_modules'] = _modules
         return state
 
