@@ -97,7 +97,9 @@ args = parser.parse_args()
 if not os.path.exists(args.log):
     os.mkdir(args.log)
 
-if args.local_rank == 0:
+dist.init_process_group(backend=args.backend)
+
+if dist.get_rank() == 0:
     with open(os.path.join(args.log, 'args.json'), 'w') as f:
         json.dump(vars(args), f)
     pprint(vars(args))
@@ -107,8 +109,6 @@ if not os.path.exists(os.path.join(args.log, 'models')):
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
-
-dist.init_process_group(backend=args.backend)
 
 args.cuda = args.local_rank
 
@@ -201,14 +201,15 @@ while args.max_epis > total_epi:
     total_epi += traj.num_epi
     step = traj.num_step
     total_step += step
-    rewards = [np.sum(epi['rews']) for epi in epis]
-    mean_rew = np.mean(rewards)
-    logger.record_results(args.log, result_dict, score_file,
-                          total_epi, step, total_step,
-                          rewards,
-                          plot_title=args.env_name)
+    if dist.get_rank() == 0:
+        rewards = [np.sum(epi['rews']) for epi in epis]
+        mean_rew = np.mean(rewards)
+        logger.record_results(args.log, result_dict, score_file,
+                              total_epi, step, total_step,
+                              rewards,
+                              plot_title=args.env_name)
 
-    if args.local_rank == 0:
+    if dist.get_rank() == 0:
         if mean_rew > max_rew:
             torch.save(pol.state_dict(), os.path.join(
                 args.log, 'models', 'pol_max.pkl'))
