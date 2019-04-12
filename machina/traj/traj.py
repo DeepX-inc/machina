@@ -166,7 +166,8 @@ class Traj(object):
         self._next_id += cur_batch_size
 
         if self.ddp:
-            indices = indices[cur_id + self.rank:cur_id + cur_batch_size:self.world_size]
+            indices = indices[cur_id + self.rank:cur_id +
+                              cur_batch_size:self.world_size]
         else:
             indices = indices[cur_id:cur_id + batch_size]
 
