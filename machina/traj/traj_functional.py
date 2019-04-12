@@ -3,6 +3,8 @@ These are functions which is applied to trajectory.
 """
 
 import time
+
+import cloudpickle
 import torch
 import torch.distributed as dist
 import numpy as np
