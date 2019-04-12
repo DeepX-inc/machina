@@ -165,10 +165,14 @@ class Traj(object):
         cur_batch_size = min(batch_size, len(indices) - self._next_id)
         self._next_id += cur_batch_size
 
+        if self.ddp:
+            indices = indices[cur_id + self.rank:cur_id + cur_batch_size:self.world_size]
+        else:
+            indices = indices[cur_id:cur_id + batch_size]
+
         data_map = dict()
         for key in self.data_map:
-            data_map[key] = self.data_map[key][cur_id:cur_id +
-                                               cur_batch_size].to(get_device())
+            data_map[key] = self.data_map[key][indices].to(get_device())
         return data_map
 
     def iterate_once(self, batch_size, indices=None, shuffle=True):
@@ -245,6 +249,9 @@ class Traj(object):
         else:
             indices = torch.randint(0, self.num_step - 1, size=(batch_size, ))
 
+        if self.ddp:
+            indices = indices[self.rank:len(indices):self.world_size]
+
         data_map = dict()
         for key in self.data_map:
             data_map[key] = self.data_map[key][indices].to(
@@ -276,6 +283,9 @@ class Traj(object):
         indices = torch.utils.data.sampler.WeightedRandomSampler(
             pris, batch_size, replacement=True)
         indices = [index for index in indices]
+
+        if self.ddp:
+            indices = indices[self.rank:len(indices):self.world_size]
 
         data_map = dict()
         for key in self.data_map:
@@ -374,6 +384,9 @@ class Traj(object):
             lengths = []
             indices = np.random.randint(
                 0, len(self._epis_index)-1, (batch_size,))
+
+            if self.ddp:
+                indices = indices[self.rank:len(indices):self.world_size]
 
             for idx in indices:
                 length = min(
