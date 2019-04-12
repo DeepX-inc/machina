@@ -65,11 +65,10 @@ class BasePol(nn.Module):
             elif isinstance(action_space, gym.spaces.Discrete):
                 self.a_i_shape = (action_space.n, )
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        for k in ['dp_net']:
-            del state[k]
-        return state
+    def __setstate__(self, state):
+        if 'dp_net' in state:
+            state.pop('dp_net')
+        self.__dict__.update(state)
 
     def convert_ac_for_real(self, x):
         """
