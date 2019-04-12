@@ -214,9 +214,9 @@ class Traj(object):
         -------
         data_map : dict of torch.Tensor
         """
-        indices = self._get_indices(indices, shuffle)
 
         for _ in range(epoch):
+            indices = self._get_indices(indices, shuffle)
             while self._next_id <= len(indices) - batch_size:
                 yield self._next_batch(batch_size, indices)
             self._next_id = 0
