@@ -18,13 +18,22 @@ class DistributedAdamW(Optimizer):
         eps (float, optional): term added to the denominator to improve
             numerical stability (default: 1e-8)
         weight_decay (float, optional): weight decay (not L2 penalty) (default: 0)
+        local_rank (int, optional): if not given, automatically set
+            dist.get_rank()
+        world_size (int, optional): if not given, automatically set
+            dist.get_world_size()
     """
 
-    def __init__(self, params, local_rank, world_size, lr=1e-3, betas=(0.9, 0.999), eps=1e-8,
+    def __init__(self, params, local_rank=None, world_size=None,
+                 lr=1e-3, betas=(0.9, 0.999), eps=1e-8,
                  weight_decay=0):
         defaults = dict(lr=lr, betas=betas, eps=eps,
                         weight_decay=weight_decay)
         super(DistributedAdamW, self).__init__(params, defaults)
+        if local_rank is None:
+            local_rank = dist.get_rank()
+        if world_size is None:
+            world_size = dist.get_world_size()
         self.local_rank = local_rank
         self.world_size = world_size
 
