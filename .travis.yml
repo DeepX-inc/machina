@@ -10,7 +10,7 @@ services:
 install:
     #- sudo add-apt-repository universe
     #- sudo apt install redis-server
-    - pip install --upgrade pip setuptools wheel psutil
+    - pip install --upgrade pip setuptools wheel psutil pytest
     - pip install --default-timeout=2000 -q -e .
     - pip list
     - pip install autopep8
@@ -20,5 +20,5 @@ install:
 script:
     - autopep8 -r . --diff | tee check_autopep8
     - test ! -s check_autopep8
-    - nosetests -x tests --process-timeout 2000
+    - pytest -x tests
 sudo: required
