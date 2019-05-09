@@ -16,7 +16,7 @@ install_requires = [
     'joblib>=0.11',
     'cloudpickle',
     'redis',
-    'gym==0.10.5',
+    'gym>=0.10.5',
     'numpy>=1.13.3',
     'terminaltables',
     'pandas',
