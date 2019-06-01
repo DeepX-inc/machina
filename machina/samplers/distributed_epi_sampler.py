@@ -84,32 +84,68 @@ class DistributedEpiSampler(object):
 
             self.gather_to_master('epis')
 
+    def sync(self, keys, target_value):
+        """Wait until all `keys` become `target_value`
+        """
+        while True:
+            values = self.r.mget(keys)
+            if all([_int(v) == target_value for v in values]):
+                break
+            time.sleep(0.1)
+
+    def wait_trigger(self, trigger):
+        """Wait until `trigger` become 1
+        """
+        self.sync(trigger, 1)
+
+    def wait_trigger_processed(self, trigger):
+        """Wait until `trigger` become 0
+        """
+        self.sync(trigger, 0)
+
+    def set_trigger(self, trigger, value='1'):
+        """Set all triggers to `value`
+        """
+        if not isinstance(trigger, (list, tuple)):
+            trigger = [trigger]
+        mapping = {k: value for k in trigger}
+        self.r.mset(mapping)
+
+    def reset_trigger(self, trigger):
+        """Set all triggers to 0
+        """
+        self.set_trigger(trigger, value='0')
+
+    def wait_trigger_completion(self, trigger):
+        """Set trigger to 1, then wait until it become 0
+        """
+        self.set_trigger(trigger)
+        self.wait_trigger_processed(trigger)
+
     def scatter_from_master(self, key):
+        """
+        master: set `key` to DB, then set trigger and wait sampler completion
+        sampler: wait trigger, then get `key` and reset trigger
+        """
 
         if self.rank < 0:
             obj = getattr(self, key)
             self.r.set(key, cloudpickle.dumps(obj))
-            triggers = {key + '_trigger' +
-                        "_{}".format(rank): '1' for rank in range(self.world_size)}
-            self.r.mset(triggers)
-            while True:
-                time.sleep(0.1)
-                values = self.r.mget(triggers)
-                if all([_int(v) == 0 for v in values]):
-                    break
+            trigger = ['{}_trigger_{}'.format(
+                key, rank) for rank in range(self.world_size)]
+            self.wait_trigger_completion(trigger)
         else:
-            while True:
-                time.sleep(0.1)
-                trigger = self.r.get(key + '_trigger' +
-                                     "_{}".format(self.rank))
-                if _int(trigger) == 1:
-                    break
+            trigger = '{}_trigger_{}'.format(key, self.rank)
+            self.wait_trigger(trigger)
             obj = cloudpickle.loads(self.r.get(key))
             setattr(self, key, obj)
-            self.r.set(key + '_trigger' + "_{}".format(self.rank), '0')
+            self.reset_trigger(trigger)
 
     def gather_to_master(self, key):
         """
+        master: wait trigger, then get the value from DB
+        sampler: set `key` to DB, then wait master fetch
+
         This method assume that obj is summable to list.
         """
 
@@ -133,11 +169,8 @@ class DistributedEpiSampler(object):
         else:
             obj = getattr(self, key)
             self.r.set(key + "_{}".format(self.rank), cloudpickle.dumps(obj))
-            self.r.set(key + '_trigger' + "_{}".format(self.rank), '1')
-            while True:
-                time.sleep(0.1)
-                if _int(self.r.get(key + '_trigger' + "_{}".format(self.rank))) == 0:
-                    break
+            trigger = '{}_trigger_{}'.format(key, self.rank)
+            self.wait_trigger_completion(trigger)
 
     def sample(self, pol, max_epis=None, max_steps=None, deterministic=False):
         """
