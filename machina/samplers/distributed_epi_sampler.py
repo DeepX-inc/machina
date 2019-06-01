@@ -40,6 +40,12 @@ class DistributedEpiSampler(object):
 
         self.r = get_redis()
 
+        if rank == 0:
+            # reset DB
+            keys = self.r.keys(pattern="*_trigger_*")
+            if keys:
+                self.r.delete(*keys)
+
         if rank < 0:
             self.env = env
             self.pol = pol
