@@ -31,7 +31,7 @@ class DistributedEpiSampler(object):
     seed : int
     """
 
-    def __init__(self, world_size, rank=-1, env=None, pol=None, num_parallel=8, prepro=None, seed=256):
+    def __init__(self, world_size, rank=-1, env=None, pol=None, num_parallel=8, prepro=None, seed=256, flush_db=False):
         if rank < 0:
             assert env is not None and pol is not None
 
@@ -40,7 +40,7 @@ class DistributedEpiSampler(object):
 
         self.r = get_redis()
 
-        if rank == 0:
+        if flush_db:
             # reset DB
             keys = self.r.keys(pattern="*_trigger_*")
             if keys:
@@ -197,9 +197,10 @@ if __name__ == '__main__':
     parser.add_argument('--rank', type=int)
     parser.add_argument('--redis_host', type=str, default='localhost')
     parser.add_argument('--redis_port', type=str, default='6379')
+    parser.add_argument('--flush_db', action="store_true")
     args = parser.parse_args()
 
     make_redis(args.redis_host, args.redis_port)
 
     sampler = DistributedEpiSampler(
-        args.world_size, args.rank)
+        args.world_size, args.rank, flush_db=args.flush_db)
