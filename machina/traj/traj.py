@@ -59,6 +59,12 @@ class Traj(object):
     def num_epi(self):
         return len(self._epis_index) - 1
 
+    def to(self, device):
+        """Perform data_map tensor type conversion
+        """
+        for key in self.data_map:
+            self.data_map[key] = self.data_map[key].to(device)
+
     def copy(self, traj):
         self.data_map = traj.data_map
         self._next_id = traj._next_id
