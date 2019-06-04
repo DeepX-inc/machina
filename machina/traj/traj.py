@@ -83,14 +83,14 @@ class Traj(object):
             for key in data_map:
                 if remain_index is not None:
                     self.data_map[key] = torch.cat(
-                        [self.data_map[key][self._epis_index[remain_index]:], data_map[key]], dim=0)
+                        [self.data_map[key][self._epis_index[remain_index]:], data_map[key].to(self.traj_device())], dim=0)
                 else:
                     self.data_map[key] = torch.cat(
-                        [self.data_map[key], data_map[key]], dim=0)
+                        [self.data_map[key], data_map[key].to(self.traj_device())], dim=0)
         else:
             self.data_map = dict()
             for key in data_map:
-                self.data_map[key] = data_map[key]
+                self.data_map[key] = data_map[key].to(self.traj_device())
 
     def register_epis(self):
         epis = self.current_epis
@@ -99,12 +99,12 @@ class Traj(object):
         for key in keys:
             if isinstance(epis[0][key], list) or isinstance(epis[0][key], np.ndarray):
                 data_map[key] = torch.tensor(np.concatenate(
-                    [epi[key] for epi in epis], axis=0), dtype=torch.float, device="cpu")
+                    [epi[key] for epi in epis], axis=0), dtype=torch.float, device=self.traj_device())
             elif isinstance(epis[0][key], dict):
                 new_keys = epis[0][key].keys()
                 for new_key in new_keys:
                     data_map[new_key] = torch.tensor(np.concatenate(
-                        [epi[key][new_key] for epi in epis], axis=0), dtype=torch.float, device="cpu")
+                        [epi[key][new_key] for epi in epis], axis=0), dtype=torch.float, device=self.traj_device())
 
         self._concat_data_map(data_map)
 
