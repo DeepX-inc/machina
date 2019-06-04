@@ -52,12 +52,13 @@ def cpu_mode():
 
 
 @contextlib.contextmanager
-def measure(name):
+def measure(name, log_enable=True):
     import time
     s = time.time()
     yield
     e = time.time()
-    logger.log("{}: {:.4f}sec".format(name, e-s))
+    if log_enable:
+        logger.log("{}: {:.4f}sec".format(name, e - s))
 
 
 def detach_tensor_dict(d):
