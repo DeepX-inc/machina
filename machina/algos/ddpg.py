@@ -14,7 +14,8 @@ def train(traj,
           pol, targ_pol, qf, targ_qf,
           optim_pol, optim_qf,
           epoch, batch_size,  # optimization hypers
-          tau, gamma  # advantage estimation
+          tau, gamma,  # advantage estimation
+          log_enable=True,
           ):
     """
     Train function for deep deterministic policy gradient
@@ -43,6 +44,8 @@ def train(traj,
         Target updating rate.
     gamma : float
         Discounting rate.
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -52,7 +55,8 @@ def train(traj,
 
     pol_losses = []
     qf_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     for batch in traj.random_batch(batch_size, epoch):
         qf_bellman_loss = lf.bellman(qf, targ_qf, targ_pol, batch, gamma)
         optim_qf.zero_grad()
@@ -71,6 +75,7 @@ def train(traj,
 
         qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
         pol_losses.append(pol_loss.detach().cpu().numpy())
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return {'PolLoss': pol_losses, 'QfLoss': qf_losses}

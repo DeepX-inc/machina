@@ -14,7 +14,7 @@ def calc_rewards(obskill, num_skill, discrim):
     ob = obskill[:, :-num_skill]
     skill = obskill[:, -num_skill:]
     logit, info = discrim(ob)
-    logqz = torch.sum(torch.log(torch.softmax(logit, dim=1))*skill, dim=1)
+    logqz = torch.sum(torch.log(torch.softmax(logit, dim=1)) * skill, dim=1)
     logpz = -torch.log(torch.tensor(num_skill, dtype=torch.float))
     return logqz - logpz, info
 
@@ -24,7 +24,8 @@ def train(traj,
           optim_pol, optim_qfs, optim_alpha,
           epoch, batch_size,  # optimization hypers
           tau, gamma, sampling, discrim,
-          num_skill, reparam=True
+          num_skill, reparam=True,
+          log_enable=True,
           ):
     """
     Train function for soft actor critic.
@@ -67,6 +68,8 @@ def train(traj,
         The dimention of discrim_f output.
     num_skill : int
         The number of skills.
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -77,7 +80,8 @@ def train(traj,
     pol_losses = []
     _qf_losses = []
     alpha_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     for batch in traj.random_batch(batch_size, epoch):
         with torch.no_grad():
             rews, info = calc_rewards(batch['obs'], num_skill, discrim)
@@ -108,7 +112,8 @@ def train(traj,
             (sum(qf_losses) / len(qf_losses)).detach().cpu().numpy())
         alpha_losses.append(alpha_loss.detach().cpu().numpy())
 
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(
         PolLoss=pol_losses,

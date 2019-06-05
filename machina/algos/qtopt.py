@@ -12,7 +12,8 @@ def train(traj,
           optim_qf,
           epoch, batch_size,  # optimization hypers
           tau=0.9999, gamma=0.9,  # advantage estimation
-          loss_type='mse'
+          loss_type='mse',
+          log_enable=True,
           ):
     """
     Train function for qtopt
@@ -41,6 +42,9 @@ def train(traj,
         Discounting rate.
     loss_type : string
         Type of belleman loss.
+    log_enable: bool
+        If True, enable logging
+
     Returns
     -------
     result_dict : dict
@@ -48,7 +52,8 @@ def train(traj,
     """
 
     qf_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
 
     iterator = traj.random_batch(batch_size, epoch)
     for batch in iterator:
@@ -65,5 +70,6 @@ def train(traj,
             targ_q2.detach().copy_((1 - tau) * targ_q2.detach() + tau * lagged_q.detach())
 
         qf_losses.append(qf_bellman_loss.detach().cpu().numpy())
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
     return {'QfLoss': qf_losses}

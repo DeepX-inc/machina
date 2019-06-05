@@ -21,7 +21,7 @@ def update_dm(dm, optim_dm, batch, target='next_obs', td=True):
     return dm_loss.detach().cpu().numpy()
 
 
-def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_obs', td=True, num_epi_per_seq=1):
+def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_obs', td=True, num_epi_per_seq=1, log_enable=True):
     """
     Train function for dynamics model.
 
@@ -43,6 +43,8 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_o
         If True, dyn_model learn temporal differance of target.
     num_epi_per_seq : int
         Number of episodes in one sequence for rnn.
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -51,7 +53,8 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_o
     """
 
     dm_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
 
     batch_size = min(batch_size, traj.num_epi)
     if dyn_model.rnn:
@@ -64,6 +67,7 @@ def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_o
         dm_loss = update_dm(
             dyn_model, optim_dm, batch, target=target, td=td)
         dm_losses.append(dm_loss)
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(DynModelLoss=dm_losses)
