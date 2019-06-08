@@ -50,6 +50,9 @@ class Traj(object):
         if ddp:
             self.rank = dist.get_rank()
             self.world_size = dist.get_world_size()
+        else:
+            self.rank = 0
+            self.world_size = 1
 
     @property
     def num_step(self):
