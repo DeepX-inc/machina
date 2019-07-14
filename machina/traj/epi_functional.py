@@ -191,7 +191,7 @@ def compute_hyperbolically_disc_rets(data, k):
     Computing hyperbolically discounted returns
     See the Paper called "General non-linear Bellman equations"
     https://arxiv.org/abs/1907.03687
-    
+
     Parameters
     ----------
     data : Traj or epis(dict of ndarray)
@@ -223,7 +223,7 @@ def compute_exponentially_disc_rets(data, gamma, k, r):
     Computing exponentially discounted return
     See the Paper called "General non-linear Bellman equations"
     https://arxiv.org/abs/1907.03687
-    
+
     Parameters
     ----------
     data : Traj or epis(dict of ndarray)
@@ -239,9 +239,9 @@ def compute_exponentially_disc_rets(data, gamma, k, r):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    
+
     eta = -(math.log(gamma)/k)
-    
+
     if isinstance(data, Traj):
         epis = data.current_epis
     else:
@@ -252,7 +252,8 @@ def compute_exponentially_disc_rets(data, gamma, k, r):
         rets = np.empty(len(rews), dtype=np.float32)
         last_ret = 0
         for t in reversed(range(len(rews))):
-            rets[t] = last_ret = r*math.exp(eta*(rews[t]/r - 1)) + gamma*last_ret
+            rets[t] = last_ret = r * \
+                math.exp(eta*(rews[t]/r - 1)) + gamma*last_ret
         epi['rets'] = rets
     return data
 
