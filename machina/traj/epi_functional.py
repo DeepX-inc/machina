@@ -3,6 +3,7 @@ These are functions which is applied to episodes.
 """
 
 import numpy as np
+import math
 import copy
 import torch
 import torch.nn.functional as F
@@ -182,7 +183,77 @@ def compute_rets(data, gamma):
         for t in reversed(range(len(rews))):
             rets[t] = last_rew = rews[t] + gamma * last_rew
         epi['rets'] = rets
+    return data
 
+
+def compute_hyperbolically_disc_rets(data, k):
+    """
+    Computing hyperbolically discounted returns
+    See the Paper called "General non-linear Bellman equations"
+    https://arxiv.org/abs/1907.03687
+    
+    Parameters
+    ----------
+    data : Traj or epis(dict of ndarray)
+    k: float greater than 0
+        Discount parameter
+
+    Returns
+    -------
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
+    """
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
+    for epi in epis:
+        rews = epi['rews']
+        rets = np.empty(len(rews), dtype=np.float32)
+        last_ret = 0
+        for t in reversed(range(len(rews))):
+            rets[t] = last_ret = rews[t]/(1+t*k) + last_ret
+        epi['rets'] = rets
+    return data
+
+
+def compute_exponentially_disc_rets(data, gamma, k, r):
+    """
+    Computing exponentially discounted return
+    See the Paper called "General non-linear Bellman equations"
+    https://arxiv.org/abs/1907.03687
+    
+    Parameters
+    ----------
+    data : Traj or epis(dict of ndarray)
+    gamma : float
+        Discount rate
+    k: float greater than 0
+        Hyperbolic discount rate
+    r: float
+        Referene reward, cannot be set to 0
+
+    Returns
+    -------
+    data : Traj or epi(dict of ndarray)
+        Corresponding to input
+    """
+    
+    eta = -(math.log(gamma)/k)
+    
+    if isinstance(data, Traj):
+        epis = data.current_epis
+    else:
+        epis = data
+
+    for epi in epis:
+        rews = epi['rews']
+        rets = np.empty(len(rews), dtype=np.float32)
+        last_ret = 0
+        for t in reversed(range(len(rews))):
+            rets[t] = last_ret = r*math.exp(eta*(rews[t]/r - 1)) + gamma*last_ret
+        epi['rets'] = rets
     return data
 
 
