@@ -17,9 +17,9 @@ from machina.utils import cpu_mode
 LARGE_NUMBER = 100000000
 
 
-@ray.remote(num_cpus=1)
 class Worker(object):
-    def __init__(self, env, seed, worker_id, prepro=None):
+    def __init__(self, pol, env, seed, worker_id, prepro=None):
+        self.set_pol(pol)
         self.env = env
         self.worker_id = worker_id
         np.random.seed(seed + worker_id)
@@ -32,6 +32,12 @@ class Worker(object):
 
     def set_pol(self, pol):
         self.pol = pol
+        self.pol.eval()
+        self.pol.dp_run = False
+
+    @classmethod
+    def as_remote(cls):
+        return ray.remote(cls)
 
     def one_epi(self, deterministic=False):
         with cpu_mode():
@@ -78,7 +84,7 @@ class Worker(object):
                     break
                 o = next_o
 
-            return self.worker_id, epi_length, dict(
+            return epi_length, dict(
                 obs=np.array(obs, dtype='float32'),
                 acs=np.array(acs, dtype='float32'),
                 rews=np.array(rews, dtype='float32'),
@@ -104,21 +110,23 @@ class EpiSampler(object):
     seed : int
     """
 
-    def __init__(self, env, num_parallel=8, prepro=None, seed=256):
-        self.env = env
-        self.num_parallel = num_parallel
+    def __init__(self, pol, env, num_parallel=8, prepro=None, seed=256):
+        pol = copy.deepcopy(pol)
+        pol.to('cpu')
 
-        self.n_steps_global = 0
-        self.max_steps = 0
-        self.n_epis_global = 0
-        self.max_epis = 0
+        pol = ray.put(pol)
+        env = ray.put(env)
 
-        env = ray.put(self.env)
-
-        self.workers = [Worker.remote(env, seed, i, prepro)
+        self.workers = [Worker.as_remote().remote(pol, env, seed, i, prepro)
                         for i in range(num_parallel)]
 
-    def sample(self, pol, max_epis=None, max_steps=None, deterministic=False):
+    def set_pol(self, pol):
+        if not isinstance(pol, ray.ObjectID):
+            pol = ray.put(pol)
+        for w in self.workers:
+            w.set_pol.remote(pol)
+
+    def sample(self, max_epis=None, max_steps=None, deterministic=False):
         """
         Switch on sampling processes.
 
@@ -144,12 +152,6 @@ class EpiSampler(object):
             If max_steps and max_epis are botch None.
         """
 
-        pol = copy.deepcopy(pol)
-        pol.eval()
-        pol = ray.put(pol)
-        for w in self.workers:
-            w.set_pol.remote(pol)
-
         if max_epis is None and max_steps is None:
             raise ValueError(
                 'Either max_epis or max_steps needs not to be None')
@@ -157,28 +159,20 @@ class EpiSampler(object):
         max_steps = max_steps if max_steps is not None else LARGE_NUMBER
 
         epis = []
-        n_steps_global = 0
-        n_epis_global = 0
+        n_steps = 0
+        n_epis = 0
 
-        worker_ids = [i for i in range(len(self.workers))]
-        epi_remain = []
+        pending = {w.one_epi.remote(deterministic): w for w in self.workers}
 
-        while max_steps > n_steps_global and max_epis > n_epis_global:
-            epi_remain += [self.workers[i].one_epi.remote(
-                deterministic) for i in worker_ids]
-            worker_ids = []
-
-            epi_done, epi_remain = ray.wait(epi_remain)
-            for (worker_id, l, epi) in ray.get(epi_done):
-                n_steps_global += l
-                n_epis_global += 1
+        while pending:
+            ready, _ = ray.wait(list(pending))
+            for obj_id in ready:
+                worker = pending.pop(obj_id)
+                (l, epi) = ray.get(obj_id)
                 epis.append(epi)
-                worker_ids.append(worker_id)
-
-        epi_done = ray.get(epi_remain)
-        for (_, l, epi) in epi_done:
-            n_steps_global += l
-            n_epis_global += 1
-            epis.append(epi)
+                n_steps += l
+                n_epis += 1
+                if n_steps < max_steps and n_epis < max_epis:
+                    pending[worker.one_epi.remote(deterministic)] = worker
 
         return epis
