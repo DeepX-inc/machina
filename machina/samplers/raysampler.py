@@ -35,6 +35,15 @@ class Worker(object):
         self.pol.eval()
         self.pol.dp_run = False
 
+    def set_pol_state(self, state_dict):
+        from collections import OrderedDict
+        new_state_dict = OrderedDict()
+        for k, v in state_dict.items():
+            if k.find("dp_net") == -1:
+                new_state_dict[k] = v
+        self.pol.load_state_dict(new_state_dict)
+        self.pol.eval()
+
     @classmethod
     def as_remote(cls):
         return ray.remote(cls)
@@ -125,6 +134,12 @@ class EpiSampler(object):
             pol = ray.put(pol)
         for w in self.workers:
             w.set_pol.remote(pol)
+
+    def set_pol_state(self, state_dict):
+        if not isinstance(state_dict, ray.ObjectID):
+            state_dict = ray.put(state_dict)
+        for w in self.workers:
+            w.set_pol_state.remote(state_dict)
 
     def sample(self, max_epis=None, max_steps=None, deterministic=False):
         """
