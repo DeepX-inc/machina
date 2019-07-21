@@ -18,10 +18,6 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
     action_space : gym.Space
     net : torch.nn.Module
     rnn : bool
-    data_parallel : bool
-        If True, network computation is executed in parallel.
-    parallel_dim : int
-        Splitted dimension in data parallel.
     num_sampling : int
         Number of samples sampled from Gaussian in CEM.
     num_best_sampling : int
@@ -32,10 +28,9 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         Coefficient used for making covariance matrix positive definite.
     """
 
-    def __init__(self, observation_space, action_space, net, rnn=False, data_parallel=False, parallel_dim=0, num_sampling=64,
+    def __init__(self, observation_space, action_space, net, rnn=False, num_sampling=64,
                  num_best_sampling=6, num_iter=2, multivari=True, delta=1e-4, save_memory=False):
-        super().__init__(observation_space, action_space,
-                         net, rnn, data_parallel, parallel_dim)
+        super().__init__(observation_space, action_space, net, rnn)
         self.num_sampling = num_sampling
         self.delta = delta
         self.num_best_sampling = num_best_sampling
@@ -112,7 +107,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
         max_q : torch.Tensor
         max_ac : torch.Tensor
         """
-        for i in range(self.num_iter+1):
+        for i in range(self.num_iter + 1):
             with torch.no_grad():
                 qvals, _ = self.forward(obs, samples)
             if i != self.num_iter:
@@ -120,7 +115,7 @@ class CEMDeterministicSAVfunc(DeterministicSAVfunc):
                 _, indices = torch.sort(qvals, dim=1, descending=True)
                 best_indices = indices[:, :self.num_best_sampling]
                 best_indices = best_indices + \
-                    torch.arange(0, self.num_sampling*self.cem_batch_size,
+                    torch.arange(0, self.num_sampling * self.cem_batch_size,
                                  self.num_sampling, device=get_device()).reshape((self.cem_batch_size, 1))
                 best_indices = best_indices.reshape(
                     (self.num_best_sampling * self.cem_batch_size,))

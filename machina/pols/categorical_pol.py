@@ -22,16 +22,11 @@ class CategoricalPol(BasePol):
     normalize_ac : bool
         If True, the output of network is spreaded for action_space.
         In this situation the output of network is expected to be in -1~1.
-    data_parallel : bool or str
-        If True, network computation is executed in parallel.
-        If data_parallel is ddp, network computation is executed in distributed parallel.
-    parallel_dim : int
-        Splitted dimension in data parallel.
     """
 
-    def __init__(self, observation_space, action_space, net, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0):
-        BasePol.__init__(self, observation_space, action_space, net, rnn,
-                         normalize_ac, data_parallel, parallel_dim)
+    def __init__(self, observation_space, action_space, net, rnn=False, normalize_ac=True):
+        BasePol.__init__(self, observation_space,
+                         action_space, net, rnn, normalize_ac)
         self.pd = CategoricalPd()
         self.to(get_device())
 
@@ -44,25 +39,16 @@ class CategoricalPol(BasePol):
             if hs is None:
                 if self.hs is None:
                     self.hs = self.net.init_hs(batch_size)
-                if self.dp_run:
-                    self.hs = (self.hs[0].unsqueeze(
-                        0), self.hs[1].unsqueeze(0))
                 hs = self.hs
 
             if h_masks is None:
                 h_masks = hs[0].new(time_seq, batch_size, 1).zero_()
             h_masks = h_masks.reshape(time_seq, batch_size, 1)
 
-            if self.dp_run:
-                pi, hs = self.dp_net(obs, hs, h_masks)
-            else:
-                pi, hs = self.net(obs, hs, h_masks)
+            pi, hs = self.net(obs, hs, h_masks)
             self.hs = hs
         else:
-            if self.dp_run:
-                pi = self.dp_net(obs)
-            else:
-                pi = self.net(obs)
+            pi = self.net(obs)
         ac = self.pd.sample(dict(pi=pi))
         ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
         return ac_real, ac, dict(pi=pi, hs=hs)
