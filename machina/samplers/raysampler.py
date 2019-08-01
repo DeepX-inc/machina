@@ -45,8 +45,8 @@ class Worker(object):
         self.pol.eval()
 
     @classmethod
-    def as_remote(cls):
-        return ray.remote(cls)
+    def as_remote(cls, resources={}):
+        return ray.remote(resources=resources)(cls)
 
     def one_epi(self, deterministic=False):
         with cpu_mode():
@@ -117,17 +117,37 @@ class EpiSampler(object):
         Number of processes
     prepro : Prepro
     seed : int
+    node_info: dict
+        This is used to control worker scheduling using ray custom resources.
+        (See https://ray.readthedocs.io/en/latest/resources.html#custom-resources).
+        To use this feature, ray nodes must start with some custom resources.
+        For example, start ray `ray start --head --resources='{"node1": 100}' on
+        node 1 and `ray start --redis-address <addr> --resources='{"node2": 100}'`
+        on node 2. If node_info is {"node1": 10, "node2": 10}, then
+        10 workers require resources "node1" and 10 workers requires resource "node2".
+        As a result, 10 workers scheduled on node 1 and 10 workers on node 2.
+        Default (empty node_info) is using ray scheduling policy.
     """
 
-    def __init__(self, pol, env, num_parallel=8, prepro=None, seed=256):
+    def __init__(self, pol, env, num_parallel=8, prepro=None, seed=256,
+                 node_info={}):
         pol = copy.deepcopy(pol)
         pol.to('cpu')
 
         pol = ray.put(pol)
         env = ray.put(env)
 
-        self.workers = [Worker.as_remote().remote(pol, env, seed, i, prepro)
-                        for i in range(num_parallel)]
+        resources = []
+        for k, v in node_info.items():
+            for _ in range(v):
+                resources.append({k: 1})
+        assert len(resources) <= num_parallel
+        if len(resources) < num_parallel:
+            for _ in range(num_parallel - len(resources)):
+                resources.append({})
+
+        self.workers = [Worker.as_remote(resources=r).remote(pol, env, seed, i, prepro)
+                        for i, r in zip(range(num_parallel), resources)]
 
     def set_pol(self, pol):
         if not isinstance(pol, ray.ObjectID):
