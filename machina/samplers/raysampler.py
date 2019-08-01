@@ -187,7 +187,7 @@ class EpiSampler(object):
                 epis.append(epi)
                 n_steps += l
                 n_epis += 1
-                if n_steps < max_steps and n_epis < max_epis:
+                if n_steps < max_steps and (n_epis + len(pending)) < max_epis:
                     pending[worker.one_epi.remote(deterministic)] = worker
 
         return epis
