@@ -1,11 +1,41 @@
 """
-Sampler using ray
+Sampler using ray (https://github.com/ray-project/ray)
+This is easy way to launch multiple sampling processes in a cluster.
+Every sampling process only use CPU.
+
+How to use:
+    1. Install ray by `pip install ray`
+    2. Start ray
+        (a). For a single machine, call `ray.init()` at the beginning of program.
+        (b). For multiple machines, use `ray` command to start ray on each machine.
+             For example, run `ray start --head --redis-port 12379 --node-ip-address 192.168.10.1`
+             on master node and `ray start --redis-address 192.168.10.1:12389` on other nodes.
+             Then call `ray.init(redis_address="192.168.10.1:12379")` at the
+             beginning of program.
+    3. Use machina.samplers.raysampler.Episampler
+    ```
+        from machina.samplers.raysampler import EpiSampler
+        sampler = EpiSampler(pol, env, num_sample_workers, seed)
+        sampler.set_pol_state(pol_state)
+        epis = sampler.sample(max_epis=10000)
+    ```
+
+NOTE:
+    - To control scheduling of processes, use `node_info` (see below comment)
+    - For AWS and GCP, there is easy way to setup cluster
+      (https://ray.readthedocs.io/en/latest/autoscaling.html)
+    - For more information about ray, see https://ray.readthedocs.io/en/latest/
 """
+
+try:
+    import ray
+except ImportError:
+    print("ray not available. run `pip install ray`")
+    raise
 
 import copy
 import time
 
-import ray
 import gym
 import numpy as np
 import torch
@@ -33,14 +63,12 @@ class Worker(object):
     def set_pol(self, pol):
         self.pol = pol
         self.pol.eval()
-        self.pol.dp_run = False
 
     def set_pol_state(self, state_dict):
         from collections import OrderedDict
         new_state_dict = OrderedDict()
         for k, v in state_dict.items():
-            if k.find("dp_net") == -1:
-                new_state_dict[k] = v
+            new_state_dict[k] = v
         self.pol.load_state_dict(new_state_dict)
         self.pol.eval()
 
@@ -49,7 +77,8 @@ class Worker(object):
         # It seems ray actor requires num_cpus=1 implicitly when requiring
         # other resources.  If we try to create more ray actor with custom
         # resources than available CPUs, some actor will wait a CPU forever.
-        # Set num_cpus=0 to avoid this.
+        # Set num_cpus=0 to avoid this. (It is recommended to create actors
+        # less than or equal to the available CPUs, of course).
         # See https://github.com/ray-project/ray/issues/2318
         return ray.remote(num_cpus=0, resources=resources)(cls)
 
