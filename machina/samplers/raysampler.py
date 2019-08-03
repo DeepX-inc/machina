@@ -45,8 +45,13 @@ class Worker(object):
         self.pol.eval()
 
     @classmethod
-    def as_remote(cls, resources={}):
-        return ray.remote(resources=resources)(cls)
+    def as_remote(cls, resources=None):
+        # It seems ray actor requires num_cpus=1 implicitly when requiring
+        # other resources.  If we try to create more ray actor with custom
+        # resources than available CPUs, some actor will wait a CPU forever.
+        # Set num_cpus=0 to avoid this.
+        # See https://github.com/ray-project/ray/issues/2318
+        return ray.remote(num_cpus=0, resources=resources)(cls)
 
     def one_epi(self, deterministic=False):
         with cpu_mode():
@@ -144,7 +149,7 @@ class EpiSampler(object):
         assert len(resources) <= num_parallel
         if len(resources) < num_parallel:
             for _ in range(num_parallel - len(resources)):
-                resources.append({})
+                resources.append(None)
 
         self.workers = [Worker.as_remote(resources=r).remote(pol, env, seed, i, prepro)
                         for i, r in zip(range(num_parallel), resources)]
