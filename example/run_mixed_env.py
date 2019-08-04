@@ -47,6 +47,9 @@ parser.add_argument('--max_epis_per_iter', type=int,
                     default=1024, help='Number of episodes in an iteration.')
 parser.add_argument('--epoch_per_iter', type=int, default=10,
                     help='Number of epoch in an iteration')
+parser.add_argument('--batch_size', type=int, default=256)
+parser.add_argument('--rnn', action='store_true',
+                    default=False, help='If True, network is reccurent.')
 parser.add_argument('--rnn_batch_size', type=int, default=8,
                     help='Number of sequences included in batch of rnn.')
 parser.add_argument('--pol_lr', type=float, default=3e-4,
@@ -108,16 +111,22 @@ assert env1.action_space.shape == env2.action_space.shape
 observation_space = env1.observation_space
 action_space = env1.action_space
 
-pol_net = PolNetLSTM(observation_space, action_space, h_size=args.h_size,
-                     cell_size=args.cell_size)
+if args.rnn:
+    pol_net = PolNetLSTM(observation_space, action_space, h_size=args.h_size,
+                         cell_size=args.cell_size)
+else:
+    pol_net = PolNet(observation_space, action_space)
 
 pol = MultiCategoricalPol(observation_space, action_space, pol_net,
-                          True, data_parallel=args.data_parallel, parallel_dim=1)
+                          args.rnn, data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
-vf_net = VNetLSTM(observation_space, h_size=args.h_size,
-                  cell_size=args.cell_size)
-vf = DeterministicSVfunc(observation_space, vf_net, True,
-                         data_parallel=args.data_parallel, parallel_dim=1)
+if args.rnn:
+    vf_net = VNetLSTM(observation_space, h_size=args.h_size,
+                      cell_size=args.cell_size)
+else:
+    vf_net = VNet(observation_space)
+vf = DeterministicSVfunc(observation_space, vf_net, args.rnn,
+                         data_parallel=args.data_parallel, parallel_dim=1 if args.rnn else 0)
 
 sampler1 = EpiSampler(
     env1, pol, num_parallel=args.num_parallel, seed=args.seed)
@@ -201,4 +210,5 @@ while args.max_epis > total_epi:
         args.log, 'models', 'optim_vf_last.pkl'))
     del traj1
     del traj2
-del sampler
+del sampler1
+del sampler2
