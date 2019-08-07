@@ -5,10 +5,12 @@ import unittest
 
 import numpy as np
 import psutil
+import ray
 
 from machina.traj import Traj
 from machina.envs import GymEnv
 from machina.samplers import EpiSampler, DistributedEpiSampler
+from machina.samplers.raysampler import EpiSampler as RaySampler
 from machina.pols.random_pol import RandomPol
 from machina.utils import make_redis
 
@@ -40,6 +42,13 @@ class TestTraj(unittest.TestCase):
         children = psutil.Process(os.getpid()).children(recursive=True)
         for child in children:
             child.send_signal(SIGTERM)
+
+    def test_ray_sampler(self):
+        ray.init(num_cpus=1)
+        sampler = RaySampler(self.env, self.pol, num_parallel=1)
+        epis = sampler.sample(max_epis=2)
+        ray.shutdown()
+        assert len(epis) >= 2
 
 
 if __name__ == '__main__':
