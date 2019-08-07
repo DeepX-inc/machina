@@ -163,7 +163,7 @@ class EpiSampler(object):
         Default (empty node_info) is using ray scheduling policy.
     """
 
-    def __init__(self, pol, env, num_parallel=8, prepro=None, seed=256,
+    def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256,
                  node_info={}):
         pol = copy.deepcopy(pol)
         pol.to('cpu')
