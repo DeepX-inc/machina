@@ -71,3 +71,19 @@ def detach_tensor_dict(d):
             continue
         _d[key] = d[key].detach()
     return _d
+
+
+def wrap_ddp(cls):
+    """Return wrapper class for the torch.DDP and apex. Delegete getattr to the
+    inner module.
+    """
+    class _Wrap(cls):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+        def __getattr__(self, name):
+            wrapped_module = super().__getattr__('module')
+            if hasattr(wrapped_module, name):
+                return getattr(wrapped_module, name)
+            return super().__getattr__(name)
+    return _Wrap
