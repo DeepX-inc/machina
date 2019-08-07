@@ -168,8 +168,8 @@ while args.max_epis > total_epi:
 
         result_dict2 = sac.train(
             off_traj,
-            pol, qf, targ_qf, log_alpha,
-            optim_pol, optim_qf, optim_alpha,
+            pol, [qf], [targ_qf], log_alpha,
+            optim_pol, [optim_qf], optim_alpha,
             100, args.batch_size,
             args.tau, args.gamma, args.sampling,
         )
