@@ -1,5 +1,5 @@
 """
-An example of Proximal Policy Gradient.
+An example of DistributedEpiSampler
 """
 
 import argparse
@@ -43,7 +43,6 @@ parser.add_argument('--max_epis', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--ddp', type=str, default='ddp')
 
 ####################  Steps  ##########################################################################################################################
 # 1. Launch redis server via `redis-server`.                                                                                                          #
@@ -136,14 +135,12 @@ if args.rnn:
 else:
     pol_net = PolNet(observation_space, action_space)
 if isinstance(action_space, gym.spaces.Box):
-    pol = GaussianPol(observation_space, action_space, pol_net, args.rnn,
-                      data_parallel=args.ddp, parallel_dim=1 if args.rnn else 0)
+    pol = GaussianPol(observation_space, action_space, pol_net, args.rnn)
 elif isinstance(action_space, gym.spaces.Discrete):
-    pol = CategoricalPol(observation_space, action_space, pol_net, args.rnn,
-                         data_parallel=args.ddp, parallel_dim=1 if args.rnn else 0)
+    pol = CategoricalPol(observation_space, action_space, pol_net, args.rnn)
 elif isinstance(action_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(observation_space, action_space, pol_net, args.rnn,
-                              data_parallel=args.ddp, parallel_dim=1 if args.rnn else 0)
+    pol = MultiCategoricalPol(
+        observation_space, action_space, pol_net, args.rnn)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
@@ -151,8 +148,7 @@ if args.rnn:
     vf_net = VNetLSTM(observation_space, h_size=256, cell_size=256)
 else:
     vf_net = VNet(observation_space)
-vf = DeterministicSVfunc(observation_space, vf_net, args.rnn,
-                         data_parallel=args.ddp, parallel_dim=1 if args.rnn else 0)
+vf = DeterministicSVfunc(observation_space, vf_net, args.rnn)
 
 if dist.get_rank() == 0:
     sampler = DistributedEpiSampler(
@@ -170,7 +166,7 @@ while args.max_epis > total_epi:
         if dist.get_rank() == 0:
             epis = sampler.sample(pol, max_steps=args.max_steps_per_iter)
     with measure('train'):
-        traj = Traj(ddp=True)
+        traj = Traj()
         if dist.get_rank() == 0:
             traj.add_epis(epis)
 
@@ -182,10 +178,6 @@ while args.max_epis > total_epi:
             traj.register_epis()
         traj = tf.sync(traj)
 
-        if args.ddp == 'ddp':
-            pol.dp_run = True
-            vf.dp_run = True
-
         if args.ppo_type == 'clip':
             result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=args.clip_param,
                                          optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
@@ -193,10 +185,6 @@ while args.max_epis > total_epi:
             result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
                                        optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
-
-        if args.ddp == 'ddp':
-            pol.dp_run = False
-            vf.dp_run = False
 
     total_epi += traj.num_epi
     step = traj.num_step

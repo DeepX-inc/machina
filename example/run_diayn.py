@@ -33,8 +33,6 @@ parser.add_argument('--log', type=str, default='garbage',
 parser.add_argument('--env_name', type=str,
                     default='ReacherBulletEnv-v0', help='Name of environment.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--data_parallel', action='store_true', default=False,
-                    help='If True, inference is done in parallel on gpus.')
 parser.add_argument('--seed', type=int, default=256)
 parser.add_argument('--max_episodes', type=int, default=1e8,
                     help='Number of episodes to run.')
@@ -99,24 +97,19 @@ set_device(device)
 
 # policy
 pol_net = PolNet(ob_skill_space, action_space)
-pol = GaussianPol(ob_skill_space, action_space, pol_net,
-                  data_parallel=args.data_parallel, parallel_dim=0)
+pol = GaussianPol(ob_skill_space, action_space, pol_net)
 
 # q-function
 qf_net1 = QNet(ob_skill_space, action_space)
-qf1 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net1,
-                           data_parallel=args.data_parallel, parallel_dim=0)
+qf1 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net1)
 targ_qf_net1 = QNet(ob_skill_space, action_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
-targ_qf1 = DeterministicSAVfunc(
-    ob_skill_space, action_space, targ_qf_net1, data_parallel=args.data_parallel, parallel_dim=0)
+targ_qf1 = DeterministicSAVfunc(ob_skill_space, action_space, targ_qf_net1)
 qf_net2 = QNet(ob_skill_space, action_space)
-qf2 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net2,
-                           data_parallel=args.data_parallel, parallel_dim=0)
+qf2 = DeterministicSAVfunc(ob_skill_space, action_space, qf_net2)
 targ_qf_net2 = QNet(ob_skill_space, action_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
-targ_qf2 = DeterministicSAVfunc(
-    ob_skill_space, action_space, targ_qf_net2, data_parallel=args.data_parallel, parallel_dim=0)
+targ_qf2 = DeterministicSAVfunc(ob_skill_space, action_space, targ_qf_net2)
 qfs = [qf1, qf2]
 targ_qfs = [targ_qf1, targ_qf2]
 
@@ -127,8 +120,7 @@ f_space = gym.spaces.Box(-high, high, dtype=np.float32)
 discrim_net = DiaynDiscrimNet(
     f_space, skill_space, h_size=args.discrim_h_size, discrim_f=discrim_f).to(device)
 
-discrim = DeterministicSVfunc(
-    f_space, discrim_net, rnn=False, data_parallel=False, parallel_dim=0)
+discrim = DeterministicSVfunc(f_space, discrim_net, rnn=False)
 
 
 # set optimizer to both models
@@ -145,10 +137,11 @@ sampler = EpiSampler(
     env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
 if not os.path.exists(args.log):
-    os.mkdir(args.log)
-    os.mkdir(args.log+'/models')
+    os.makedirs(args.log)
+    os.makedirs(args.log+'/models')
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 

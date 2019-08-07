@@ -50,14 +50,14 @@ parser.add_argument('--gamma', type=float, default=0.99)
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
-    os.mkdir(args.log)
+    os.makedirs(args.log)
 
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
 pprint(vars(args))
 
 if not os.path.exists(os.path.join(args.log, 'models')):
-    os.mkdir(os.path.join(args.log, 'models'))
+    os.makedirs(os.path.join(args.log, 'models'))
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
@@ -68,6 +68,7 @@ set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
