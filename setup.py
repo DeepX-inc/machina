@@ -17,10 +17,10 @@ install_requires = [
     'cloudpickle',
     'redis',
     'gym>=0.10.5',
-    'numpy>=1.13.3',
+    'numpy>=1.14',
     'terminaltables',
     'pandas',
-    'ray[debug]',
+    'ray[debug]==0.7.2',
 ]
 
 setup(
