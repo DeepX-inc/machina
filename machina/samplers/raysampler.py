@@ -201,7 +201,6 @@ class EpiSampler(object):
 
         Parameters
         ----------
-        pol : Pol
         max_epis : int or None
             maximum episodes of episodes.
             If None, this value is ignored.
