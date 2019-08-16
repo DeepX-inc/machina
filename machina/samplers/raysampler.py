@@ -167,7 +167,8 @@ class EpiSampler(object):
     def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256,
                  node_info={}):
         if not ray.is_initialized():
-            logger.log("Ray is not initialized. Initialize ray with no GPU resources")
+            logger.log(
+                "Ray is not initialized. Initialize ray with no GPU resources")
             init_ray()
 
         pol = copy.deepcopy(pol)
