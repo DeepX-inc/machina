@@ -92,6 +92,10 @@ def state_dict_to_cpu(state_dict):
     return state_dict
 
 
+def get_cpu_state_dict(module):
+    return state_dict_to_cpu(copy.deepcopy(module.state_dict()))
+
+
 def wrap_ddp(cls):
     """Return wrapper class for the torch.DDP and apex. Delegete getattr to the
     inner module.

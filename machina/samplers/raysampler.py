@@ -41,7 +41,7 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 
-from machina.utils import cpu_mode, init_ray
+from machina.utils import cpu_mode, init_ray, get_cpu_state_dict
 from machina import logger
 
 
@@ -66,12 +66,7 @@ class Worker(object):
         self.pol.eval()
 
     def set_pol_state(self, state_dict):
-        from collections import OrderedDict
-        new_state_dict = OrderedDict()
-        for k, v in state_dict.items():
-            new_state_dict[k] = v
-        self.pol.load_state_dict(new_state_dict)
-        self.pol.eval()
+        self.pol.load_state_dict(state_dict)
 
     @classmethod
     def as_remote(cls, resources=None):
@@ -201,12 +196,15 @@ class EpiSampler(object):
         for w in self.workers:
             w.set_pol_state.remote(state_dict)
 
-    def sample(self, max_epis=None, max_steps=None, deterministic=False):
+    def sample(self, pol=None, max_epis=None, max_steps=None, deterministic=False):
         """
         Switch on sampling processes.
 
         Parameters
         ----------
+        pol: Pol
+            This argument is for consistency with EpiSampler and DistributedEpiSampler.
+            Using `set_pol_state()` is preferably.
         max_epis : int or None
             maximum episodes of episodes.
             If None, this value is ignored.
@@ -225,6 +223,9 @@ class EpiSampler(object):
         ValueError
             If max_steps and max_epis are botch None.
         """
+
+        if pol is not None:
+            self.set_pol_state(get_cpu_state_dict(pol))
 
         if max_epis is None and max_steps is None:
             raise ValueError(
