@@ -71,7 +71,7 @@ from machina.traj import epi_functional as ef
 from machina.traj import traj_functional as tf
 from machina.samplers.raysampler import EpiSampler
 from machina import logger
-from machina.utils import measure, set_device, wrap_ddp
+from machina.utils import measure, set_device, wrap_ddp, init_ray
 
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
@@ -328,13 +328,7 @@ class Agent:
 
 
 def main(args):
-    if args.ray_redis_address is not None:
-        ray.init(redis_address=args.ray_redis_address)
-    else:
-        if args.num_gpus is None:
-            args.num_gpus = torch.cuda.device_count()
-        ray.init(num_gpus=args.num_gpus, num_cpus=args.num_cpus)
-
+    init_ray(args.num_cpus, args.num_gpus, args.ray_redis_address)
     cluster_resources = ray.cluster_resources()
     print(f"Ray cluster resources: {cluster_resources}")
     assert args.num_trainer <= cluster_resources['GPU']

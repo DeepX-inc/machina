@@ -87,3 +87,21 @@ def wrap_ddp(cls):
                 return getattr(wrapped_module, name)
             return super().__getattr__(name)
     return _Wrap
+
+
+def init_ray(num_cpus=None, num_gpus=None, ray_redis_address=None):
+    """Initialize ray. If `ray_redis_address` is given, use the address to
+    connect existing ray cluster. Otherwise start ray locally.
+    """
+    import ray
+    if ray_redis_address is not None:
+        ray.init(redis_address=ray_redis_address)
+    else:
+        if num_gpus is None:
+            num_gpus = torch.cuda.device_count()
+        ray.init(num_gpus=num_gpus, num_cpus=num_cpus)
+
+    # XXX: Currently, ray (pyarrow) does not serialize `requires_grad`
+    # attribute. As a workaround, use custom serializer.
+    # See https://github.com/ray-project/ray/issues/4855
+    ray.register_custom_serializer(torch.nn.Module, use_pickle=True)

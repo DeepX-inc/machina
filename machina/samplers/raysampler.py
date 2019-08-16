@@ -41,7 +41,8 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 
-from machina.utils import cpu_mode
+from machina.utils import cpu_mode, init_ray
+from machina import logger
 
 
 LARGE_NUMBER = 100000000
@@ -165,6 +166,10 @@ class EpiSampler(object):
 
     def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256,
                  node_info={}):
+        if not ray.is_initialized():
+            logger.log("Ray is not initialized. Initialize ray with no GPU resources")
+            init_ray()
+
         pol = copy.deepcopy(pol)
         pol.to('cpu')
 
