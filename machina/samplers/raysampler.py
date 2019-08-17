@@ -33,8 +33,10 @@ except ImportError:
     print("ray not available. run `pip install ray`")
     raise
 
+from abc import ABC, abstractmethod
 import copy
 import time
+from typing import Tuple
 
 import gym
 import numpy as np
@@ -48,7 +50,7 @@ from machina import logger
 LARGE_NUMBER = 100000000
 
 
-class Worker(object):
+class BaseSampleWorker(ABC):
     def __init__(self, pol, env, seed, worker_id, prepro=None):
         self.set_pol(pol)
         self.env = env
@@ -77,6 +79,23 @@ class Worker(object):
         # less than or equal to the available CPUs, of course).
         # See https://github.com/ray-project/ray/issues/2318
         return ray.remote(num_cpus=0, resources=resources)(cls)
+
+    @abstractmethod
+    def one_epi(self) -> Tuple[int, dict]:
+        """
+        Returns
+        -------
+        epi_length : int
+            length of the episode (number of steps)
+        episode : dict
+            dict containing episode. e.g., `{"obs": [...], "rews": [...], ...}`
+        """
+
+
+class DefaultSampleWorker(BaseSampleWorker):
+    def __init__(self, pol, env, seed, worker_id, prepro=None):
+        super(DefaultSampleWorker, self).__init__(
+            pol, env, seed, worker_id, prepro)
 
     def one_epi(self, deterministic=False):
         with cpu_mode():
@@ -147,6 +166,9 @@ class EpiSampler(object):
         Number of processes
     prepro : Prepro
     seed : int
+    worker_cls: SampleWorker
+        Worker class used for sampling.
+        If not specified, use DefaultSampleWorker.
     node_info: dict
         This is used to control worker scheduling using ray custom resources.
         (See https://ray.readthedocs.io/en/latest/resources.html#custom-resources).
@@ -160,7 +182,7 @@ class EpiSampler(object):
     """
 
     def __init__(self, env, pol, num_parallel=8, prepro=None, seed=256,
-                 node_info={}):
+                 worker_cls=None, node_info={}):
         if not ray.is_initialized():
             logger.log(
                 "Ray is not initialized. Initialize ray with no GPU resources")
@@ -181,7 +203,10 @@ class EpiSampler(object):
             for _ in range(num_parallel - len(resources)):
                 resources.append(None)
 
-        self.workers = [Worker.as_remote(resources=r).remote(pol, env, seed, i, prepro)
+        if worker_cls is None:
+            worker_cls = DefaultSampleWorker
+
+        self.workers = [worker_cls.as_remote(resources=r).remote(pol, env, seed, i, prepro)
                         for i, r in zip(range(num_parallel), resources)]
 
     def set_pol(self, pol):
