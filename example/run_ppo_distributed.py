@@ -107,7 +107,7 @@ class Trainer(DistributedRayTrainerBase):
                                                               args.use_apex, args.apex_opt_level,
                                                               args.apex_keep_batchnorm_fp32, args.apex_sync_bn,
                                                               args.apex_loss_scale)
-        self.ddp_vf, self.optim_vf = make_model_distributed(self.vf, self.optim_pol,
+        self.ddp_vf, self.optim_vf = make_model_distributed(self.vf, self.optim_vf,
                                                             args.use_apex, args.apex_opt_level,
                                                             args.apex_keep_batchnorm_fp32, args.apex_sync_bn,
                                                             args.apex_loss_scale)
