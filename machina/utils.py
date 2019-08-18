@@ -160,7 +160,7 @@ def init_ray(num_cpus=None, num_gpus=None, ray_redis_address=None):
     ray.register_custom_serializer(torch.nn.Module, use_pickle=True)
 
 
-class DistributedRayTrainerBase(object):
+class BaseDistributedRayTrainer(object):
     """Base class for multi-GPU trainings using ray
     """
     @classmethod

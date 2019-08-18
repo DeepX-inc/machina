@@ -1,10 +1,9 @@
 """
-An example of distributed training
-You can do
-  1) Multi-GPU trainig (using torch.DDP)
-  2) Multi-CPU parallel sampling (using ray)
+Distributed (multi-GPU) training example (ray + DDP version).
 
-This script use ray for distributed computations.
+This script use ray to manage all processes. No need to use
+torch.distributed.launch to start this program.
+
 For a single node, this script automatically sets up ray.
 To use multi nodes, first you need to set up ray cluster.
 For example, run `ray start --head --redis-port 58300 --node-ip-address 192.168.10.1`
@@ -13,11 +12,11 @@ For more information see https://ray.readthedocs.io/en/latest/using-ray-on-a-clu
 
 Example:
 - single node, 1 trainer (1GPU), 8 samplers:
-    - python run_ppo_distributed.py --trainer 1 --num_sample_workers 8
+    - python run_ppo_distributed.py --trainer 1 --num_parallel 8
 - single node, 2 trainer (2GPU), 8 samplers:
-    - python run_ppo_distributed.py --trainer 2 --num_sample_workers 8
+    - python run_ppo_distributed.py --trainer 2 --num_parallel 8
 - multi node, 1 trainer (1GPU), 20 samplers:
-    - python run_ppo_distributed.py --trainer 1 --num_sample_workers 20 --ray_redis_address <ray_cluster_addr>
+    - python run_ppo_distributed.py --trainer 1 --num_parallel 20 --ray_redis_address <ray_cluster_addr>
 
 Program overview:
 
@@ -35,13 +34,6 @@ Program overview:
 |  |    |                       |
 |  |<---|                       |
 |-------------------------------|
-
-NOTE:
-- Use ray for launching processes and distributed epi sampling
-- Ray launches worker processes of EpiSampler and Trainer
-- Use torch.DDP for distributed GPU training
-- Use 1GPU per trainer
-- Use CPUs for epi sampling (no GPU is used)
 """
 
 import argparse
@@ -71,13 +63,13 @@ from machina.traj import epi_functional as ef
 from machina.traj import traj_functional as tf
 from machina.samplers.raysampler import EpiSampler
 from machina import logger
-from machina.utils import measure, set_device, wrap_ddp, init_ray
-from machina.utils import make_model_distributed, DistributedRayTrainerBase, TrainManager
+from machina.utils import measure, init_ray
+from machina.utils import make_model_distributed, BaseDistributedRayTrainer, TrainManager
 
 from simple_net import PolNet, VNet, PolNetLSTM, VNetLSTM
 
 
-class Trainer(DistributedRayTrainerBase):
+class Trainer(BaseDistributedRayTrainer):
     """GPU distributed trainer using torch.DDP
       NOTE:
        - Internally this has two type of networks, one is the original and the other is ddp version,
@@ -179,7 +171,7 @@ def main(args):
     trainer = TrainManager(Trainer, args.num_trainer, args.master_address,
                            args=args, vf=vf, pol=pol)
     sampler = EpiSampler(env, pol,
-                         args.num_sample_workers, seed=args.seed)
+                         args.num_parallel, seed=args.seed)
 
     total_epi = 0
     total_step = 0
@@ -248,14 +240,8 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=256)
     parser.add_argument('--max_epis', type=int,
                         default=1000000, help='Number of episodes to run.')
-    parser.add_argument('--num_sample_workers', type=int, default=4,
+    parser.add_argument('--num_parallel', type=int, default=4,
                         help='Number of processes to sample.')
-    parser.add_argument('--num_envs', type=int, default=1,
-                        help='number of envs per sample worker')
-    parser.add_argument('--num_batch_epi', type=int, default=1,
-                        help='number of episodes to sample at a time')
-    parser.add_argument('--cuda', type=int, default=-
-                        1, help='cuda device number.')
 
     parser.add_argument('--max_steps_per_iter', type=int, default=100000,
                         help='Number of steps to use in an iteration.')
@@ -278,20 +264,32 @@ if __name__ == "__main__":
                         help='Tradeoff value of bias variance.')
 
     # DDP option
-    parser.add_argument('--backend', type=str, default='nccl')
+    parser.add_argument('--backend', type=str, default='nccl',
+                        choises=['nccl', 'gloo', 'mpi'],
+                        help='backend of torch.distributed.')
     parser.add_argument('--master_address', type=str,
-                        default='tcp://127.0.0.1:12389')
-    parser.add_argument('--use_apex', action="store_true")
-    parser.add_argument('--apex_opt_level', type=str, default="O0")
-    parser.add_argument('--apex_keep_batchnorm_fp32', type=bool, default=None)
-    parser.add_argument('--apex_loss_scale', type=float, default=None)
-    parser.add_argument('--apex_sync_bn', action="store_true")
+                        default='tcp://127.0.0.1:12389',
+                        help='address that belongs to the rank 0 process.')
+    parser.add_argument('--use_apex', action="store_true",
+                        help='if True, use nvidia/apex insatead of torch.DDP.')
+    parser.add_argument('--apex_opt_level', type=str, default="O0",
+                        help='apex option. optimization level.')
+    parser.add_argument('--apex_keep_batchnorm_fp32', type=bool, default=None,
+                        help='apex option. keep batch norm weights in fp32.')
+    parser.add_argument('--apex_loss_scale', type=float, default=None,
+                        help='apex option. loss scale.')
+    parser.add_argument('--apex_sync_bn', action="store_true",
+                        help='apex option. sync batch norm statistics.')
 
     # Ray option
-    parser.add_argument('--ray_redis_address', type=str, default=None)
-    parser.add_argument('--num_gpus', type=int, default=None)
-    parser.add_argument('--num_cpus', type=int, default=None)
-    parser.add_argument('--num_trainer', type=int, default=1)
+    parser.add_argument('--ray_redis_address', type=str, default=None,
+                        help='Ray cluster\'s address that this programm connect to. If not specified, start ray locally.')
+    parser.add_argument('--num_gpus', type=int, default=None,
+                        help='Number of GPUs that ray manages. Only effective when launching ray locally. default: all GPUs available.')
+    parser.add_argument('--num_cpus', type=int, default=None,
+                        help='Number of CPUs that ray manages. Only effective when launching ray locally. default: all CPUs available.')
+    parser.add_argument('--num_trainer', type=int, default=1,
+                        help='Number of trainers (number of GPUs to train).')
     args = parser.parse_args()
 
     main(args)
