@@ -64,7 +64,7 @@ parser.add_argument('--redis_port', type=str, default="6379",
 parser.add_argument('--local_rank', type=int,
                     help='Local rank of this process. This option is given by torch.distributed.launch.')
 parser.add_argument('--backend', type=str, default='nccl',
-                    choises=['nccl', 'gloo', 'mpi'],
+                    choices=['nccl', 'gloo', 'mpi'],
                     help='backend of torch.distributed.')
 parser.add_argument('--master_address', type=str,
                     default='tcp://127.0.0.1:12389',
@@ -270,3 +270,5 @@ while args.max_epis > total_epi:
         torch.save(optim_vf.state_dict(), os.path.join(
             args.log, 'models', 'optim_vf_last.pkl'))
     del traj
+if rank == 0:
+    del sampler

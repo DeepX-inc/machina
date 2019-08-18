@@ -225,6 +225,8 @@ def main(args):
                 torch.save(optim_vf_state, os.path.join(
                     args.log, 'models', 'optim_vf_max.pkl'))
                 max_rew = mean_rew
+    del sampler
+    del trainer
 
 
 if __name__ == "__main__":
@@ -265,7 +267,7 @@ if __name__ == "__main__":
 
     # DDP option
     parser.add_argument('--backend', type=str, default='nccl',
-                        choises=['nccl', 'gloo', 'mpi'],
+                        choices=['nccl', 'gloo', 'mpi'],
                         help='backend of torch.distributed.')
     parser.add_argument('--master_address', type=str,
                         default='tcp://127.0.0.1:12389',
