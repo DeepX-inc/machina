@@ -91,6 +91,7 @@ set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
@@ -100,24 +101,21 @@ observation_space = env.observation_space
 action_space = env.action_space
 
 pol_net = PolNetLSTM(observation_space, action_space)
-pol = GaussianPol(observation_space, action_space, pol_net, rnn=True,
-                  data_parallel=args.data_parallel, parallel_dim=1)
+pol = GaussianPol(observation_space, action_space, pol_net, rnn=True)
 
 qf_net1 = QNetLSTM(observation_space, action_space)
-qf1 = DeterministicSAVfunc(observation_space, action_space, qf_net1, rnn=True,
-                           data_parallel=args.data_parallel, parallel_dim=1)
+qf1 = DeterministicSAVfunc(observation_space, action_space, qf_net1, rnn=True)
 targ_qf_net1 = QNetLSTM(observation_space, action_space)
 targ_qf_net1.load_state_dict(qf_net1.state_dict())
 targ_qf1 = DeterministicSAVfunc(
-    observation_space, action_space, targ_qf_net1, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
+    observation_space, action_space, targ_qf_net1, rnn=True)
 
 qf_net2 = QNetLSTM(observation_space, action_space)
-qf2 = DeterministicSAVfunc(observation_space, action_space, qf_net2, rnn=True,
-                           data_parallel=args.data_parallel, parallel_dim=1)
+qf2 = DeterministicSAVfunc(observation_space, action_space, qf_net2, rnn=True)
 targ_qf_net2 = QNetLSTM(observation_space, action_space)
 targ_qf_net2.load_state_dict(qf_net2.state_dict())
 targ_qf2 = DeterministicSAVfunc(
-    observation_space, action_space, targ_qf_net2, rnn=True, data_parallel=args.data_parallel, parallel_dim=1)
+    observation_space, action_space, targ_qf_net2, rnn=True)
 
 qfs = [qf1, qf2]
 targ_qfs = [targ_qf1, targ_qf2]
@@ -164,12 +162,6 @@ while args.max_epis > total_epi:
         step = on_traj.num_step
         total_step += step
 
-        if args.data_parallel:
-            pol.dp_run = True
-            for qf, targ_qf in zip(qfs, targ_qfs):
-                qf.dp_run = True
-                targ_qf.dp_run = True
-
         result_dict = r2d2_sac.train(
             off_traj,
             pol, qfs, targ_qfs, log_alpha,
@@ -177,12 +169,6 @@ while args.max_epis > total_epi:
             step//50, args.rnn_batch_size, args.seq_length, args.burn_in_length,
             args.tau, args.gamma, args.sampling, not args.no_reparam
         )
-
-        if args.data_parallel:
-            pol.dp_run = False
-            for qf, targ_qf in zip(qfs, targ_qfs):
-                qf.dp_run = False
-                targ_qf.dp_run = False
 
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)

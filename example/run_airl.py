@@ -43,8 +43,6 @@ parser.add_argument('--max_epis', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--data_parallel', action='store_true', default=False,
-                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis',
                     help='Directory path storing file of expert trajectory.')
@@ -109,14 +107,14 @@ parser.add_argument('--rew_type', type=str,
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
-    os.mkdir(args.log)
+    os.makedirs(args.log)
 
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
 pprint(vars(args))
 
 if not os.path.exists(os.path.join(args.log, 'models')):
-    os.mkdir(os.path.join(args.log, 'models'))
+    os.makedirs(os.path.join(args.log, 'models'))
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
@@ -128,6 +126,7 @@ set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
@@ -141,29 +140,23 @@ action_space = env.action_space
 
 pol_net = PolNet(observation_space, action_space)
 if isinstance(action_space, gym.spaces.Box):
-    pol = GaussianPol(observation_space, action_space, pol_net,
-                      data_parallel=args.data_parallel)
+    pol = GaussianPol(observation_space, action_space, pol_net)
 elif isinstance(action_space, gym.spaces.Discrete):
-    pol = CategoricalPol(observation_space, action_space, pol_net,
-                         data_parallel=args.data_parallel)
+    pol = CategoricalPol(observation_space, action_space, pol_net)
 elif isinstance(action_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(
-        observation_space, action_space, pol_net, data_parallel=args.data_parallel)
+    pol = MultiCategoricalPol(observation_space, action_space, pol_net)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
 vf_net = VNet(observation_space)
-vf = DeterministicSVfunc(observation_space, vf_net,
-                         data_parallel=args.data_parallel)
+vf = DeterministicSVfunc(observation_space, vf_net)
 
 if args.rew_type == 'rew':
     rewf_net = VNet(observation_space, h1=args.discrim_h1, h2=args.discrim_h2)
-    rewf = DeterministicSVfunc(
-        observation_space, rewf_net, data_parallel=args.data_parallel)
+    rewf = DeterministicSVfunc(observation_space, rewf_net)
     shaping_vf_net = VNet(
         observation_space, h1=args.discrim_h1, h2=args.discrim_h2)
-    shaping_vf = DeterministicSVfunc(
-        observation_space, shaping_vf_net, data_parallel=args.data_parallel)
+    shaping_vf = DeterministicSVfunc(observation_space, shaping_vf_net)
     optim_discrim = torch.optim.Adam(
         list(rewf_net.parameters()) + list(shaping_vf_net.parameters()), args.discrim_lr)
     advf = None
@@ -171,7 +164,7 @@ elif args.rew_type == 'adv':
     advf_net = DiscrimNet(observation_space, action_space,
                           h1=args.discrim_h1, h2=args.discrim_h2)
     advf = DeterministicSAVfunc(
-        observation_space, action_space, advf_net, data_parallel=args.data_parallel)
+        observation_space, action_space, advf_net)
     optim_discrim = torch.optim.Adam(advf_net.parameters(), args.discrim_lr)
     rewf = None
     shaping_vf = None
@@ -225,15 +218,6 @@ while args.max_epis > total_epi:
         agent_traj = ef.compute_h_masks(agent_traj)
         agent_traj.register_epis()
 
-        if args.data_parallel:
-            pol.dp_run = True
-            vf.dp_run = True
-            if args.rew_type == 'rew':
-                rewf.dp_run = True
-                shaping_vf.dp_run = True
-            elif args.rew_type == 'adv':
-                advf.dp_run = True
-
         if args.rl_type == 'trpo':
             result_dict = airl.train(agent_traj, expert_traj, pol, vf, optim_vf, optim_discrim,
                                      rewf=rewf, shaping_vf=shaping_vf, advf=advf,
@@ -266,15 +250,6 @@ while args.max_epis > total_epi:
                                      optim_pol=optim_pol,
                                      kl_beta=kl_beta, kl_targ=args.kl_targ, max_grad_norm=args.max_grad_norm, gamma=args.gamma)
             kl_beta = result_dict['new_kl_beta']
-
-        if args.data_parallel:
-            pol.dp_run = False
-            vf.dp_run = False
-            if args.rew_type == 'rew':
-                rewf.dp_run = False
-                shaping_vf.dp_run = False
-            elif args.rew_type == 'adv':
-                advf.dp_run = False
 
     total_epi += agent_traj.num_epi
     step = agent_traj.num_step

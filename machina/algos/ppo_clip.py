@@ -80,7 +80,8 @@ def train(traj, pol, vf,
           epoch, batch_size, num_epi_per_seq=1,  # optimization hypers
           clip_param=0.2, ent_beta=1e-3,
           max_grad_norm=0.5,
-          clip_vfunc=False
+          clip_vfunc=False,
+          log_enable=True,
           ):
     """
     Train function for proximal policy optimization (clip).
@@ -111,6 +112,8 @@ def train(traj, pol, vf,
         Maximum gradient norm.
     clip_vfunc: bool
         If True, vfunc is also updated by clipped objective function.
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -120,7 +123,8 @@ def train(traj, pol, vf,
 
     pol_losses = []
     vf_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(
         batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
@@ -131,6 +135,7 @@ def train(traj, pol, vf,
 
         pol_losses.append(pol_loss)
         vf_losses.append(vf_loss)
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses, VfLoss=vf_losses)

@@ -44,8 +44,6 @@ parser.add_argument('--max_steps_off', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--data_parallel', action='store_true', default=False,
-                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=4000,
                     help='Number of steps to use in an iteration.')
@@ -83,14 +81,14 @@ parser.add_argument('--save_memory', action='store_true',
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
-    os.mkdir(args.log)
+    os.makedirs(args.log)
 
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
 pprint(vars(args))
 
 if not os.path.exists(os.path.join(args.log, 'models')):
-    os.mkdir(os.path.join(args.log, 'models'))
+    os.makedirs(os.path.join(args.log, 'models'))
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
@@ -101,6 +99,7 @@ set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
@@ -116,15 +115,14 @@ targ_qf1_net = QNet(observation_space, action_space, args.h1, args.h2)
 targ_qf1_net.load_state_dict(qf_net.state_dict())
 targ_qf2_net = QNet(observation_space, action_space, args.h1, args.h2)
 targ_qf2_net.load_state_dict(lagged_qf_net.state_dict())
-qf = DeterministicSAVfunc(observation_space, action_space, qf_net,
-                          data_parallel=args.data_parallel)
+qf = DeterministicSAVfunc(observation_space, action_space, qf_net)
 lagged_qf = DeterministicSAVfunc(
-    observation_space, action_space, lagged_qf_net, data_parallel=args.data_parallel)
+    observation_space, action_space, lagged_qf_net)
 targ_qf1 = CEMDeterministicSAVfunc(observation_space, action_space, targ_qf1_net, num_sampling=args.num_sampling,
                                    num_best_sampling=args.num_best_sampling, num_iter=args.num_iter,
-                                   multivari=args.multivari, data_parallel=args.data_parallel, save_memory=args.save_memory)
+                                   multivari=args.multivari, save_memory=args.save_memory)
 targ_qf2 = DeterministicSAVfunc(
-    observation_space, action_space, targ_qf2_net, data_parallel=args.data_parallel)
+    observation_space, action_space, targ_qf2_net)
 
 pol = ArgmaxQfPol(observation_space, action_space, targ_qf1, eps=args.eps)
 
@@ -157,23 +155,11 @@ while args.max_epis > total_epi:
         total_step += step
         epoch = step
 
-        if args.data_parallel:
-            qf.dp_run = True
-            lagged_qf.dp_run = True
-            targ_qf1.dp_run = True
-            targ_qf2.dp_run = True
-
         result_dict = qtopt.train(
             off_traj, qf, lagged_qf, targ_qf1, targ_qf2,
             optim_qf, epoch, args.batch_size,
             args.tau, args.gamma, loss_type=args.loss_type
         )
-
-        if args.data_parallel:
-            qf.dp_run = False
-            lagged_qf.dp_run = False
-            targ_qf1.dp_run = False
-            targ_qf2.dp_run = False
 
     total_grad_step += epoch
     if total_grad_step >= args.lag * num_update_lagged:

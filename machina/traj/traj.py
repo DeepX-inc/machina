@@ -50,6 +50,9 @@ class Traj(object):
         if ddp:
             self.rank = dist.get_rank()
             self.world_size = dist.get_world_size()
+        else:
+            self.rank = 0
+            self.world_size = 1
 
     @property
     def num_step(self):
@@ -58,6 +61,12 @@ class Traj(object):
     @property
     def num_epi(self):
         return len(self._epis_index) - 1
+
+    def to(self, device):
+        """Perform data_map tensor type conversion
+        """
+        for key in self.data_map:
+            self.data_map[key] = self.data_map[key].to(device)
 
     def copy(self, traj):
         self.data_map = traj.data_map

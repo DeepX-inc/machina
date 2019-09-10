@@ -32,7 +32,8 @@ def train(traj, pol, vf,
           kl_beta, kl_targ,
           optim_pol, optim_vf,
           epoch, batch_size, max_grad_norm,
-          num_epi_per_seq=1, ent_beta=0  # optimization hypers
+          num_epi_per_seq=1, ent_beta=0,  # optimization hypers
+          log_enable=True,
           ):
     """
     Train function for proximal policy optimization (kl).
@@ -61,6 +62,8 @@ def train(traj, pol, vf,
         Maximum gradient norm.
     num_epi_per_seq : int
         Number of episodes in one sequence for rnn.
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -70,7 +73,8 @@ def train(traj, pol, vf,
 
     pol_losses = []
     vf_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     iterator = traj.iterate(batch_size, epoch) if not pol.rnn else traj.iterate_rnn(
         batch_size=batch_size, num_epi_per_seq=num_epi_per_seq, epoch=epoch)
     for batch in iterator:
@@ -102,6 +106,7 @@ def train(traj, pol, vf,
         new_kl_beta = kl_beta / 1.5
     else:
         new_kl_beta = kl_beta
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses, VfLoss=vf_losses, new_kl_beta=new_kl_beta, kl_mean=kl_mean)

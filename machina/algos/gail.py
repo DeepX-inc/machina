@@ -34,14 +34,16 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
           num_epi_per_seq=1, discrim_step=1,  # optimization hypers
           damping=0.1, max_kl=0.01, num_cg=10,  # trpo hypers
           optim_pol=None,
-          clip_param=0.2, max_grad_norm=0.5, clip_vfunc=False, kl_beta=1, kl_targ=0.01  # ppo hypers
+          clip_param=0.2, max_grad_norm=0.5, clip_vfunc=False, kl_beta=1, kl_targ=0.01,  # ppo hypers
+          log_enable=True,
           ):
 
     pol_losses = []
     vf_losses = []
     discrim_losses = []
 
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     if rl_type == 'trpo':
         iterator = agent_traj.full_batch(1) if not pol.rnn else agent_traj.iterate_rnn(
             batch_size=agent_traj.num_epi)
@@ -116,6 +118,7 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
         discrim_loss = update_discrim(
             discrim, optim_discim, agent_batch, expert_batch, ent_beta=discrim_ent_beta)
         discrim_losses.append(discrim_loss)
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses, VfLoss=vf_losses, DiscrimLoss=discrim_losses, new_kl_beta=new_kl_beta, kl_mean=kl_mean)

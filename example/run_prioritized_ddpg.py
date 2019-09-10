@@ -46,8 +46,6 @@ parser.add_argument('--max_steps_off', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--data_parallel', action='store_true', default=False,
-                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000,
                     help='Number of steps to use in an iteration.')
@@ -68,14 +66,14 @@ parser.add_argument('--gamma', type=float, default=0.995,
 args = parser.parse_args()
 
 if not os.path.exists(args.log):
-    os.mkdir(args.log)
+    os.makedirs(args.log)
 
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
 pprint(vars(args))
 
 if not os.path.exists(os.path.join(args.log, 'models')):
-    os.mkdir(os.path.join(args.log, 'models'))
+    os.makedirs(os.path.join(args.log, 'models'))
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
@@ -86,6 +84,7 @@ set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
@@ -98,23 +97,21 @@ pol_net = PolNet(observation_space, action_space,
                  args.h1, args.h2, deterministic=True)
 noise = OUActionNoise(action_space)
 pol = DeterministicActionNoisePol(
-    observation_space, action_space, pol_net, noise, data_parallel=args.data_parallel)
+    observation_space, action_space, pol_net, noise)
 
 targ_pol_net = PolNet(observation_space, action_space,
                       args.h1, args.h2, deterministic=True)
 targ_pol_net.load_state_dict(pol_net.state_dict())
 targ_noise = OUActionNoise(action_space)
 targ_pol = DeterministicActionNoisePol(
-    observation_space, action_space, targ_pol_net, targ_noise, data_parallel=args.data_parallel)
+    observation_space, action_space, targ_pol_net, targ_noise)
 
 qf_net = QNet(observation_space, action_space, args.h1, args.h2)
-qf = DeterministicSAVfunc(observation_space, action_space, qf_net,
-                          data_parallel=args.data_parallel)
+qf = DeterministicSAVfunc(observation_space, action_space, qf_net)
 
 targ_qf_net = QNet(observation_space, action_space, args.h1, args.h2)
 targ_qf_net.load_state_dict(targ_qf_net.state_dict())
-targ_qf = DeterministicSAVfunc(
-    observation_space, action_space, targ_qf_net, data_parallel=args.data_parallel)
+targ_qf = DeterministicSAVfunc(observation_space, action_space, targ_qf_net)
 
 sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
@@ -145,24 +142,12 @@ while args.max_epis > total_epi:
         step = on_traj.num_step
         total_step += step
 
-        if args.data_parallel:
-            pol.dp_run = True
-            targ_pol.dp_run = True
-            qf.dp_run = True
-            targ_qf.dp_run = True
-
         result_dict = prioritized_ddpg.train(
             off_traj,
             pol, targ_pol, qf, targ_qf,
             optim_pol, optim_qf, step, args.batch_size,
             args.tau, args.gamma
         )
-
-        if args.data_parallel:
-            pol.dp_run = False
-            targ_pol.dp_run = False
-            qf.dp_run = False
-            targ_qf.dp_run = False
 
     rewards = [np.sum(epi['rews']) for epi in epis]
     mean_rew = np.mean(rewards)

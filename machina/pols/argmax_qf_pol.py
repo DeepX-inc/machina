@@ -21,18 +21,13 @@ class ArgmaxQfPol(BasePol):
     normalize_ac : bool
         If True, the output of network is spreaded for action_space.
         In this situation the output of network is expected to be in -1~1.
-    data_parallel : bool
-        If True, network computation is executed in parallel.
-        This value must be False in this policy. ArgmaxQfPol doesn't support data_parallel
-    parallel_dim : int
-        Splitted dimension in data parallel.
     eps : float
         Probability of random action
     """
 
-    def __init__(self, observation_space, action_space, qfunc, rnn=False, normalize_ac=True, data_parallel=False, parallel_dim=0, eps=0.2):
-        BasePol.__init__(self, observation_space, action_space, None, rnn,
-                         normalize_ac, data_parallel, parallel_dim)
+    def __init__(self, observation_space, action_space, qfunc, rnn=False, normalize_ac=True, eps=0.2):
+        BasePol.__init__(self, observation_space,
+                         action_space, None, rnn, normalize_ac)
         self.qfunc = qfunc
         self.eps = eps
         self.a_i_shape = (1, )

@@ -15,12 +15,14 @@ def train(traj,
           pol, targ_pol, qf, targ_qf,
           optim_pol, optim_qf,
           epoch, batch_size,  # optimization hypers
-          tau, gamma
+          tau, gamma,
+          log_enable=True,
           ):
 
     pol_losses = []
     qf_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     for batch, indices in traj.prioritized_random_batch(batch_size, epoch, return_indices=True):
         qf_bellman_loss = lf.bellman(
             qf, targ_qf, targ_pol, batch, gamma, reduction='none')
@@ -44,6 +46,7 @@ def train(traj,
         pol_losses.append(pol_loss.detach().cpu().numpy())
 
         traj = tf.update_pris(traj, td_loss, indices)
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return {'PolLoss': pol_losses, 'QfLoss': qf_losses}

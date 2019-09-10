@@ -29,6 +29,7 @@ def train(traj, pol, vf,
           optim_pol, optim_vf,
           epoch, batch_size,  # optimization hypers
           large_batch,
+          log_enable=True,
           ):
     """
     Train function for vanila policy gradient.
@@ -51,6 +52,8 @@ def train(traj, pol, vf,
         Number of batches.
     larget_batch : bool
         If True, batch is provided as whole trajectory.
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -59,7 +62,8 @@ def train(traj, pol, vf,
     """
     pol_losses = []
     vf_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     if large_batch:
         for batch in traj.full_batch(epoch):
             pol_loss = update_pol(pol, optim_pol, batch)
@@ -74,6 +78,7 @@ def train(traj, pol, vf,
 
             pol_losses.append(pol_loss)
             vf_losses.append(vf_loss)
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses, VfLoss=vf_losses)

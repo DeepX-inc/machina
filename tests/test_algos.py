@@ -691,15 +691,15 @@ class TestMPC(unittest.TestCase):
             acs = acs * std_acs + mean_acs
             # Pendulum
             rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
-                     0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+                     0.1 * (next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
             rews = rews.squeeze(0)
 
             return rews
 
         # init models
         dm_net = ModelNet(self.env.observation_space, self.env.action_space)
-        dm = DeterministicSModel(self.env.observation_space, self.env.action_space, dm_net, rnn=False,
-                                 data_parallel=False, parallel_dim=0)
+        dm = DeterministicSModel(
+            self.env.observation_space, self.env.action_space, dm_net, rnn=False)
 
         mpc_pol = MPCPol(self.env.observation_space, self.env.action_space,
                          dm_net, rew_func, 1, 1)
@@ -729,15 +729,15 @@ class TestMPC(unittest.TestCase):
             acs = acs * std_acs + mean_acs
             # Pendulum
             rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
-                     0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+                     0.1 * (next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
             rews = rews.squeeze(0)
 
             return rews
         # init models
         dm_net = ModelNetLSTM(self.env.observation_space,
                               self.env.action_space)
-        dm = DeterministicSModel(self.env.observation_space, self.env.action_space, dm_net, rnn=True,
-                                 data_parallel=False, parallel_dim=0)
+        dm = DeterministicSModel(
+            self.env.observation_space, self.env.action_space, dm_net, rnn=True)
 
         mpc_pol = MPCPol(self.env.observation_space, self.env.action_space, dm_net, rew_func,
                          1, 1, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=True)
@@ -818,9 +818,9 @@ class TestR2D2SAC(unittest.TestCase):
         traj = ef.compute_h_masks(traj)
         for i in range(len(qfs)):
             traj = ef.compute_hs(
-                traj, qfs[i], hs_name='q_hs'+str(i), input_acs=True)
+                traj, qfs[i], hs_name='q_hs' + str(i), input_acs=True)
             traj = ef.compute_hs(
-                traj, targ_qfs[i], hs_name='targ_q_hs'+str(i), input_acs=True)
+                traj, targ_qfs[i], hs_name='targ_q_hs' + str(i), input_acs=True)
         traj.register_epis()
 
         result_dict = r2d2_sac.train(
@@ -866,7 +866,7 @@ class TestDIAYN(unittest.TestCase):
         targ_qfs = [targ_qf1, targ_qf2]
         log_alpha = nn.Parameter(torch.ones(()))
 
-        high = np.array([np.finfo(np.float32).max]*f_dim)
+        high = np.array([np.finfo(np.float32).max] * f_dim)
         f_space = gym.spaces.Box(-high, high, dtype=np.float32)
         discrim_net = DiaynDiscrimNet(
             f_space, skill_space, h_size=100, discrim_f=discrim_f)
@@ -892,7 +892,7 @@ class TestDIAYN(unittest.TestCase):
         on_traj.register_epis()
         off_traj.add_traj(on_traj)
         step = on_traj.num_step
-        log_alpha = nn.Parameter(np.log(0.1)*torch.ones(()))  # fix alpha
+        log_alpha = nn.Parameter(np.log(0.1) * torch.ones(()))  # fix alpha
         result_dict = diayn_sac.train(
             off_traj, pol, qfs, targ_qfs, log_alpha,
             optim_pol, optim_qfs, optim_alpha,

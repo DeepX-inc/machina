@@ -13,3 +13,4 @@ docs/_build/
 *.csv
 docs/source/modules.rst
 docs/.doctrees
+example/log

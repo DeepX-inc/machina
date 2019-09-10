@@ -39,8 +39,6 @@ parser.add_argument('--max_epis', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--data_parallel', action='store_true', default=False,
-                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--expert_dir', type=str, default='../data/expert_epis')
 parser.add_argument('--expert_fname', type=str,
@@ -75,20 +73,21 @@ device = torch.device(device_name)
 set_device(device)
 
 if not os.path.exists(args.log):
-    os.mkdir(args.log)
+    os.makedirs(args.log)
 
 with open(os.path.join(args.log, 'args.json'), 'w') as f:
     json.dump(vars(args), f)
 pprint(vars(args))
 
 if not os.path.exists(os.path.join(args.log, 'models')):
-    os.mkdir(os.path.join(args.log, 'models'))
+    os.makedirs(os.path.join(args.log, 'models'))
 
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
@@ -101,14 +100,11 @@ action_space = env.action_space
 
 pol_net = PolNet(observation_space, action_space)
 if isinstance(action_space, gym.spaces.Box):
-    pol = GaussianPol(observation_space, action_space, pol_net,
-                      data_parallel=args.data_parallel)
+    pol = GaussianPol(observation_space, action_space, pol_net)
 elif isinstance(action_space, gym.spaces.Discrete):
-    pol = CategoricalPol(observation_space, action_space, pol_net,
-                         data_parallel=args.data_parallel)
+    pol = CategoricalPol(observation_space, action_space, pol_net)
 elif isinstance(action_space, gym.spaces.MultiDiscrete):
-    pol = MultiCategoricalPol(
-        observation_space, action_space, pol_net, data_parallel=args.data_parallel)
+    pol = MultiCategoricalPol(observation_space, action_space, pol_net)
 else:
     raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
@@ -133,17 +129,11 @@ logger.log('num_train_epi={}'.format(train_traj.num_epi))
 max_rew = -1e6
 
 for curr_epoch in range(args.epoch):
-    if args.data_parallel:
-        pol.dp_run = True
-
     result_dict = behavior_clone.train(
         train_traj, pol, optim_pol,
         args.batch_size
     )
     test_result_dict = behavior_clone.test(test_traj, pol)
-
-    if args.data_parallel:
-        pol.dp_run = False
 
     for key in test_result_dict.keys():
         result_dict[key] = test_result_dict[key]

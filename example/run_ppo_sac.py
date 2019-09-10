@@ -45,8 +45,6 @@ parser.add_argument('--max_steps_off', type=int,
 parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
-parser.add_argument('--data_parallel', action='store_true', default=False,
-                    help='If True, inference is done in parallel on gpus.')
 
 parser.add_argument('--max_steps_per_iter', type=int, default=10000,
                     help='Number of steps to use in an iteration.')
@@ -97,6 +95,7 @@ set_device(device)
 
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
+logger.add_tensorboard_output(args.log)
 
 env = GymEnv(args.env_name, log_dir=os.path.join(
     args.log, 'movie'), record_video=args.record)
@@ -106,20 +105,16 @@ observation_space = env.observation_space
 action_space = env.action_space
 
 pol_net = PolNet(observation_space, action_space)
-pol = GaussianPol(observation_space, action_space, pol_net,
-                  data_parallel=args.data_parallel, parallel_dim=0)
+pol = GaussianPol(observation_space, action_space, pol_net)
 
 vf_net = VNet(observation_space)
-vf = DeterministicSVfunc(
-    observation_space, vf_net, data_parallel=args.data_parallel, parallel_dim=0)
+vf = DeterministicSVfunc(observation_space, vf_net)
 
 qf_net = QNet(observation_space, action_space)
-qf = DeterministicSAVfunc(observation_space, action_space, qf_net,
-                          data_parallel=args.data_parallel, parallel_dim=0)
+qf = DeterministicSAVfunc(observation_space, action_space, qf_net)
 targ_qf_net = QNet(observation_space, action_space)
 targ_qf_net.load_state_dict(qf_net.state_dict())
-targ_qf = DeterministicSAVfunc(
-    observation_space, action_space, targ_qf_net, data_parallel=args.data_parallel, parallel_dim=0)
+targ_qf = DeterministicSAVfunc(observation_space, action_space, targ_qf_net)
 
 log_alpha = nn.Parameter(torch.zeros((), device=device))
 
@@ -152,11 +147,6 @@ while args.max_epis > total_epi:
         on_traj = ef.compute_h_masks(on_traj)
         on_traj.register_epis()
 
-        if args.data_parallel:
-            pol.dp_run = True
-            vf.dp_run = True
-            qf.dp_run = True
-
         result_dict1 = ppo_clip.train(traj=on_traj, pol=pol, vf=vf, clip_param=args.clip_param,
                                       optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
 
@@ -173,11 +163,6 @@ while args.max_epis > total_epi:
             100, args.batch_size,
             args.tau, args.gamma, args.sampling,
         )
-
-        if args.data_parallel:
-            pol.dp_run = False
-            vf.dp_run = False
-            qf.dp_run = False
 
     result_dict1.update(result_dict2)
 

@@ -16,6 +16,7 @@ def train(traj,
           optim_pol, optim_qfs, optim_alpha,
           epoch, batch_size, seq_length, burn_in_length,  # optimization hypers
           tau, gamma, sampling, reparam=True,
+          log_enable=True,
           ):
     """
     Train function for soft actor critic.
@@ -53,6 +54,8 @@ def train(traj,
     sampling : int
         Number of samping in calculating expectation.
     reparam : bool
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -63,7 +66,8 @@ def train(traj,
     pol_losses = []
     _qf_losses = []
     alpha_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     for batch, start_indices in traj.prioritized_random_batch_rnn(batch_size, seq_length, epoch, return_indices=True):
         batch, pol_loss, qf_losses, alpha_loss, td_losses = lf.r2d2_sac(
             pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling, burn_in_length, reparam)
@@ -98,7 +102,8 @@ def train(traj,
             traj = tf.update_pris(
                 traj, td_losses[:, i], seq_indices, update_epi_pris=True, seq_length=seq_length)
 
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(
         PolLoss=pol_losses,

@@ -195,7 +195,7 @@ Or you can install machina from source code.
 ```
 git clone https://github.com/DeepX-inc/machina
 cd machina
-python setup.py install
+pip install .
 ```
 
 ## Quick Start

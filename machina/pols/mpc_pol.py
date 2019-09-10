@@ -34,18 +34,12 @@ class MPCPol(BasePol):
     normalize_ac : bool
         If True, the output of network is spreaded for action_space.
         In this situation the output of network is expected to be in -1~1.
-    data_parallel : bool
-        If True, network computation is executed in parallel.
-        This value must be False in this policy. MPCPol doesn't support data_parallel
-    parallel_dim : int
-        Splitted dimension in data parallel.
     """
 
     def __init__(self, observation_space, action_space, net, rew_func, n_samples=1000, horizon=20,
-                 mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=False,
-                 normalize_ac=True, data_parallel=False, parallel_dim=0):
-        BasePol.__init__(self, observation_space, action_space, net, rnn=rnn, normalize_ac=normalize_ac,
-                         data_parallel=data_parallel, parallel_dim=parallel_dim)
+                 mean_obs=0., std_obs=1., mean_acs=0., std_acs=1., rnn=False, normalize_ac=True):
+        BasePol.__init__(self, observation_space, action_space,
+                         net, rnn=rnn, normalize_ac=normalize_ac)
         self.rew_func = rew_func
         self.n_samples = n_samples
         self.horizon = horizon
@@ -70,7 +64,7 @@ class MPCPol(BasePol):
         normalized_acs = (sample_acs - self.mean_acs) / self.std_acs
 
         # forward simulate the action sequences to get predicted trajectories
-        obs = torch.zeros((self.horizon+1, self.n_samples,
+        obs = torch.zeros((self.horizon + 1, self.n_samples,
                            self.observation_space.shape[0]), dtype=torch.float)
         rews_sum = torch.zeros(
             (self.n_samples), dtype=torch.float)
@@ -95,10 +89,10 @@ class MPCPol(BasePol):
                 if self.rnn:
                     d_ob, hs = self.net(obs[i].unsqueeze(
                         0), ac.unsqueeze(0), hs, h_masks)
-                    obs[i+1] = obs[i] + d_ob
+                    obs[i + 1] = obs[i] + d_ob
                 else:
-                    obs[i+1] = obs[i] + self.net(obs[i], ac)
-                rews_sum += self.rew_func(obs[i+1], sample_acs[i],
+                    obs[i + 1] = obs[i] + self.net(obs[i], ac)
+                rews_sum += self.rew_func(obs[i + 1], sample_acs[i],
                                           self.mean_obs, self.std_obs)
 
         best_sample_index = rews_sum.max(0)[1]
@@ -118,5 +112,5 @@ class MPCPol(BasePol):
         """
         action for deployment
         """
-        mean_read, mean, dic = self.forward(obs)
+        mean_real, mean, dic = self.forward(obs)
         return mean_real, mean, dic

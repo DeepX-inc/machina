@@ -129,7 +129,8 @@ def update_vf(vf, optim_vf, batch):
 def train(traj, pol, vf,
           optim_vf,
           epoch=5, batch_size=64, num_epi_per_seq=1,  # optimization hypers
-          max_kl=0.01, num_cg=10, damping=0.1, ent_beta=0
+          max_kl=0.01, num_cg=10, damping=0.1, ent_beta=0,
+          log_enable=True,
           ):
     """
     Train function for trust region policy optimization.
@@ -156,6 +157,8 @@ def train(traj, pol, vf,
         Number of iteration in conjugate gradient computation.
     damping : float
         Damping parameter for Hessian Vector Product.
+    log_enable: bool
+        If True, enable logging
 
     Returns
     -------
@@ -165,7 +168,8 @@ def train(traj, pol, vf,
 
     pol_losses = []
     vf_losses = []
-    logger.log("Optimizing...")
+    if log_enable:
+        logger.log("Optimizing...")
     iterator = traj.full_batch(1) if not pol.rnn else traj.iterate_rnn(
         batch_size=traj.num_epi)
     for batch in iterator:
@@ -179,6 +183,7 @@ def train(traj, pol, vf,
         vf_loss = update_vf(vf, optim_vf, batch)
         vf_losses.append(vf_loss)
 
-    logger.log("Optimization finished!")
+    if log_enable:
+        logger.log("Optimization finished!")
 
     return dict(PolLoss=pol_losses, VfLoss=vf_losses)
