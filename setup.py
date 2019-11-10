@@ -20,7 +20,7 @@ install_requires = [
     'numpy>=1.14',
     'terminaltables',
     'pandas',
-    'ray[debug]==0.7.2',
+    'ray[debug]>=0.7.2',
 ]
 
 setup(
