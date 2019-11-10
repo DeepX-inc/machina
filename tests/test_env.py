@@ -9,7 +9,11 @@ import numpy as np
 import torch
 from torch import nn
 
-from gym.wrappers import FlattenDictWrapper
+try:
+    from gym.wrappers import FlattenDictWrapper
+except:
+    # gym 0.15.4 remove FlattendDictWrapper
+    from gym.wrappers import FilterObservation, FlattenObservation
 from machina.envs import GymEnv, C2DEnv, flatten_to_dict
 from simple_net import PolDictNet, VNet, QNet, VNetLSTM, PolNetDictLSTM, QNetLSTM
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc
@@ -27,6 +31,12 @@ register(
 )
 
 
+def _make_flat(*args, **kargs):
+    if "FlattenDictWrapper" in dir():
+        return FlattenDictWrapper(*args, **kargs)
+    return FlattenObservation(FilterObservation(*args, **kargs))
+
+
 def test_continuous2discrete():
     continuous_env = GymEnv('Pendulum-v0', record_video=False)
     discrete_env = C2DEnv(continuous_env, n_bins=10)
@@ -42,10 +52,9 @@ def test_flatten2dict():
     dict_env = GymEnv(dict_env)
     dict_ob = dict_env.observation_space.sample()
     dict_observation_space = dict_env.observation_space
-    env = FlattenDictWrapper(
-        dict_env, dict_env.observation_space.spaces.keys())
+    dict_keys = dict_env.observation_space.spaces.keys()
+    env = _make_flat(dict_env, dict_keys)
     flatten_ob = env.observation(dict_ob)
-    dict_keys = env.dict_keys
     recovered_dict_ob = flatten_to_dict(
         flatten_ob, dict_observation_space, dict_keys)
     tf = []
@@ -59,7 +68,7 @@ class TestFlatten2DictPP0(unittest.TestCase):
     def setUp(self):
         dict_env = gym.make('PendulumDictEnv-v0')
         self.dict_observation_space = dict_env.observation_space
-        env = FlattenDictWrapper(
+        env = _make_flat(
             dict_env, dict_env.observation_space.spaces.keys())
         self.env = GymEnv(env)
 
@@ -130,7 +139,7 @@ class TestFlatten2DictSAC(unittest.TestCase):
     def setUp(self):
         dict_env = gym.make('PendulumDictEnv-v0')
         self.dict_observation_space = dict_env.observation_space
-        env = FlattenDictWrapper(
+        env = _make_flat(
             dict_env, dict_env.observation_space.spaces.keys())
         self.env = GymEnv(env)
 
@@ -192,7 +201,7 @@ class TestFlatten2DictR2D2SAC(unittest.TestCase):
     def setUp(self):
         dict_env = gym.make('PendulumDictEnv-v0')
         self.dict_observation_space = dict_env.observation_space
-        env = FlattenDictWrapper(
+        env = _make_flat(
             dict_env, dict_env.observation_space.spaces.keys())
         self.env = GymEnv(env)
 
